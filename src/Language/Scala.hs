@@ -46,6 +46,7 @@ import           Data.Aeson.Types          (Parser, explicitParseField,
                                             listParser, typeMismatch)
 import           Data.Foldable             (asum)
 import           Data.Int                  (Int16, Int32, Int64, Int8)
+import           Data.Scientific           (Scientific)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
 import           Data.Text.Prettyprint.Doc (semi, Doc, Pretty (..), brackets, comma,
@@ -411,8 +412,8 @@ instance FromJSON Pat where
 data Lit
   = LitNull
   | LitInt Int32
-  | LitDouble Text
-  | LitFloat Text
+  | LitDouble Scientific
+  | LitFloat Scientific
   | LitByte Int8
   | LitShort Int16
   --- | LitChar Word16
@@ -453,10 +454,35 @@ parseLit t o =
     "Lit.Null" ->
       pure LitNull
     "Lit.Int" ->
-      lift (
-        LitInt
-          <$> o .: "value"
-      )
+      lift
+        ( LitInt
+            <$> o .: "value"
+        )
+    "Lit.Double" ->
+      lift
+        ( LitDouble
+            <$> o .: "value"
+        )
+    "Lit.Float" ->
+      lift
+        ( LitFloat
+            <$> o .: "value"
+        )
+    "Lit.Byte" ->
+      lift
+        ( LitByte
+            <$> o .: "value"
+        )
+    "Lit.Short" ->
+      lift
+        ( LitShort
+            <$> o .: "value"
+        )
+    "Lit.Long" ->
+      lift
+        ( LitLong
+            <$> o .: "value"
+        )
     "Lit.Boolean" ->
       lift (
         LitBoolean
