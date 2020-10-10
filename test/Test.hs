@@ -1,24 +1,22 @@
 module Main where
 
-import Language.Scala.Parser
-import Language.Scala.Parser.ScalaParserT
-
-import Data.Functor
-import System.IO
-import Test.Tasty
-import Test.Tasty.Golden
+import Data.Aeson (eitherDecodeFileStrict)
+import Language.Scala (Source)
+import Test.Tasty (TestTree, defaultMain, testGroup)
+import Test.Tasty.Golden (findByExtension, goldenVsString)
+import Data.Text.Prettyprint.Doc (Pretty(pretty))
+import qualified Data.ByteString.Lazy.Char8 as BS
 
 main :: IO ()
-main = tests >>= defaultMain
+main =
+  tests >>= defaultMain
 
-parseTest :: FilePath -> TestTree
-parseTest f = goldenVsFile f expected actual action
-    where
-      expected = f ++ ".expected"
-      actual = f ++ ".actual"
-      action = do
-        ast <- parseFromFile compilationUnit f
-        writeFile actual (show ast)
+prettyTest :: FilePath -> TestTree
+prettyTest f =
+  goldenVsString f (f ++ ".golden.scala") $ do
+    parsed <- eitherDecodeFileStrict f :: IO (Either String Source)
+    pure (BS.pack (either error (show . pretty) parsed))
 
 tests :: IO TestTree
-tests = testGroup "Tests" . map parseTest <$> findByExtension [".scala"] "test"
+tests =
+  testGroup "Tests" . map prettyTest <$> findByExtension [".json"] "test"

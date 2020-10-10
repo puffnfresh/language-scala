@@ -1,1 +1,0 @@
-Just [Packaging ["scalaz","syntax"],TmplDef (TraitDef "Ops" ["A"] (TemplateBody [TemplateStatDcl (DclDef "self" [] [])]))]
