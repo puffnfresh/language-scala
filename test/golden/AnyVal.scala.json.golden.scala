@@ -44,10 +44,10 @@ package scalaz {
         override def shows(f : Boolean) =
           f.toString
         def order(x : Boolean, y : Boolean) =
-          if ((x < y))
+          if (((x) < y))
             Ordering.LT
           else
-            if ((x == y))
+            if (((x) == y))
               Ordering.EQ
             else
               Ordering.GT
@@ -56,12 +56,12 @@ package scalaz {
         def pred(b : Boolean) =
           !b
         override def succn(n : Int, b : Boolean) =
-          if (((n % 2) == 0))
+          if (((((n) % 2)) == 0))
             b
           else
             !b
         override def predn(n : Int, b : Boolean) =
-          if (((n % 2) == 0))
+          if (((((n) % 2)) == 0))
             b
           else
             !b
@@ -84,7 +84,7 @@ package scalaz {
          with Band[(Boolean @@ Disjunction)] {
           def append( f1 : (Boolean @@ Disjunction)
           , f2 : => (Boolean @@ Disjunction) ) =
-            Disjunction((Tag.unwrap(f1) || Tag.unwrap(f2)))
+            Disjunction(((Tag.unwrap(f1)) || Tag.unwrap(f2)))
           def zero : (Boolean @@ Disjunction) =
             Disjunction(false)
           def order( a1 : (Boolean @@ Disjunction)
@@ -107,16 +107,18 @@ package scalaz {
             {
               val f0 =
                 Disjunction.unsubst[λ[(x) => (S) => Maybe[(x, S)]], Boolean](f)
+            
               @tailrec def go(s : S) : Boolean =
                 f0(s) match {
                   case Just ((b, s)) =>
-                    (b || go(s))
+                    ((b) || go(s))
                   case _ =>
                     false
                 }
-              (f0(s) map {
+            
+              ((f0(s)) map {
                 case (b, s) =>
-                  Disjunction((b || go(s)))
+                  Disjunction(((b) || go(s)))
               })
             }
           override def unfoldlSumOpt[S](s : S)( f : (S) => Maybe[ ( S
@@ -124,16 +126,18 @@ package scalaz {
             {
               val f0 =
                 Disjunction.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Boolean](f)
+            
               @tailrec def go(s : S) : Boolean =
                 f0(s) match {
                   case Just ((s, b)) =>
-                    (b || go(s))
+                    ((b) || go(s))
                   case _ =>
                     false
                 }
-              (f0(s) map {
+            
+              ((f0(s)) map {
                 case (s, b) =>
-                  Disjunction((b || go(s)))
+                  Disjunction(((b) || go(s)))
               })
             }
         }
@@ -143,7 +147,7 @@ package scalaz {
          with Band[(Boolean @@ Conjunction)] {
           def append( f1 : (Boolean @@ Conjunction)
           , f2 : => (Boolean @@ Conjunction) ) =
-            Conjunction((Tag.unwrap(f1) && Tag.unwrap(f2)))
+            Conjunction(((Tag.unwrap(f1)) && Tag.unwrap(f2)))
           def zero : (Boolean @@ Conjunction) =
             Conjunction(true)
           def order( a1 : (Boolean @@ Conjunction)
@@ -166,16 +170,18 @@ package scalaz {
             {
               val f0 =
                 Conjunction.unsubst[λ[(x) => (S) => Maybe[(x, S)]], Boolean](f)
+            
               @tailrec def go(s : S) : Boolean =
                 f0(s) match {
                   case Just ((b, s)) =>
-                    (b && go(s))
+                    ((b) && go(s))
                   case _ =>
                     true
                 }
-              (f0(s) map {
+            
+              ((f0(s)) map {
                 case (b, s) =>
-                  Conjunction((b && go(s)))
+                  Conjunction(((b) && go(s)))
               })
             }
           override def unfoldlSumOpt[S](s : S)( f : (S) => Maybe[ ( S
@@ -183,16 +189,18 @@ package scalaz {
             {
               val f0 =
                 Conjunction.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Boolean](f)
+            
               @tailrec def go(s : S) : Boolean =
                 f0(s) match {
                   case Just ((s, b)) =>
-                    (b && go(s))
+                    ((b) && go(s))
                   case _ =>
                     true
                 }
-              (f0(s) map {
+            
+              ((f0(s)) map {
                 case (s, b) =>
-                  Conjunction((b && go(s)))
+                  Conjunction(((b) && go(s)))
               })
             }
         }
@@ -203,25 +211,25 @@ package scalaz {
           override def shows(f : Byte) =
             f.toString
           def append(f1 : Byte, f2 : => Byte) =
-            (f1 + f2).toByte
+            ((f1) + f2).toByte
           def zero : Byte =
             0
           def order(x : Byte, y : Byte) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
           def succ(b : Byte) =
-            (b + 1).toByte
+            ((b) + 1).toByte
           def pred(b : Byte) =
-            (b - 1).toByte
+            ((b) - 1).toByte
           override def succn(a : Int, b : Byte) =
-            (b + a).toByte
+            ((b) + a).toByte
           override def predn(a : Int, b : Byte) =
-            (b - a).toByte
+            ((b) - a).toByte
           override def min =
             Some(Byte.MinValue)
           override def max =
@@ -235,7 +243,7 @@ package scalaz {
          with Enum[(Byte @@ Multiplication)] {
           def append( f1 : (Byte @@ Multiplication)
           , f2 : => (Byte @@ Multiplication) ) =
-            Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toByte)
+            Multiplication(((Tag.unwrap(f1)) * Tag.unwrap(f2)).toByte)
           def zero : (Byte @@ Multiplication) =
             Multiplication(1)
           def order( a1 : (Byte @@ Multiplication)
@@ -263,25 +271,25 @@ package scalaz {
           override def shows(f : Char) =
             f.toString
           def append(f1 : Char, f2 : => Char) =
-            (f1 + f2).toChar
+            ((f1) + f2).toChar
           def zero : Char =
             0
           def order(x : Char, y : Char) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
           def succ(b : Char) =
-            (b + 1).toChar
+            ((b) + 1).toChar
           def pred(b : Char) =
-            (b - 1).toChar
+            ((b) - 1).toChar
           override def succn(a : Int, b : Char) =
-            (b + a).toChar
+            ((b) + a).toChar
           override def predn(a : Int, b : Char) =
-            (b - a).toChar
+            ((b) - a).toChar
           override def min =
             Some(Char.MinValue)
           override def max =
@@ -294,7 +302,7 @@ package scalaz {
          with Enum[(Char @@ Multiplication)] {
           def append( f1 : (Char @@ Multiplication)
           , f2 : => (Char @@ Multiplication) ) =
-            Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toChar)
+            Multiplication(((Tag.unwrap(f1)) * Tag.unwrap(f2)).toChar)
           def zero : (Char @@ Multiplication) =
             Multiplication(1)
           def order( a1 : (Char @@ Multiplication)
@@ -322,25 +330,25 @@ package scalaz {
           override def shows(f : Short) =
             f.toString
           def append(f1 : Short, f2 : => Short) =
-            (f1 + f2).toShort
+            ((f1) + f2).toShort
           def zero : Short =
             0
           def order(x : Short, y : Short) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
           def succ(b : Short) =
-            (b + 1).toShort
+            ((b) + 1).toShort
           def pred(b : Short) =
-            (b - 1).toShort
+            ((b) - 1).toShort
           override def succn(a : Int, b : Short) =
-            (b + a).toShort
+            ((b) + a).toShort
           override def predn(a : Int, b : Short) =
-            (b - a).toShort
+            ((b) - a).toShort
           override def min =
             Some(Short.MinValue)
           override def max =
@@ -353,7 +361,7 @@ package scalaz {
          with Enum[(Short @@ Multiplication)] {
           def append( f1 : (Short @@ Multiplication)
           , f2 : => (Short @@ Multiplication) ) =
-            Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toShort)
+            Multiplication(((Tag.unwrap(f1)) * Tag.unwrap(f2)).toShort)
           def zero : (Short @@ Multiplication) =
             Multiplication(1)
           def succ(b : (Short @@ Multiplication)) =
@@ -379,25 +387,25 @@ package scalaz {
           override def shows(f : Int) =
             f.toString
           def append(f1 : Int, f2 : => Int) =
-            (f1 + f2)
+            ((f1) + f2)
           def zero : Int =
             0
           def order(x : Int, y : Int) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
           def succ(b : Int) =
-            (b + 1)
+            ((b) + 1)
           def pred(b : Int) =
-            (b - 1)
+            ((b) - 1)
           override def succn(a : Int, b : Int) =
-            (b + a)
+            ((b) + a)
           override def predn(a : Int, b : Int) =
-            (b - a)
+            ((b) - a)
           override def min =
             Some(Int.MinValue)
           override def max =
@@ -409,7 +417,7 @@ package scalaz {
         new Monoid[(Int @@ Multiplication)] with Enum[(Int @@ Multiplication)] {
           def append( f1 : (Int @@ Multiplication)
           , f2 : => (Int @@ Multiplication) ) =
-            Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)))
+            Multiplication(((Tag.unwrap(f1)) * Tag.unwrap(f2)))
           def zero : (Int @@ Multiplication) =
             Multiplication(1)
           def succ(b : (Int @@ Multiplication)) =
@@ -432,24 +440,26 @@ package scalaz {
             {
               val f0 =
                 Multiplication.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Int](f)
+            
               @tailrec def go(s : S, acc : Int) : Int =
-                if ((acc == 0))
+                if (((acc) == 0))
                   0
                 else
                   f0(s) match {
                     case Just ((s, i)) =>
-                      go(s, (i * acc))
+                      go(s, ((i) * acc))
                     case _ =>
                       acc
                   }
-              (f0(s) map {
+            
+              ((f0(s)) map {
                 case (s, i) =>
                   Multiplication(go(s, i))
               })
             }
           override def unfoldrSumOpt[ S ]( s : S )( f : ( S ) => Maybe[ ( (Int @@ Multiplication)
           , S ) ] ) =
-            unfoldlSumOpt[S](s)((f(_) map _.swap))
+            unfoldlSumOpt[S](s)(((f(_)) map _.swap))
         }
       implicit val longInstance : Monoid[Long] with Enum[Long] with Show[Long] =
         new Monoid[Long] with Enum[Long] with Show[Long] {
@@ -458,25 +468,25 @@ package scalaz {
           override def shows(f : Long) =
             f.toString
           def append(f1 : Long, f2 : => Long) =
-            (f1 + f2)
+            ((f1) + f2)
           def zero : Long =
             0L
           def order(x : Long, y : Long) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
           def succ(b : Long) =
-            (b + 1)
+            ((b) + 1)
           def pred(b : Long) =
-            (b - 1)
+            ((b) - 1)
           override def succn(a : Int, b : Long) =
-            (b + a)
+            ((b) + a)
           override def predn(a : Int, b : Long) =
-            (b - a)
+            ((b) - a)
           override def min =
             Some(Long.MinValue)
           override def max =
@@ -489,7 +499,7 @@ package scalaz {
          with Enum[(Long @@ Multiplication)] {
           def append( f1 : (Long @@ Multiplication)
           , f2 : => (Long @@ Multiplication) ) =
-            Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)))
+            Multiplication(((Tag.unwrap(f1)) * Tag.unwrap(f2)))
           def zero : (Long @@ Multiplication) =
             Multiplication(1)
           def succ(b : (Long @@ Multiplication)) =
@@ -517,10 +527,10 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
           def order(x : Float, y : Float) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
@@ -534,10 +544,10 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
           def order(x : Double, y : Double) =
-            if ((x < y))
+            if (((x) < y))
               Ordering.LT
             else
-              if ((x == y))
+              if (((x) == y))
                 Ordering.EQ
               else
                 Ordering.GT
@@ -546,21 +556,21 @@ package scalaz {
   
     trait BooleanFunctions  {
       final def conjunction(p : Boolean, q : => Boolean) : Boolean =
-        (p && q)
+        ((p) && q)
       final def disjunction(p : Boolean, q : => Boolean) : Boolean =
-        (p || q)
+        ((p) || q)
       final def nor(p : Boolean, q : => Boolean) : Boolean =
-        !(p || q)
+        !((p) || q)
       final def nand(p : Boolean, q : => Boolean) : Boolean =
-        !(p && q)
+        !((p) && q)
       final def conditional(p : Boolean, q : => Boolean) : Boolean =
-        (!p || q)
+        ((!p) || q)
       final def inverseConditional(p : Boolean, q : => Boolean) : Boolean =
-        (p || !q)
+        ((p) || !q)
       final def negConditional(p : Boolean, q : => Boolean) : Boolean =
-        (p && !q)
+        ((p) && !q)
       final def negInverseConditional(p : Boolean, q : => Boolean) : Boolean =
-        (!p && q)
+        ((!p) && q)
       final def unless(cond : Boolean)(f : => Unit) : Unit =
         if (!cond)
           f
@@ -638,7 +648,7 @@ package scalaz {
   
     trait IntFunctions  {
       def heaviside(i : Int) : Int =
-        if ((i < 0))
+        if (((i) < 0))
           0
         else
           1
@@ -646,7 +656,7 @@ package scalaz {
   
     trait ShortFunctions  {
       def heaviside(i : Short) : Short =
-        if ((i < 0))
+        if (((i) < 0))
           0
         else
           1
@@ -654,7 +664,7 @@ package scalaz {
   
     trait LongFunctions  {
       def heaviside(i : Long) : Long =
-        if ((i < 0))
+        if (((i) < 0))
           0
         else
           1
@@ -662,7 +672,7 @@ package scalaz {
   
     trait DoubleFunctions  {
       def heaviside(i : Double) : Double =
-        if ((i < 0))
+        if (((i) < 0))
           0
         else
           1.0
@@ -670,7 +680,7 @@ package scalaz {
   
     trait FloatFunctions  {
       def heaviside(i : Float) : Float =
-        if ((i < 0))
+        if (((i) < 0))
           0
         else
           1.0f

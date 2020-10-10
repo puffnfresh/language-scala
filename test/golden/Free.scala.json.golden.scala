@@ -12,6 +12,7 @@ package scalaz {
       {
         val a =
           r.run
+      
         return_(a)
       }
     def return_[S[_], A](value : => A)(implicit S : Applicative[S]) : Free[ S
@@ -65,7 +66,7 @@ package scalaz {
     final def map[B](f : (A) => B) : Free[S, B] =
       flatMap(((a) => Return(f(a))))
     final def >>=[B](f : (A) => Free[S, B]) : Free[S, B] =
-      (this flatMap f)
+      ((this) flatMap f)
     final def flatMap[B](f : (A) => Free[S, B]) : Free[S, B] =
       Gosub(this, f)
     final def fold[B]( r : (A) => B
@@ -134,6 +135,7 @@ package scalaz {
             case \/- (r) =>
               r
           }
+      
         go2(this)
       }
     final def runM[M[_]]( f : (S[Free[S, A]]) => M[ Free[ S
@@ -146,6 +148,7 @@ package scalaz {
             case \/- (r) =>
               Monad[M].pure(r)
           }
+      
         runM2(this)
       }
     final def runRecM[M[_]]( f : (S[Free[S, A]]) => M[ Free[ S
@@ -202,7 +205,7 @@ package scalaz {
         case Suspend (s) =>
           f(s)
         case a @ Gosub (_, _) =>
-          M.bind((a.a foldMap f))(((c) => (a.f(c) foldMap f)))
+          M.bind(((a.a) foldMap f))(((c) => ((a.f(c)) foldMap f)))
       }
     final def foldMapRec[M[_]](f : (S ~> M))( implicit M : Applicative[M]
     , B : BindRec[M] ) : M[A] =
@@ -240,6 +243,7 @@ package scalaz {
               {
                 val (b1, z) =
                   f((b, sz))
+              
                 g.f(z).foldRun(b1)(f)
               }
             case _ =>
@@ -296,10 +300,11 @@ package scalaz {
         , v : Vector[B] = Vector() ) : (Vector[B], A) =
           c.resume match {
             case -\/ ((b, cont)) =>
-              go(cont, (v :+ b))
+              go(cont, ((v) :+ b))
             case \/- (r) =>
               (v, r)
           }
+      
         go(ev(this))
       }
     def drive[E, B](sink : Sink[Option[E], B])( implicit ev : (Free[ S
@@ -316,6 +321,7 @@ package scalaz {
             case (\/- (x), \/- (y)) =>
               (x, y)
           }
+      
         go(ev(this), sink)
       }
     def feed[E](ss : LazyList[E])( implicit ev : (Free[S, A] === Sink[ E
@@ -330,6 +336,7 @@ package scalaz {
             case (_, \/- (r)) =>
               r
           }
+      
         go(ev(this), ss)
       }
     def drain[E, B](source : Source[E, B])( implicit ev : (Free[ S
@@ -346,6 +353,7 @@ package scalaz {
             case (\/- (x), \/- (y)) =>
               (y, x)
           }
+      
         go(source, ev(this))
       }
     def duplicateF : Free[Free[S, *], A] =
@@ -378,7 +386,7 @@ package scalaz {
     implicit val trampolineInstance : Comonad[Trampoline] =
       new Comonad[Trampoline] {
         override def map[A, B](fa : Trampoline[A])(f : (A) => B) =
-          (fa map f)
+          ((fa) map f)
         def copoint[A](fa : Trampoline[A]) =
           fa.run
         def cobind[A, B](fa : Trampoline[A])(f : (Trampoline[A]) => B) =
@@ -426,9 +434,9 @@ package scalaz {
     implicit def freeMonad[S[_]] : Monad[Free[S, *]] with BindRec[Free[S, *]] =
       new Monad[Free[S, *]] with BindRec[Free[S, *]] {
         override def map[A, B](fa : Free[S, A])(f : (A) => B) =
-          (fa map f)
+          ((fa) map f)
         def bind[A, B](a : Free[S, A])(f : (A) => Free[S, B]) =
-          (a flatMap f)
+          ((a) flatMap f)
         def point[A](a : => A) =
           Free.point(a)
         def tailrecM[A, B](a : A)(f : (A) => Free[S, (A \/ B)]) : Free[S, B] =
@@ -455,9 +463,9 @@ package scalaz {
 
   private sealed trait FreeBind[F[_]]  extends Bind[Free[F, *]] {
     override def map[A, B](fa : Free[F, A])(f : (A) => B) =
-      (fa map f)
+      ((fa) map f)
     def bind[A, B](a : Free[F, A])(f : (A) => Free[F, B]) =
-      (a flatMap f)
+      ((a) flatMap f)
   }
 
   private sealed trait FreeFoldable[F[_]]  extends Foldable[Free[F, *]] {
@@ -469,7 +477,7 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMap(a._1)(((x) => foldMap((a._2 apply x))(f)))
+          F.foldMap(a._1)(((x) => foldMap(((a._2) apply x))(f)))
       } )
     override final def foldLeft[A, B](fa : Free[F, A], z : B)( f : ( B
     , A ) => B ) : B =
@@ -478,7 +486,7 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldLeft(a._1, z)(((b, x) => foldLeft((a._2 apply x), b)(f)))
+          F.foldLeft(a._1, z)(((b, x) => foldLeft(((a._2) apply x), b)(f)))
       } )
     override final def foldRight[A, B](fa : Free[F, A], z : => B)( f : ( A
     , => B ) => B ) : B =
@@ -487,7 +495,7 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldRight(a._1, z)(((x, b) => foldRight((a._2 apply x), b)(f)))
+          F.foldRight(a._1, z)(((x, b) => foldRight(((a._2) apply x), b)(f)))
       } )
   }
 
@@ -500,7 +508,7 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMap1(a._1)(((x) => foldMap1((a._2 apply x))(f)))
+          F.foldMap1(a._1)(((x) => foldMap1(((a._2) apply x))(f)))
       } )
     override final def foldMapRight1[A, B]( fa : Free[ F
     , A ] )(z : (A) => B)(f : (A, => B) => B) : B =
@@ -509,8 +517,8 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMapRight1( a._1 )( (( x ) => foldMapRight1( (a._2 apply x) )( z )( f )) )( (( x
-          , b ) => foldRight((a._2 apply x), b)(f)) )
+          F.foldMapRight1( a._1 )( (( x ) => foldMapRight1( ((a._2) apply x) )( z )( f )) )( (( x
+          , b ) => foldRight(((a._2) apply x), b)(f)) )
       } )
     override final def foldMapLeft1[A, B]( fa : Free[ F
     , A ] )(z : (A) => B)(f : (B, A) => B) : B =
@@ -519,8 +527,8 @@ package scalaz {
       , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
       , ( {type l[a] = B})#l ] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMapLeft1( a._1 )( (( x ) => foldMapLeft1( (a._2 apply x) )( z )( f )) )( (( b
-          , x ) => foldLeft((a._2 apply x), b)(f)) )
+          F.foldMapLeft1( a._1 )( (( x ) => foldMapLeft1( ((a._2) apply x) )( z )( f )) )( (( b
+          , x ) => foldLeft(((a._2) apply x), b)(f)) )
       } )
   }
 
@@ -528,7 +536,7 @@ package scalaz {
    with FreeFoldable[F] {
     implicit def F: Traverse[F]
     override final def map[A, B](fa : Free[F, A])(f : (A) => B) =
-      (fa map f)
+      ((fa) map f)
     override final def traverseImpl[G[_], A, B]( fa : Free[ F
     , A ] )(f : (A) => G[B])(implicit G : Applicative[G]) : G[Free[F, B]] =
       fa.resume match {

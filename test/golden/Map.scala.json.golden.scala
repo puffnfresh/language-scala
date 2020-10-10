@@ -11,7 +11,7 @@ package scalaz {
     import ==>>.{_}
     val size: Int
     def isEmpty : Boolean =
-      (this == empty)
+      ((this) == empty)
     def +(a : (A, B))(implicit o : Order[A]) : (A ==>> B) =
       insert(a._1, a._2)
     def insert(kx : A, x : B)(implicit n : Order[A]) : (A ==>> B) =
@@ -115,12 +115,14 @@ package scalaz {
               {
                 val (found, ll) =
                   l.updateLookupWithKey(k, f)
+              
                 (found, balanceR(kx, x, ll, r))
               }
             case GT =>
               {
                 val (found, rr) =
                   r.updateLookupWithKey(k, f)
+              
                 (found, balanceL(kx, x, l, rr))
               }
             case EQ =>
@@ -198,6 +200,7 @@ package scalaz {
               else
                 goSome(ky, y, r)
           }
+      
         this match {
           case Tip () =>
             Maybe.empty
@@ -220,6 +223,7 @@ package scalaz {
               else
                 goSome(ky, y, l)
           }
+      
         this match {
           case Tip () =>
             Maybe.empty
@@ -246,6 +250,7 @@ package scalaz {
                   goSome(ky, y, r)
               }
           }
+      
         this match {
           case Tip () =>
             Maybe.empty
@@ -276,6 +281,7 @@ package scalaz {
                   goSome(kx, x, r)
               }
           }
+      
         this match {
           case Tip () =>
             Maybe.empty
@@ -291,9 +297,9 @@ package scalaz {
         }
       }
     def values : IList[B] =
-      foldrWithKey(IList.empty[B])(((_, x, xs) => (x :: xs)))
+      foldrWithKey(IList.empty[B])(((_, x, xs) => ((x) :: xs)))
     def keys : IList[A] =
-      foldrWithKey(IList.empty[A])(((x, _, xs) => (x :: xs)))
+      foldrWithKey(IList.empty[A])(((x, _, xs) => ((x) :: xs)))
     def keySet : ISet[A] =
       this match {
         case Tip () =>
@@ -306,13 +312,13 @@ package scalaz {
     def toIList : IList[(A, B)] =
       toAscIList
     def toAscList : List[(A, B)] =
-      foldrWithKey(List.empty[(A, B)])(((k, x, xs) => ((k, x) :: xs)))
+      foldrWithKey(List.empty[(A, B)])(((k, x, xs) => (((k, x)) :: xs)))
     def toAscIList : IList[(A, B)] =
-      foldrWithKey(IList.empty[(A, B)])(((k, x, xs) => ((k, x) :: xs)))
+      foldrWithKey(IList.empty[(A, B)])(((k, x, xs) => (((k, x)) :: xs)))
     def toDescList : List[(A, B)] =
-      foldlWithKey(List.empty[(A, B)])(((xs, k, x) => ((k, x) :: xs)))
+      foldlWithKey(List.empty[(A, B)])(((xs, k, x) => (((k, x)) :: xs)))
     def toDescIList : IList[(A, B)] =
-      foldlWithKey(IList.empty[(A, B)])(((xs, k, x) => ((k, x) :: xs)))
+      foldlWithKey(IList.empty[(A, B)])(((xs, k, x) => (((k, x)) :: xs)))
     def member(k : A)(implicit n : Order[A]) : Boolean =
       lookup(k)(n).isJust
     def notMember(k : A)(implicit n : Order[A]) : Boolean =
@@ -328,11 +334,12 @@ package scalaz {
                 case LT =>
                   go(n, l)
                 case GT =>
-                  go(((n + l.size) + 1), r)
+                  go(((((n) + l.size)) + 1), r)
                 case EQ =>
-                  just((n + l.size))
+                  just(((n) + l.size))
               }
           }
+      
         go(0, this)
       }
     @tailrec final def elemAt(i : Int) : Maybe[(A, B)] =
@@ -344,7 +351,7 @@ package scalaz {
             case LT =>
               l.elemAt(i)
             case GT =>
-              r.elemAt(((i - l.size) - 1))
+              r.elemAt(((((i) - l.size)) - 1))
             case EQ =>
               just((kx, x))
           }
@@ -358,7 +365,7 @@ package scalaz {
             case LT =>
               balanceR(kx, x, l.updateAt(i, f), r)
             case GT =>
-              balanceL(kx, x, l, r.updateAt(((i - l.size) - 1), f))
+              balanceL(kx, x, l, r.updateAt(((((i) - l.size)) - 1), f))
             case EQ =>
               f(kx, x) match {
                 case Just (y) =>
@@ -463,6 +470,7 @@ package scalaz {
           {
             val r =
               deleteFindMin(x)
+          
             just((r._1._2, r._2))
           }
       }
@@ -474,6 +482,7 @@ package scalaz {
           {
             val r =
               deleteFindMax(x)
+          
             just((r._1._2, r._2))
           }
       }
@@ -485,6 +494,7 @@ package scalaz {
           {
             val (km, r2) =
               deleteFindMax(r)
+          
             (km, balanceL(k, x, l, r2))
           }
       }
@@ -496,6 +506,7 @@ package scalaz {
           {
             val (km, l2) =
               deleteFindMin(l)
+          
             (km, balanceR(k, x, l2, r))
           }
       }
@@ -514,7 +525,9 @@ package scalaz {
         case Tip () =>
           G.point(Tip())
         case Bin (kx, x, Tip (), Tip ()) =>
-          G.apply(f(kx, x))({   ((x2) => Bin(kx, x2, Tip(), Tip())) })
+          G.apply(f(kx, x))( {
+            ((x2) => Bin(kx, x2, Tip(), Tip()))
+          } )
         case Bin (kx, x, l, r) =>
           G.apply3(l.traverseWithKey(f), f(kx, x), r.traverseWithKey(f))( {
             ((l2, x2, r2) => Bin(kx, x2, l2, r2))
@@ -532,10 +545,13 @@ package scalaz {
           {
             val (a1, l2) =
               l.mapAccumL(a)(f)
+          
             val (a2, x2) =
               f(a1, kx, x)
+          
             val (a3, r2) =
               r.mapAccumL(a2)(f)
+          
             (a3, Bin(kx, x2, l2, r2))
           }
       }
@@ -579,20 +595,24 @@ package scalaz {
             case (t1, Tip ()) =>
               t1
             case (Tip (), Bin (kx, x, l, r)) =>
-              link(kx, x, (l filterGt blo), (r filterLt bhi))
+              link(kx, x, ((l) filterGt blo), ((r) filterLt bhi))
             case (t1, Bin (kx, x, Tip (), Tip ())) =>
               insertR(kx, x, t1)
             case (Bin (kx, x, l, r), t2) =>
               {
                 val bmi =
                   just(kx)
+              
                 val nm1 =
                   hedgeUnion(blo, bmi, l, ==>>.trim(blo, bmi, t2))
+              
                 val nm2 =
                   hedgeUnion(bmi, bhi, r, ==>>.trim(bmi, bhi, t2))
+              
                 link(kx, x, nm1, nm2)
               }
           }
+      
         def insertR( kx : A
         , x : B
         , t : (A ==>> B) )(implicit o : Order[A]) : (A ==>> B) =
@@ -611,8 +631,10 @@ package scalaz {
                       m
                   }
               }
+          
             go(kx, x, t)
           }
+      
         (this, other) match {
           case (Tip (), t2) =>
             t2
@@ -642,18 +664,22 @@ package scalaz {
             case (Tip (), _) =>
               empty
             case (Bin (kx, x, l, r), Tip ()) =>
-              link(kx, x, (l filterGt blo), (r filterLt bhi))
+              link(kx, x, ((l) filterGt blo), ((r) filterLt bhi))
             case (t, Bin (kx, _, l, r)) =>
               {
                 val bmi =
                   just(kx)
+              
                 val aa =
                   hedgeDiff(blo, bmi, ==>>.trim(blo, bmi, t), l)
+              
                 val bb =
                   hedgeDiff(bmi, bhi, ==>>.trim(bmi, bhi, t), r)
-                (aa merge bb)
+              
+                ((aa) merge bb)
               }
           }
+      
         (this, other) match {
           case (Tip (), _) =>
             empty
@@ -685,16 +711,20 @@ package scalaz {
               {
                 val bmi =
                   just(kx)
+              
                 val l2 =
                   hedgeInt(blo, bmi, l, ==>>.trim(blo, bmi, t2))
+              
                 val r2 =
                   hedgeInt(bmi, bhi, r, ==>>.trim(bmi, bhi, t2))
-                if ((t2 member kx))
+              
+                if (((t2) member kx))
                   link(kx, x, l2, r2)
                 else
-                  (l2 merge r2)
+                  ((l2) merge r2)
               }
           }
+      
         (this, other) match {
           case (Tip (), _) =>
             empty
@@ -717,7 +747,7 @@ package scalaz {
       isSubmapOfBy(a, e.equal)
     def isSubmapOfBy( a : (A ==>> B)
     , f : (B, B) => Boolean )(implicit o : Order[A]) : Boolean =
-      ((size <= a.size) && submap(a, f))
+      ((((size) <= a.size)) && submap(a, f))
     private[scalaz] def submap( a : (A ==>> B)
     , f : (B, B) => Boolean )(implicit o : Order[A]) : Boolean =
       (this, a) match {
@@ -728,12 +758,13 @@ package scalaz {
         case (Bin (kx, x, l, r), t) =>
           {
             val (lt, found, gt) =
-              (t splitLookup kx)
+              ((t) splitLookup kx)
+          
             found match {
               case Empty () =>
                 false
               case Just (y) =>
-                ((f(x, y) && l.submap(lt, f)) && r.submap(gt, f))
+                ((((f(x, y)) && l.submap(lt, f))) && r.submap(gt, f))
             }
           }
       }
@@ -748,7 +779,7 @@ package scalaz {
           if (p(kx, x))
             link(kx, x, l.filterWithKey(p), r.filterWithKey(p))
           else
-            (l.filterWithKey(p) merge r.filterWithKey(p))
+            ((l.filterWithKey(p)) merge r.filterWithKey(p))
       }
     def partition(p : (B) => Boolean)(implicit o : Order[A]) : ( (A ==>> B)
     , (A ==>> B) ) =
@@ -761,13 +792,15 @@ package scalaz {
         case Bin (kx, x, l, r) =>
           {
             val (l1, l2) =
-              (l partitionWithKey p)
+              ((l) partitionWithKey p)
+          
             val (r1, r2) =
-              (r partitionWithKey p)
+              ((r) partitionWithKey p)
+          
             if (p(kx, x))
-              (link(kx, x, l1, r1), (l2 merge r2))
+              (link(kx, x, l1, r1), ((l2) merge r2))
             else
-              ((l1 merge r1), link(kx, x, l2, r2))
+              (((l1) merge r1), link(kx, x, l2, r2))
           }
       }
     def mapMaybe[C](f : (B) => Maybe[C])(implicit o : Order[A]) : (A ==>> C) =
@@ -797,13 +830,15 @@ package scalaz {
           {
             val (l1, l2) =
               l.mapEitherWithKey(f)
+          
             val (r1, r2) =
               r.mapEitherWithKey(f)
+          
             f(kx, x) match {
               case -\/ (y) =>
-                (link(kx, y, l1, r1), (l2 merge r2))
+                (link(kx, y, l1, r1), ((l2) merge r2))
               case \/- (z) =>
-                ((l1 merge r1), link(kx, z, l2, r2))
+                (((l1) merge r1), link(kx, z, l2, r2))
             }
           }
       }
@@ -817,12 +852,14 @@ package scalaz {
               {
                 val (lt, gt) =
                   l.split(k)
+              
                 (lt, link(kx, x, gt, r))
               }
             case GT =>
               {
                 val (lt, gt) =
                   r.split(k)
+              
                 (link(kx, x, l, lt), gt)
               }
             case EQ =>
@@ -840,13 +877,15 @@ package scalaz {
             case LT =>
               {
                 val (lt, z, gt) =
-                  (l splitLookup k)
+                  ((l) splitLookup k)
+              
                 (lt, z, link(kx, x, gt, r))
               }
             case GT =>
               {
                 val (lt, z, gt) =
-                  (r splitLookup k)
+                  ((r) splitLookup k)
+              
                 (link(kx, x, l, lt), z, gt)
               }
             case EQ =>
@@ -864,13 +903,15 @@ package scalaz {
             case LT =>
               {
                 val (lt, z, gt) =
-                  (l splitLookupWithKey k)
+                  ((l) splitLookupWithKey k)
+              
                 (lt, z, link(kx, x, gt, r))
               }
             case GT =>
               {
                 val (lt, z, gt) =
-                  (r splitLookupWithKey k)
+                  ((r) splitLookupWithKey k)
+              
                 (link(kx, x, l, lt), z, gt)
               }
             case EQ =>
@@ -891,10 +932,10 @@ package scalaz {
         case (l, Tip ()) =>
           l
         case (l @ Bin (kx, x, lx, rx), r @ Bin (ky, y, ly, ry)) =>
-          if (((delta * l.size) < r.size))
+          if (((((delta) * l.size)) < r.size))
             balanceL(ky, y, l.merge(ly), ry)
           else
-            if (((delta * r.size) < l.size))
+            if (((((delta) * r.size)) < l.size))
               balanceR(kx, x, lx, rx.merge(r))
             else
               glue(l, r)
@@ -906,16 +947,18 @@ package scalaz {
         case (l, Tip ()) =>
           l
         case (l @ Bin (_, _, _, _), r @ Bin (_, _, _, _)) =>
-          if ((l.size > r.size))
+          if (((l.size) > r.size))
             {
               val ((km, m), l2) =
                 deleteFindMax(l)
+            
               balanceR(km, m, l2, r)
             }
           else
             {
               val ((km, m), r2) =
                 deleteFindMin(r)
+            
               balanceL(km, m, l, r2)
             }
       }
@@ -948,7 +991,7 @@ package scalaz {
             case LT =>
               cmphi(kx) match {
                 case GT =>
-                  ((t lookupAssoc lo), t)
+                  (((t) lookupAssoc lo), t)
                 case _ =>
                   l.trimLookupLo(lo, cmphi)
               }
@@ -983,6 +1026,7 @@ package scalaz {
                   filter(filteringKey, r)
               }
           }
+      
         a.cata(filter(_, this), this)
       }
     private def filterLt(a : Maybe[A])(implicit o : Order[A]) : (A ==>> B) =
@@ -1001,6 +1045,7 @@ package scalaz {
                   filter(filteringKey, l)
               }
           }
+      
         a.cata(filter(_, this), this)
       }
   }
@@ -1010,7 +1055,7 @@ package scalaz {
     , B : Band[B] ) : Band[(A ==>> B)] =
       new Band[(A ==>> B)] {
         def append(a : (A ==>> B), b : => (A ==>> B)) : (A ==>> B) =
-          (a unionWith b)(B.append(_, _))
+          ((a) unionWith b)(B.append(_, _))
       }
   }
 
@@ -1019,7 +1064,7 @@ package scalaz {
     , B : SemiLattice[B] ) : SemiLattice[(A ==>> B)] =
       new SemiLattice[(A ==>> B)] {
         def append(a : (A ==>> B), b : => (A ==>> B)) : (A ==>> B) =
-          (a unionWith b)(B.append(_, _))
+          ((a) unionWith b)(B.append(_, _))
       }
   }
 
@@ -1028,7 +1073,7 @@ package scalaz {
     , * ] ] with Align[==>>[S, *]] with Zip[==>>[S, *]] =
       new Bind[==>>[S, *]] with Align[==>>[S, *]] with Zip[==>>[S, *]] {
         override def map[A, B](fa : (S ==>> A))(f : (A) => B) =
-          (fa map f)
+          ((fa) map f)
         def bind[A, B](fa : (S ==>> A))(f : (A) => (S ==>> B)) =
           fa.mapMaybeWithKey(((k, v) => f(v).lookup(k)))
         import \&/.{_}, ==>>.{Tip}
@@ -1041,7 +1086,7 @@ package scalaz {
             case (Tip (), b) =>
               b.map(That(_))
             case (a, b) =>
-              a.map( (This( _ )) : (A \&/ B) ).unionWith( b.map( (That( _ )) : (A \&/ B) ) )( {
+              a.map( ((This( _ )) : (A \&/ B)) ).unionWith( b.map( ((That( _ )) : (A \&/ B)) ) )( {
                 case (This (aa), That (bb)) =>
                   Both(aa, bb)
                 case _ =>
@@ -1057,7 +1102,7 @@ package scalaz {
             case (Tip (), b) =>
               b.map(((bb) => f(That(bb))))
             case (a, b) =>
-              a.map( (This( _ )) : (A \&/ B) ).unionWith( b.map( (That( _ )) : (A \&/ B) ) )( {
+              a.map( ((This( _ )) : (A \&/ B)) ).unionWith( b.map( ((That( _ )) : (A \&/ B)) ) )( {
                 case (This (aa), That (bb)) =>
                   Both(aa, bb)
                 case _ =>
@@ -1068,6 +1113,7 @@ package scalaz {
           {
             val a0 =
               a
+          
             if (a0.isEmpty)
               ==>>.empty
             else
@@ -1079,6 +1125,7 @@ package scalaz {
           {
             val a0 =
               a
+          
             if (a0.isEmpty)
               ==>>.empty
             else
@@ -1111,11 +1158,11 @@ package scalaz {
       }
     implicit def mapUnion[A, B]( implicit A : Order[A]
     , B : Semigroup[B] ) : Monoid[(A ==>> B)] =
-      Monoid.instance(((l, r) => (l unionWith r)(B.append(_, _))), Tip())
+      Monoid.instance(((l, r) => ((l) unionWith r)(B.append(_, _))), Tip())
     implicit def mapIntersection[A, B]( implicit A : Order[A]
     , B : Semigroup[B] ) : Semigroup[((A ==>> B) @@ Tags.Conjunction)] =
       Tag.subst( Semigroup.instance( (( l
-      , r ) => (l intersectionWith r)(B.append(_, _))) ) )
+      , r ) => ((l) intersectionWith r)(B.append(_, _))) ) )
     implicit def mapCovariant[S] : Traverse[==>>[S, *]] =
       new Traverse[==>>[S, *]] {
         override def findLeft[ A ]( fa : (S ==>> A) )( f : ( A ) => Boolean ) : Option[ A ] =
@@ -1149,7 +1196,7 @@ package scalaz {
               None
           }
         override def map[A, B](fa : (S ==>> A))(f : (A) => B) : (S ==>> B) =
-          (fa map f)
+          ((fa) map f)
         override def foldMap[ A
         , B ](fa : (S ==>> A))(f : (A) => B)(implicit F : Monoid[B]) : B =
           fa match {
@@ -1184,14 +1231,14 @@ package scalaz {
             case Tip () =>
               false
             case Bin (_, x, l, r) =>
-              ((any(l)(f) || f(x)) || any(r)(f))
+              ((((any(l)(f)) || f(x))) || any(r)(f))
           }
         override def all[A](fa : (S ==>> A))(f : (A) => Boolean) : Boolean =
           fa match {
             case Tip () =>
               true
             case Bin (_, x, l, r) =>
-              ((all(l)(f) && f(x)) && all(r)(f))
+              ((((all(l)(f)) && f(x))) && all(r)(f))
           }
       }
     implicit val mapBifoldable : Bifoldable[==>>] =
@@ -1221,7 +1268,7 @@ package scalaz {
     implicit def A: Equal[A]
     implicit def B: Equal[B]
     final override def equal(a1 : (A ==>> B), a2 : (A ==>> B)) : Boolean =
-      (Equal[Int].equal(a1.size, a2.size) && Equal[ List[ ( A
+      ((Equal[Int].equal(a1.size, a2.size)) && Equal[ List[ ( A
       , B ) ] ].equal(a1.toAscList, a2.toAscList))
   }
 
@@ -1241,7 +1288,7 @@ package scalaz {
     , l : (A ==>> B)
     , r : (A ==>> B) ) extends ==>>[A, B] {
       val size =
-        ((l.size + r.size) + 1)
+        ((((l.size) + r.size)) + 1)
     }
     final def apply[A: Order, B](x : (A, B)*) : (A ==>> B) =
       x.foldLeft(empty[A, B])(((a, c) => a.insert(c._1, c._2)))
@@ -1250,9 +1297,13 @@ package scalaz {
     final def singleton[A, B](k : A, x : B) : (A ==>> B) =
       Bin(k, x, Tip(), Tip())
     final def fromList[A: Order, B](l : List[(A, B)]) : (A ==>> B) =
-      l.foldLeft(empty[A, B])({   ((t, x) => t.insert(x._1, x._2)) })
+      l.foldLeft(empty[A, B])( {
+        ((t, x) => t.insert(x._1, x._2))
+      } )
     final def fromIList[A: Order, B](l : IList[(A, B)]) : (A ==>> B) =
-      l.foldLeft(empty[A, B])({   ((t, x) => t.insert(x._1, x._2)) })
+      l.foldLeft(empty[A, B])( {
+        ((t, x) => t.insert(x._1, x._2))
+      } )
     final def fromListWith[A: Order, B](l : List[(A, B)])( f : ( B
     , B ) => B ) : (A ==>> B) =
       fromListWithKey(l)(((_, x, y) => f(x, y)))
@@ -1315,7 +1366,7 @@ package scalaz {
             , rx
             , rl @ Bin (rlk, rlx, rll, rlr)
             , rr @ Bin (_, _, _, _) ) =>
-              if ((rl.size < (ratio * rr.size)))
+              if (((rl.size) < ((ratio) * rr.size)))
                 Bin(rk, rx, Bin(k, x, Tip(), rl), rr)
               else
                 Bin(rlk, rlx, Bin(k, x, Tip(), rll), Bin(rk, rx, rlr, rr))
@@ -1331,17 +1382,17 @@ package scalaz {
                 case (Bin (_, _, _, _), Tip ()) =>
                   Bin(lk, lx, ll, singleton(k, x))
                 case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                  if ((lr.size < (ratio * ll.size)))
+                  if (((lr.size) < ((ratio) * ll.size)))
                     Bin(lk, lx, ll, Bin(k, x, lr, Tip()))
                   else
                     Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, Tip()))
               }
             case Bin (rk, rx, rl, rr) =>
-              if ((r.size > (delta * l.size)))
+              if (((r.size) > ((delta) * l.size)))
                 {
                   (rl, rr) match {
                     case (Bin (rlk, rlx, rll, rlr), Bin (_, _, _, _)) =>
-                      if ((rl.size < (ratio * rr.size)))
+                      if (((rl.size) < ((ratio) * rr.size)))
                         Bin(rk, rx, Bin(k, x, l, rl), rr)
                       else
                         Bin(rlk, rlx, Bin(k, x, l, rll), Bin(rk, rx, rlr, rr))
@@ -1350,11 +1401,11 @@ package scalaz {
                   }
                 }
               else
-                if ((l.size > (delta * r.size)))
+                if (((l.size) > ((delta) * r.size)))
                   {
                     (ll, lr) match {
                       case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                        if ((lr.size < (ratio * ll.size)))
+                        if (((lr.size) < ((ratio) * ll.size)))
                           Bin(lk, lx, ll, Bin(k, x, lr, r))
                         else
                           Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, r))
@@ -1385,7 +1436,7 @@ package scalaz {
             , lx
             , ll @ Bin (_, _, _, _)
             , lr @ Bin (lrk, lrx, lrl, lrr) ) =>
-              if ((lr.size < (ratio * ll.size)))
+              if (((lr.size) < ((ratio) * ll.size)))
                 Bin(lk, lx, ll, Bin(k, x, lr, Tip()))
               else
                 Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, Tip()))
@@ -1395,11 +1446,11 @@ package scalaz {
             case Tip () =>
               Bin(k, x, Tip(), r)
             case Bin (lk, lx, ll, lr) =>
-              if ((l.size > (delta * r.size)))
+              if (((l.size) > ((delta) * r.size)))
                 {
                   (ll, lr) match {
                     case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                      if ((lr.size < (ratio * ll.size)))
+                      if (((lr.size) < ((ratio) * ll.size)))
                         Bin(lk, lx, ll, Bin(k, x, lr, r))
                       else
                         Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, r))
@@ -1430,7 +1481,7 @@ package scalaz {
             , rx
             , rl @ Bin (rlk, rlx, rll, rlr)
             , rr @ Bin (_, _, _, _) ) =>
-              if ((rl.size < (ratio * rr.size)))
+              if (((rl.size) < ((ratio) * rr.size)))
                 Bin(rk, rx, Bin(k, x, Tip(), rl), rr)
               else
                 Bin(rlk, rlx, Bin(k, x, Tip(), rll), Bin(rk, rx, rlr, rr))
@@ -1440,11 +1491,11 @@ package scalaz {
             case Tip () =>
               Bin(k, x, l, Tip())
             case Bin (rk, rx, rl, rr) =>
-              if ((r.size > (delta * l.size)))
+              if (((r.size) > ((delta) * l.size)))
                 {
                   (rl, rr) match {
                     case (Bin (rlk, rlx, rll, rlr), Bin (_, _, _, _)) =>
-                      if ((rl.size < (ratio * rr.size)))
+                      if (((rl.size) < ((ratio) * rr.size)))
                         Bin(rk, rx, Bin(k, x, l, rl), rr)
                       else
                         Bin(rlk, rlx, Bin(k, x, l, rll), Bin(rk, rx, rlr, rr))
@@ -1466,10 +1517,10 @@ package scalaz {
         case (l, Tip ()) =>
           insertMax(kx, x, l)
         case (Bin (ky, y, ly, ry), Bin (kz, z, lz, rz)) =>
-          if (((delta * l.size) < r.size))
+          if (((((delta) * l.size)) < r.size))
             balanceL(kz, z, link(kx, x, l, lz), rz)
           else
-            if (((delta * r.size) < l.size))
+            if (((((delta) * r.size)) < l.size))
               balanceR(ky, y, ly, link(kx, x, ry, r))
             else
               Bin(kx, x, l, r)
@@ -1503,6 +1554,7 @@ package scalaz {
                 case _ =>
                   m
               }
+          
             greater(lk, t)
           }
         case (Maybe.Empty (), Just (hk)) =>
@@ -1514,6 +1566,7 @@ package scalaz {
                 case _ =>
                   m
               }
+          
             lesser(hk, t)
           }
         case (Just (lk), Just (hk)) =>
@@ -1527,6 +1580,7 @@ package scalaz {
                 case _ =>
                   m
               }
+          
             middle(lk, hk, t)
           }
       }
@@ -1551,6 +1605,7 @@ package scalaz {
                       greater(lo, r)
                   }
               }
+          
             greater(lk, t)
           }
         case Just (hk) =>
@@ -1562,7 +1617,7 @@ package scalaz {
                   (Maybe.empty, Tip())
                 case Bin (kx, x, l, r) =>
                   o.order(lo, kx) match {
-                    case LT if (o.order(kx, hi) == LT) =>
+                    case LT if ((o.order(kx, hi)) == LT) =>
                       (l.lookup(lo), m)
                     case LT =>
                       middle(lo, hi, l)
@@ -1572,6 +1627,7 @@ package scalaz {
                       middle(lo, hi, r)
                   }
               }
+          
             @tailrec def lesser(hi : A, m : (A ==>> B)) : (A ==>> B) =
               m match {
                 case Bin (k, _, l, _) if o.greaterThanOrEqual(k, hi) =>
@@ -1579,6 +1635,7 @@ package scalaz {
                 case _ =>
                   m
               }
+          
             middle(lk, hk, t)
           }
       }
@@ -1599,23 +1656,28 @@ package scalaz {
                 {
                   val t2 =
                     link(kx, x, l.filterGt(blo)(o), r.filterLt(bhi)(o))
+                
                   g2(t2)
                 }
               case (Bin (kx, x, l, r), t2) =>
                 {
                   val bmi =
                     just(kx)
+                
                   val l2 =
                     hedgeMerge(blo, bmi, l, trim(blo, bmi, t2)(o))
+                
                   val (found, trim_t2) =
                     trimLookupLo(kx, bhi, t2)(o)
+                
                   val r2 =
                     hedgeMerge(bmi, bhi, r, trim_t2)
+                
                   found match {
                     case Maybe.Empty () =>
                       g1(singleton(kx, x)) match {
                         case Tip () =>
-                          (l2 merge r2)
+                          ((l2) merge r2)
                         case Bin (_, x2, Tip (), Tip ()) =>
                           link(kx, x2, l2, r2)
                         case _ =>
@@ -1624,7 +1686,7 @@ package scalaz {
                     case Just (x2) =>
                       f(kx, x, x2) match {
                         case Maybe.Empty () =>
-                          (l2 merge r2)
+                          ((l2) merge r2)
                         case Just (xx) =>
                           link(kx, xx, l2, r2)
                       }
@@ -1632,6 +1694,7 @@ package scalaz {
                 }
             }
           }
+      
         (a, b) match {
           case (Tip (), t2) =>
             g2(t2)

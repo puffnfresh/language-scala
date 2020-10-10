@@ -727,7 +727,7 @@ instance Pretty Term where
           then mempty
           else list (pretty <$> targs)
   pretty (TermApplyInfix lhs op targs args) =
-    parens (pretty lhs <+> pretty op <> targs' <+> args')
+    parens (parens (pretty lhs) <+> pretty op <> targs' <+> args')
     where
       targs' =
         if null targs
@@ -748,17 +748,13 @@ instance Pretty Term where
   pretty (TermLit lit) =
     pretty lit
   pretty (TermAscribe expr tpe) =
-    parens (pretty expr) <+> ":" <+> pretty tpe
+    parens (parens (pretty expr) <+> ":" <+> pretty tpe)
   pretty (TermAnnotate expr annots) =
     parens (pretty expr <> ":" <+> hsep (("@" <>) . pretty <$> annots))
   pretty (TermTuple args) =
     tupled (pretty <$> args)
   pretty (TermBlock stats) =
-    vsep
-      ( ["{"]
-          <> (indent 2 . pretty <$> stats)
-          <> ["}"]
-      )
+    encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> stats)
   pretty (TermIf cond thenp elsep) =
     vsep
       [ "if (" <> pretty cond <> ")",
@@ -996,7 +992,7 @@ instance Pretty TermRef where
   pretty (TermRefThis qual) =
     if T.null qual
       then "this"
-      else "this." <> pretty qual
+      else pretty qual <> ".this"
   pretty (TermRefSuper thisp superp) =
     thisp' <> "super" <> superp'
     where

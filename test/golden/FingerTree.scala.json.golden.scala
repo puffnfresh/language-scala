@@ -49,6 +49,7 @@ package scalaz {
       {
         implicit val nm : Reducer[FingerTree.Node[V, A], V] =
           nodeMeasure[A, V]
+      
         fold( single(measurer.unit(a), a)
         , ((v, b) => deep( measurer.cons(a, v)
         , one(a)
@@ -57,14 +58,15 @@ package scalaz {
         , ((v, pr, m, sf) => {
           val mz =
             m
+        
           pr match {
             case Four (vf, b, c, d, e) =>
               deep( measurer.cons(a, v)
               , two(a, b)
-              , (node3[V, A](c, d, e) +: mz)
+              , ((node3[V, A](c, d, e)) +: mz)
               , sf )
             case _ =>
-              deep(measurer.cons(a, v), (a +: pr), mz, sf)
+              deep(measurer.cons(a, v), ((a) +: pr), mz, sf)
           }
         }) )
       }
@@ -72,8 +74,10 @@ package scalaz {
       {
         implicit val nm : Reducer[FingerTree.Node[V, A], V] =
           nodeMeasure[A, V]
+      
         val az =
           Need(a)
+      
         fold( single(measurer.unit(az.value), az.value)
         , ((v, b) => deep( measurer.snoc(v, az.value)
         , one(b)
@@ -82,37 +86,40 @@ package scalaz {
         , ((v, pr, m, sf) => {
           val mz =
             m
+        
           sf match {
             case Four (vf, b, c, d, e) =>
               deep( measurer.snoc(v, az.value)
               , pr
-              , (mz :+ node3(b, c, d))
+              , ((mz) :+ node3(b, c, d))
               , two(e, az.value) )
             case _ =>
-              deep(measurer.snoc(v, az.value), pr, mz, (sf :+ az.value))
+              deep(measurer.snoc(v, az.value), pr, mz, ((sf) :+ az.value))
           }
         }) )
       }
     def |-:(a : A) : FingerTree[V, A] =
       fold( sys.error("Replacing first element of an empty FingerTree")
       , ((v, b) => single(a))
-      , ((v, pr, m, sf) => deep((a |-: pr), m, sf)) )
+      , ((v, pr, m, sf) => deep(((a) |-: pr), m, sf)) )
     def :-|(a : => A) : FingerTree[V, A] =
       {
         val az =
           Need(a)
+      
         fold( sys.error("Replacing last element of an empty FingerTree")
         , ((v, b) => single(az.value))
-        , ((v, pr, m, sf) => deep(pr, m, (sf :-| az.value))) )
+        , ((v, pr, m, sf) => deep(pr, m, ((sf) :-| az.value))) )
       }
     def <++>(right : => FingerTree[V, A]) : FingerTree[V, A] =
       {
         val rightz =
           Need(right)
+      
         fold( rightz.value
-        , ((v, x) => (x +: rightz.value))
+        , ((v, x) => ((x) +: rightz.value))
         , ((v1, pr1, m1, sf1) => rightz.value.fold( this
-        , ((v, x) => (this :+ x))
+        , ((v, x) => ((this) :+ x))
         , ((v2, pr2, m2, sf2) => deep( measurer.append(v1, v2)
         , pr1
         , addDigits0(m1, sf1, pr2, m2)
@@ -125,10 +132,11 @@ package scalaz {
       {
         val rightz =
           Need(right)
-        fold( (n +: rightz.value)
-        , ((v, x) => (x +: (n +: rightz.value)))
-        , ((v1, pr1, m1, sf1) => rightz.value.fold( (this :+ n)
-        , ((v, x) => ((this :+ n) :+ x))
+      
+        fold( ((n) +: rightz.value)
+        , ((v, x) => ((x) +: ((n) +: rightz.value)))
+        , ((v1, pr1, m1, sf1) => rightz.value.fold( ((this) :+ n)
+        , ((v, x) => ((((this) :+ n)) :+ x))
         , ((v2, pr2, m2, sf2) => deep( measurer.append(measurer.snoc(v1, n), v2)
         , pr1
         , addDigits1(m1, sf1, n, pr2, m2)
@@ -138,17 +146,20 @@ package scalaz {
       {
         val rightz =
           Need(right)
+      
         val n1 =
           Need(n1t)
+      
         val n2 =
           Need(n2t)
-        fold( (n1.value +: (n2.value +: rightz.value))
-        , ((v, x) => (x +: (n1.value +: (n2.value +: rightz.value))))
+      
+        fold( ((n1.value) +: ((n2.value) +: rightz.value))
+        , ((v, x) => ((x) +: ((n1.value) +: ((n2.value) +: rightz.value))))
         , (( v1
         , pr1
         , m1
-        , sf1 ) => rightz.value.fold( ((this :+ n1.value) :+ n2.value)
-        , ((v, x) => (((this :+ n1.value) :+ n2.value) :+ x))
+        , sf1 ) => rightz.value.fold( ((((this) :+ n1.value)) :+ n2.value)
+        , ((v, x) => ((((((this) :+ n1.value)) :+ n2.value)) :+ x))
         , (( v2
         , pr2
         , m2
@@ -164,20 +175,25 @@ package scalaz {
       {
         val rightz =
           Need(right)
+      
         val n1 =
           Need(n1t)
+      
         val n2 =
           Need(n2t)
+      
         val n3 =
           Need(n3t)
-        fold( (n1.value +: (n2.value +: (n3.value +: rightz.value)))
+      
+        fold( ((n1.value) +: ((n2.value) +: ((n3.value) +: rightz.value)))
         , (( v
-        , x ) => (x +: (n1.value +: (n2.value +: (n3.value +: rightz.value)))))
+        , x ) => ((x) +: ((n1.value) +: ((n2.value) +: ((n3.value) +: rightz.value)))))
         , (( v1
         , pr1
         , m1
-        , sf1 ) => rightz.value.fold( (((this :+ n1.value) :+ n2.value) :+ n3.value)
-        , ((v, x) => ((((this :+ n1.value) :+ n2.value) :+ n3.value) :+ x))
+        , sf1 ) => rightz.value.fold( ((((((this) :+ n1.value)) :+ n2.value)) :+ n3.value)
+        , (( v
+        , x ) => ((((((((this) :+ n1.value)) :+ n2.value)) :+ n3.value)) :+ x))
         , (( v2
         , pr2
         , m2
@@ -198,23 +214,28 @@ package scalaz {
       {
         val rightz =
           Need(right)
+      
         val n1 =
           Need(n1t)
+      
         val n2 =
           Need(n2t)
+      
         val n3 =
           Need(n3t)
+      
         val n4 =
           Need(n4t)
-        fold( (n1.value +: (n2.value +: (n3.value +: (n4.value +: rightz.value))))
+      
+        fold( ((n1.value) +: ((n2.value) +: ((n3.value) +: ((n4.value) +: rightz.value))))
         , (( v
-        , x ) => (x +: (n1.value +: (n2.value +: (n3.value +: (n4.value +: rightz.value))))))
+        , x ) => ((x) +: ((n1.value) +: ((n2.value) +: ((n3.value) +: ((n4.value) +: rightz.value))))))
         , (( v1
         , pr1
         , m1
-        , sf1 ) => rightz.value.fold( ((((this :+ n1.value) :+ n2.value) :+ n3.value) :+ n4.value)
+        , sf1 ) => rightz.value.fold( ((((((((this) :+ n1.value)) :+ n2.value)) :+ n3.value)) :+ n4.value)
         , (( v
-        , x ) => (((((this :+ n1.value) :+ n2.value) :+ n3.value) :+ n4.value) :+ x))
+        , x ) => ((((((((((this) :+ n1.value)) :+ n2.value)) :+ n3.value)) :+ n4.value)) :+ x))
         , (( v2
         , pr2
         , m2
@@ -286,8 +307,10 @@ package scalaz {
       {
         val x =
           Need(xt)
+      
         val m2 =
           Need(m2t)
+      
         d1 match {
           case One (_, a) =>
             d2 match {
@@ -362,10 +385,13 @@ package scalaz {
       {
         val x =
           Need(xt)
+      
         val y =
           Need(yt)
+      
         val m2 =
           Need(m2t)
+      
         d1 match {
           case One (_, a) =>
             d2 match {
@@ -454,12 +480,16 @@ package scalaz {
       {
         val x =
           Need(xt)
+      
         val y =
           Need(yt)
+      
         val z =
           Need(zt)
+      
         val m2 =
           Need(m2t)
+      
         d1 match {
           case One (_, a) =>
             d2 match {
@@ -564,14 +594,19 @@ package scalaz {
       {
         val x =
           Need(xt)
+      
         val y =
           Need(yt)
+      
         val z =
           Need(zt)
+      
         val w =
           Need(wt)
+      
         val m2 =
           Need(m2t)
+      
         d1 match {
           case One (_, a) =>
             d2 match {
@@ -678,7 +713,8 @@ package scalaz {
           {
             val (l, x, r) =
               split1(pred)
-            (l, (x +: r))
+          
+            (l, ((x) +: r))
           }
         case _ =>
           (this, empty)
@@ -696,28 +732,34 @@ package scalaz {
       , ((v, pr, m, sf) => {
         val accVpr =
           accV.map(measurer.append(_, pr.measure)).getOrElse(pr.measure)
+      
         if (pred(accVpr))
           {
             val (l, x, r) =
               pr.split1(pred, accV)
+          
             (cata(l)(_.toTree, empty), x, deepL(r, m, sf))
           }
         else
           {
             val accVm =
               mappendVal(accVpr, m)
+          
             if (pred(accVm))
               {
                 val (ml, xs, mr) =
                   m.split1(pred, Just(accVpr))
+              
                 val (l, x, r) =
                   xs.split1(pred, mappendVal(accVpr, ml))
+              
                 (deepR(pr, ml, l), x, deepL(r, mr, sf))
               }
             else
               {
                 val (l, x, r) =
                   sf.split1(pred, Just(accVm))
+              
                 (deepR(pr, m, l), x, cata(r)(_.toTree, empty))
               }
           }
@@ -754,21 +796,25 @@ package scalaz {
     , B ] =
       {
         import r.{semigroup}
+      
         implicit val nm : Reducer[FingerTree.Node[V2, B], V2] =
           nodeMeasure[B, V2]
+      
         fold( empty[V2, B]
         , ((v, x) => single(f(x)))
-        , ((v, pr, mt, sf) => deep( (pr map f)
+        , ((v, pr, mt, sf) => deep( ((pr) map f)
         , mt.map(((x) => x.map(f)))
-        , (sf map f) )) )
+        , ((sf) map f) )) )
       }
     def traverseTree[F[_], V2, B](f : (A) => F[B])( implicit ms : Reducer[B, V2]
     , F : Applicative[F] ) : F[FingerTree[V2, B]] =
       {
         import ms.{semigroup}
+      
         def mkDeep(pr : Finger[V2, B])( m : FingerTree[ V2
         , Node[V2, B] ] )(sf : Finger[V2, B]) : FingerTree[V2, B] =
           deep(pr, m, sf)
+      
         fold( F.pure(FingerTree.empty[V2, B])
         , ((v, a) => F.map(f(a))(((a) => single(ms.unit(a), a))))
         , ((v, pr, m, sf) => {
@@ -776,6 +822,7 @@ package scalaz {
             F.apply2( traverseFinger(pr)(f)
             , m.traverseTree(((n) => traverseNode(n)(f))) )( (( a
             , b ) => mkDeep(a)(b) _) )
+        
           F.ap(traverseFinger(sf)(f))(fmap2)
         }) )
       }
@@ -785,6 +832,7 @@ package scalaz {
       {
         def mkNode(x : B)(y : B)(z : B) : Node[V2, B] =
           node3(x, y, z)
+      
         node.fold( ((v, a, b) => F.apply2(f(a), f(b))(((x, y) => node2(x, y))))
         , (( v
         , a
@@ -797,10 +845,13 @@ package scalaz {
       {
         def mkTwo(x : B)(y : B) : Finger[V2, B] =
           two(x, y)
+      
         def mkThree(x : B)(y : B)(z : B) : Finger[V2, B] =
           three(x, y, z)
+      
         def mkFour(w : B)(x : B)(y : B)(z : B) : Finger[V2, B] =
           four(w, x, y, z)
+      
         digit match {
           case One (v, a) =>
             F.map(f(a))(((x) => one(x)))
@@ -815,11 +866,14 @@ package scalaz {
     def foreach(f : (A) => Unit) : Unit =
       {
         fold( {
+        
         }
         , ((_, x) => f(x))
         , ((_, pr, m, sf) => {
           pr.foreach(f)
+        
           m.foreach(_.foreach(f))
+        
           sf.foreach(f)
         }) )
       }
@@ -829,14 +883,14 @@ package scalaz {
       , (( _
       , pr
       , m
-      , sf ) => ((pr.iterator ++ m.iterator.flatMap( _.iterator )) ++ sf.iterator)) )
+      , sf ) => ((((pr.iterator) ++ m.iterator.flatMap( _.iterator ))) ++ sf.iterator)) )
     def reverseIterator : Iterator[A] =
       fold( Iterator.empty
       , ((_, x) => Iterator.single(x))
       , (( _
       , pr
       , m
-      , sf ) => ((sf.reverseIterator ++ m.reverseIterator.flatMap( _.reverseIterator )) ++ pr.reverseIterator)) )
+      , sf ) => ((((sf.reverseIterator) ++ m.reverseIterator.flatMap( _.reverseIterator ))) ++ pr.reverseIterator)) )
     def toLazyList : LazyList[A] =
       to[LazyList]
     def toList : List[A] =
@@ -851,8 +905,10 @@ package scalaz {
       {
         val showV =
           Show.showFromToString[V]
+      
         val showA =
           Show.showFromToString[A]
+      
         fingerTreeShow(showV, showA).shows(this)
       }
   }
@@ -884,9 +940,9 @@ package scalaz {
     implicit def nodeFoldable[V] : Foldable[Node[V, *]] =
       new Foldable[Node[V, *]] {
         def foldMap[A, M: Monoid](t : Node[V, A])(f : (A) => M) : M =
-          (t foldMap f)
+          ((t) foldMap f)
         def foldRight[A, B](v : Node[V, A], z : => B)(f : (A, => B) => B) : B =
-          (foldMap(v)(((a : A) => Endo.endoByName[B](f(a, _)))) apply z)
+          ((foldMap(v)(((a : A) => Endo.endoByName[B](f(a, _))))) apply z)
       }
     implicit def fingerTreeFoldable[V] : Foldable[FingerTree[V, *]] =
       new Foldable[FingerTree[V, *]] {
@@ -894,7 +950,7 @@ package scalaz {
         , A ) => B ) =
           t.foldLeft(b)(f)
         def foldMap[A, M: Monoid](t : FingerTree[V, A])(f : (A) => M) : M =
-          (t foldMap f)
+          ((t) foldMap f)
         override def foldRight[A, B](t : FingerTree[V, A], z : => B)( f : ( A
         , => B ) => B ) =
           t.foldRight(z)(f)
@@ -903,7 +959,7 @@ package scalaz {
     , A ] ] =
       new Monoid[FingerTree[V, A]] {
         def append(f1 : FingerTree[V, A], f2 : => FingerTree[V, A]) =
-          (f1 <++> f2)
+          ((f1) <++> f2)
         def zero =
           empty
       }
@@ -995,7 +1051,7 @@ package scalaz {
     , V ] ) : Node[V, A] =
       Node3[V, A](measure.snoc(measure.snoc(measure.unit(a), b), c), a, b, c)
     def mappendVal[V: Semigroup, A](v : V, t : FingerTree[V, A]) : V =
-      t.fold(v, ((vt, _) => (v |+| vt)), ((vt, _, _, _) => (v |+| vt)))
+      t.fold(v, ((vt, _) => ((v) |+| vt)), ((vt, _, _, _) => ((v) |+| vt)))
     def empty[V, A](implicit ms : Reducer[A, V]) : FingerTree[V, A] =
       new FingerTree[V, A] {
         def fold[B]( b : => B
@@ -1023,8 +1079,10 @@ package scalaz {
     , sf : Finger[V, A] )(implicit r : Reducer[A, V]) : FingerTree[V, A] =
       {
         import r.{semigroup}
+      
         val measure =
           fingerMeasure[A, V]
+      
         deep(measure.snoc(mappendVal(measure.unit(pr), m), sf), pr, m, sf)
       }
     def deep[V: Reducer[A, *], A]( v : V
@@ -1064,8 +1122,9 @@ package scalaz {
     , sf : Finger[V, A] )(implicit r : Reducer[A, V]) : FingerTree[V, A] =
       {
         import r.{semigroup}
+      
         m.viewl.fold( sf.toTree
-        , ((a, mm) => deep( m.measure.cata((_ |+| sf.measure), sf.measure)
+        , ((a, mm) => deep( m.measure.cata(((_) |+| sf.measure), sf.measure)
         , a.toDigit
         , mm
         , sf )) )
@@ -1075,6 +1134,7 @@ package scalaz {
     , V ] ) : FingerTree[V, A] =
       {
         import r.{semigroup}
+      
         m.viewr.fold( pr.toTree
         , ((mm, a) => deep(mappendVal(pr.measure, m), pr, mm, a.toDigit)) )
       }
@@ -1188,6 +1248,7 @@ package scalaz {
       def foreach(f : (A) => Unit) : Unit =
         {
           f(a1)
+        
           f(a2)
         }
       def iterator =
@@ -1200,8 +1261,10 @@ package scalaz {
         {
           val va1 =
             r.unit(a1)
+        
           val accVa1 =
-            accV.cata((_ |+| va1), va1)
+            accV.cata(((_) |+| va1), va1)
+        
           if (pred(accVa1))
             (None, a1, Some(one(a2)))
           else
@@ -1240,7 +1303,9 @@ package scalaz {
       def foreach(f : (A) => Unit) : Unit =
         {
           f(a1)
+        
           f(a2)
+        
           f(a3)
         }
       def iterator =
@@ -1253,14 +1318,17 @@ package scalaz {
         {
           val va1 =
             r.unit(a1)
+        
           val accVa1 =
-            accV.cata((_ |+| va1), va1)
+            accV.cata(((_) |+| va1), va1)
+        
           if (pred(accVa1))
             (None, a1, Some(two(a2, a3)))
           else
             {
               val accVa2 =
                 r.snoc(accVa1, a2)
+            
               if (pred(accVa2))
                 (Some(One(va1, a1)), a2, Some(one(a3)))
               else
@@ -1301,8 +1369,11 @@ package scalaz {
       def foreach(f : (A) => Unit) : Unit =
         {
           f(a1)
+        
           f(a2)
+        
           f(a3)
+        
           f(a4)
         }
       def iterator =
@@ -1315,20 +1386,24 @@ package scalaz {
         {
           val va1 =
             r.unit(a1)
+        
           val accVa1 =
-            accV.cata((_ |+| va1), va1)
+            accV.cata(((_) |+| va1), va1)
+        
           if (pred(accVa1))
             (None, a1, Some(three(a2, a3, a4)))
           else
             {
               val accVa2 =
                 r.snoc(accVa1, a2)
+            
               if (pred(accVa2))
                 (Some(One(va1, a1)), a2, Some(two(a3, a4)))
               else
                 {
                   val accVa3 =
                     r.snoc(accVa2, a3)
+                
                   if (pred(accVa3))
                     (Some(two(a1, a2)), a3, Some(one(a4)))
                   else
@@ -1354,11 +1429,14 @@ package scalaz {
         {
           fold( ((_, a1, a2) => {
             f(a1)
+          
             f(a2)
           })
           , ((_, a1, a2, a3) => {
             f(a1)
+          
             f(a2)
+          
             f(a3)
           }) )
         }
@@ -1373,8 +1451,10 @@ package scalaz {
         fold( ((v, a1, a2) => {
           val va1 =
             r.unit(a1)
+        
           val accVa1 =
             r.append(accV, va1)
+        
           if (pred(accVa1))
             (None, a1, Some(one(a2)))
           else
@@ -1383,14 +1463,17 @@ package scalaz {
         , ((v, a1, a2, a3) => {
           val va1 =
             r.unit(a1)
+        
           val accVa1 =
             r.append(accV, va1)
+        
           if (pred(accVa1))
             (None, a1, Some(two(a2, a3)))
           else
             {
               val accVa2 =
                 r.snoc(accVa1, a2)
+            
               if (pred(accVa2))
                 (Some(One(va1, a1)), a2, Some(one(a3)))
               else
@@ -1406,25 +1489,27 @@ package scalaz {
     private implicit def sizer[A] : Reducer[A, Int] =
       UnitReducer(((_ : A) => 1))
     def apply(i : Int) : A =
-      self.split( (_ > i) )._2.viewl.headOption.getOrElse( sys.error( ((("Index " + i) + " > ") + self.measure) ) )
+      self.split( ((_) > i) )._2.viewl.headOption.getOrElse( sys.error( (((((("Index ") + i)) + " > ")) + self.measure) ) )
     def replace(i : Int, a : => A) : IndSeq[A] =
       {
         val (l, r) =
-          self.split((_ > i))
-        indSeq((l <++> (a |-: r)))
+          self.split(((_) > i))
+      
+        indSeq(((l) <++> ((a) |-: r)))
       }
     def split(i : Int) : (IndSeq[A], IndSeq[A]) =
       {
         val (l, r) =
-          self.split((_ > i))
+          self.split(((_) > i))
+      
         (indSeq(l), indSeq(r))
       }
     def ++(xs : IndSeq[A]) : IndSeq[A] =
-      indSeq((self <++> xs.self))
+      indSeq(((self) <++> xs.self))
     def :+(x : => A) : IndSeq[A] =
-      indSeq((self :+ x))
+      indSeq(((self) :+ x))
     def +:(x : A) : IndSeq[A] =
-      indSeq((x +: self))
+      indSeq(((x) +: self))
     def length : Int =
       self.measure.getOrElse(0)
     def tail : IndSeq[A] =
@@ -1436,11 +1521,11 @@ package scalaz {
     def take(n : Int) : IndSeq[A] =
       split(n)._1
     def map[B](f : (A) => B) : IndSeq[B] =
-      indSeq((self map f))
+      indSeq(((self) map f))
     import FingerTree.{fingerTreeFoldable}
     def flatMap[B](f : (A) => IndSeq[B]) : IndSeq[B] =
       indSeq( fingerTreeFoldable.foldLeft(self, empty[Int, B])( (( ys
-      , x ) => (ys <++> f(x).self)) ) )
+      , x ) => ((ys) <++> f(x).self)) ) )
   }
 
   object IndSeq extends IndSeqInstances {
@@ -1451,7 +1536,7 @@ package scalaz {
       fromSeq(as)
     def fromSeq[A](as : Seq[A]) : IndSeq[A] =
       indSeq( as.foldLeft(empty[Int, A](UnitReducer(((a) => 1))))( (( x
-      , y ) => (x :+ y)) ) )
+      , y ) => ((x) :+ y)) ) )
   }
 
   sealed abstract class IndSeqInstances  {
@@ -1475,14 +1560,16 @@ package scalaz {
         , B ](fa : IndSeq[A])(f : (A) => G[B])(implicit G : Applicative[G]) =
           {
             import std.anyVal.{_}
+          
             implicit val r : Reducer[B, Int] =
               UnitReducer(((_ : B) => 1))
+          
             G.map(fa.self.traverseTree(f))(new IndSeq(_))
           }
         override def length[A](fa : IndSeq[A]) =
           fa.length
         override def index[A](fa : IndSeq[A], i : Int) =
-          if (((0 <= i) && (i < fa.length)))
+          if (((((0) <= i)) && ((i) < fa.length)))
             Some(fa(i))
           else
             None
@@ -1493,11 +1580,11 @@ package scalaz {
         def point[A](a : => A) =
           IndSeq(a)
         def bind[A, B](fa : IndSeq[A])(f : (A) => IndSeq[B]) =
-          (fa flatMap f)
+          ((fa) flatMap f)
         override def map[A, B](fa : IndSeq[A])(f : (A) => B) =
-          (fa map f)
+          ((fa) map f)
         def plus[A](a : IndSeq[A], b : => IndSeq[A]) =
-          (a ++ b)
+          ((a) ++ b)
         def alt[A](a : => IndSeq[A], b : => IndSeq[A]) =
           plus(a, b)
         def empty[A] =
@@ -1509,15 +1596,16 @@ package scalaz {
     import std.function.{_}
     implicit val ord: Order[A]
     def partition(a : A) : (OrdSeq[A], OrdSeq[A]) =
-      function1Instance.product( OrdSeq.ordSeq[ A ]( (_) : FingerTree[ (A @@ LastVal)
-      , A ] ) )(self.split(((a1) => ord.greaterThanOrEqual(Tag.unwrap(a1), a))))
+      function1Instance.product( OrdSeq.ordSeq[ A ]( ((_) : FingerTree[ (A @@ LastVal)
+      , A ]) ) )( self.split( ((a1) => ord.greaterThanOrEqual( Tag.unwrap(a1)
+      , a )) ) )
     def insert(a : A) : OrdSeq[A] =
       partition(a) match {
         case (l, r) =>
-          OrdSeq.ordSeq((l <++> (a +: r)))
+          OrdSeq.ordSeq(((l) <++> ((a) +: r)))
       }
     def ++(xs : OrdSeq[A]) : OrdSeq[A] =
-      xs.self.toList.foldLeft(this)((_ insert _))
+      xs.self.toList.foldLeft(this)(((_) insert _))
   }
 
   object OrdSeq {
@@ -1537,9 +1625,11 @@ package scalaz {
           {
             implicit val keyer : Reducer[A, (A @@ LastVal)] =
               UnitReducer(((a : A) => LastVal(a)))
+          
             ordSeq(empty[(A @@ LastVal), A])
           }
-        as.foldLeft(z)(((x, y) => (x insert y)))
+      
+        as.foldLeft(z)(((x, y) => ((x) insert y)))
       }
   }
 }
