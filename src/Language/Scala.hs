@@ -987,8 +987,8 @@ instance FromJSON TermParam where
 
 data TermRef
   = TermRefThis Text
-  | --- | TermRefSuper Text Text
-    TermRefName Text
+  | TermRefSuper Text Text
+  | TermRefName Text
   | TermRefSelect Term Text
   deriving (Eq, Ord, Read, Show)
 
@@ -997,6 +997,17 @@ instance Pretty TermRef where
     if T.null qual
       then "this"
       else "this." <> pretty qual
+  pretty (TermRefSuper thisp superp) =
+    thisp' <> "super" <> superp'
+    where
+      thisp' =
+        if T.null thisp
+          then mempty
+          else pretty thisp <> "."
+      superp' =
+        if T.null superp
+          then mempty
+          else brackets (pretty superp)
   pretty (TermRefName name) =
     pretty name
   pretty (TermRefSelect qual name) =
@@ -1009,6 +1020,12 @@ parseTermRef t o =
       lift
         ( TermRefThis
             <$> explicitParseField nameParser o "qual"
+        )
+    "Term.Super" ->
+      lift
+        ( TermRefSuper
+            <$> explicitParseField nameParser o "thisp"
+            <*> explicitParseField nameParser o "superp"
         )
     "Term.Select" ->
       lift
@@ -1040,17 +1057,17 @@ data Self
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Self where
+  pretty (Self "" Nothing) =
+    mempty
   pretty (Self name decltpe) =
-    foldMap
-      ( \t ->
-          space <> name' <+> ":" <+> pretty t <+> "=>"
-      )
-      decltpe
+    space <> name' <> decltpe' <+> "=>"
     where
       name' =
         if T.null name
           then "this"
           else pretty name
+      decltpe' =
+        foldMap ((space <>) . (":" <+>) . pretty) decltpe
 
 instance FromJSON Self where
   parseJSON =
