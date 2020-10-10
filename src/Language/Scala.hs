@@ -1,61 +1,86 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-{-|
-Module: Language.Scala
+-- |
+-- Module: Language.Scala
+--
+-- Syntax trees representing Scala.
+--
+-- Each 'Pretty' instance should generate valid Scala code.
+--
+-- Each 'FromJSON' instance should parse JSON produced from
+-- <https://www.npmjs.com/package/scalameta-parsers scalameta-parsers> (also
+-- available via <https://astexplorer.net/ AST Explorer>)
+module Language.Scala
+  ( Source (..),
+    Stat (..),
+    Decl (..),
+    Defn (..),
+    CtorPrimary (..),
+    Pat (..),
+    Lit (..),
+    Type (..),
+    TypeParam (..),
+    Term (..),
+    Enumerator (..),
+    Case (..),
+    TermParam (..),
+    TermRef (..),
+    Self (..),
+    Bounds (..),
+    TypeRef (..),
+    Ref (..),
+    Importer (..),
+    Importee (..),
+    Init (..),
+    Template (..),
+    Mod (..),
+  )
+where
 
-Syntax trees representing Scala.
-
-Each 'Pretty' instance should generate valid Scala code.
-
-Each 'FromJSON' instance should parse JSON produced from
-<https://www.npmjs.com/package/scalameta-parsers scalameta-parsers> (also
-available via <https://astexplorer.net/ AST Explorer>)
--}
-
-module Language.Scala (
-  Source (..)
-, Stat (..)
-, Decl (..)
-, Defn (..)
-, CtorPrimary (..)
-, Pat (..)
-, Lit (..)
-, Type (..)
-, TypeParam (..)
-, Term (..)
-, Enumerator (..)
-, Case (..)
-, TermParam (..)
-, TermRef (..)
-, Self (..)
-, Bounds (..)
-, TypeRef (..)
-, Ref (..)
-, Importer (..)
-, Importee (..)
-, Init (..)
-, Template (..)
-, Mod (..)
-) where
-
-import           Control.Applicative       (Alternative (empty))
-import           Data.Aeson                (FromJSON (parseJSON), Object,
-                                            Value (Object), withObject, (.:),
-                                            (.:?))
-import           Data.Aeson.Types          (Parser, explicitParseField,
-                                            listParser, typeMismatch)
-import           Data.Foldable             (asum)
-import           Data.Int                  (Int16, Int32, Int64, Int8)
-import           Data.Scientific           (Scientific)
-import           Data.Text                 (Text)
-import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc (semi, Doc, Pretty (..), brackets, comma,
-                                            encloseSep, hardline, hsep, indent,
-                                            lbrace, line, list, lparen, parens,
-                                            rbrace, rparen, space, tupled, vsep,
-                                            (<+>))
-import           Control.Monad.Trans.Class (MonadTrans (lift))
-import           Control.Monad.Trans.Maybe (MaybeT (runMaybeT))
+import Control.Applicative (Alternative (empty))
+import Control.Monad.Trans.Class (MonadTrans (lift))
+import Control.Monad.Trans.Maybe (MaybeT (runMaybeT))
+import Data.Aeson
+  ( FromJSON (parseJSON),
+    Object,
+    Value (Object),
+    withObject,
+    (.:),
+    (.:?),
+  )
+import Data.Aeson.Types
+  ( Parser,
+    explicitParseField,
+    listParser,
+    typeMismatch,
+  )
+import Data.Foldable (asum)
+import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Scientific (Scientific)
+import Data.Text (Text)
+import qualified Data.Text as T
+import Data.Text.Prettyprint.Doc
+  ( Doc,
+    Pretty (..),
+    brackets,
+    comma,
+    encloseSep,
+    hardline,
+    hsep,
+    indent,
+    lbrace,
+    line,
+    list,
+    lparen,
+    parens,
+    rbrace,
+    rparen,
+    semi,
+    space,
+    tupled,
+    vsep,
+    (<+>),
+  )
 
 data Source
   = Source [Stat]
@@ -67,9 +92,11 @@ instance Pretty Source where
 
 instance FromJSON Source where
   parseJSON =
-    withObject "Source" (\o ->
-      Source <$> (o .: "stats")
-    )
+    withObject
+      "Source"
+      ( \o ->
+          Source <$> (o .: "stats")
+      )
 
 data Stat
   = StatTerm Term
@@ -97,23 +124,23 @@ parseStat :: Text -> Object -> MaybeT Parser Stat
 parseStat t o =
   case t of
     "Import" ->
-      lift (
-        StatImport
-          <$> o .: "importers"
-      )
+      lift
+        ( StatImport
+            <$> o .: "importers"
+        )
     "Pkg" ->
-      lift (
-        StatPkg
-          <$> o .: "ref"
-          <*> o .: "stats"
-      )
+      lift
+        ( StatPkg
+            <$> o .: "ref"
+            <*> o .: "stats"
+        )
     _ ->
       asum
         [ StatDefn
-            <$> parseDefn t o
-        , StatDecl
-            <$> parseDecl t o
-        , StatTerm
+            <$> parseDefn t o,
+          StatDecl
+            <$> parseDecl t o,
+          StatTerm
             <$> parseTerm t o
         ]
 
@@ -123,8 +150,8 @@ instance FromJSON Stat where
 
 data Decl
   = DeclVal [Mod] [Pat] Type
-  --- | DeclVar [Mod] [Pat] Type
-  | DeclDef [Mod] Text [TypeParam] [[TermParam]] Type
+  | -- | DeclVar [Mod] [Pat] Type
+    DeclDef [Mod] Text [TypeParam] [[TermParam]] Type
   --- | DeclType [Mod] Text [TypeParam] Bounds
   deriving (Eq, Ord, Read, Show)
 
@@ -136,8 +163,8 @@ instance Pretty Decl where
     where
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
       paramss' =
         foldMap (\p -> tupled (pretty <$> p)) paramss
 
@@ -145,20 +172,20 @@ parseDecl :: Text -> Object -> MaybeT Parser Decl
 parseDecl t o =
   case t of
     "Decl.Def" ->
-      lift (
-        DeclDef
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name"
-          <*> o .: "tparams"
-          <*> o .: "paramss"
-          <*> o .: "decltpe"
-      )
+      lift
+        ( DeclDef
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "paramss"
+            <*> o .: "decltpe"
+        )
     "Decl.Val" ->
-      lift (
-        DeclVal
-          <$> o .: "mods"
-          <*> o .: "pats"
-          <*> o .: "decltpe"
+      lift
+        ( DeclVal
+            <$> o .: "mods"
+            <*> o .: "pats"
+            <*> o .: "decltpe"
         )
     _ ->
       empty
@@ -169,10 +196,10 @@ instance FromJSON Decl where
 
 data Defn
   = DefnVal [Mod] [Pat] (Maybe Type) Term
-  --- | DefnVar [Mod] [Pat] (Maybe Type) (Maybe Term)
-  | DefnDef [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
-  --- | DefnMacro [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
-  | DefnType [Mod] Text [TypeParam] Type
+  | --- | DefnVar [Mod] [Pat] (Maybe Type) (Maybe Term)
+    DefnDef [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
+  | --- | DefnMacro [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
+    DefnType [Mod] Text [TypeParam] Type
   | DefnClass [Mod] Text [TypeParam] CtorPrimary Template
   | DefnTrait [Mod] Text [TypeParam] CtorPrimary Template
   | DefnObject [Mod] Text Template
@@ -192,11 +219,11 @@ instance Pretty Defn where
     where
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
       paramss' =
         foldMap (\p -> tupled (pretty <$> dropImplicits p)) paramss
-      dropImplicits (p:ps) =
+      dropImplicits (p : ps) =
         p : (removeImplicit <$> ps)
       dropImplicits [] =
         []
@@ -209,77 +236,77 @@ instance Pretty Defn where
     where
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
   pretty (DefnType mods name tparams body) =
     hsep ((pretty <$> mods) ++ ["type", pretty name <> tparams', "=", pretty body])
     where
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
   pretty (DefnClass mods name tparams ctor templ) =
     hsep ((pretty <$> mods) ++ ["class", pretty name <> tparams' <> pretty ctor, prettyTemplate templ])
     where
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
 
 parseDefn :: Text -> Object -> MaybeT Parser Defn
 parseDefn t o =
   case t of
     "Defn.Val" ->
-      lift (
-        DefnVal
-          <$> o .: "mods"
-          <*> o .: "pats"
-          <*> o .:? "decltpe"
-          <*> o .: "rhs"
-      )
+      lift
+        ( DefnVal
+            <$> o .: "mods"
+            <*> o .: "pats"
+            <*> o .:? "decltpe"
+            <*> o .: "rhs"
+        )
     "Defn.Def" ->
-      lift (
-        DefnDef
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name"
-          <*> o .: "tparams"
-          <*> o .: "paramss"
-          <*> o .:? "decltpe"
-          <*> o .: "body"
-      )
+      lift
+        ( DefnDef
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "paramss"
+            <*> o .:? "decltpe"
+            <*> o .: "body"
+        )
     "Defn.Type" ->
-      lift (
-        DefnType
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name"
-          <*> o .: "tparams"
-          <*> o .: "body"
-      )
+      lift
+        ( DefnType
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "body"
+        )
     "Defn.Class" ->
-      lift (
-        DefnClass
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name"
-          <*> o .: "tparams"
-          <*> o .: "ctor"
-          <*> o .: "templ"
-      )
+      lift
+        ( DefnClass
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "ctor"
+            <*> o .: "templ"
+        )
     "Defn.Trait" ->
-      lift (
-        DefnTrait
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name"
-          <*> o .: "tparams"
-          <*> o .: "ctor"
-          <*> o .: "templ"
-      )
+      lift
+        ( DefnTrait
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "ctor"
+            <*> o .: "templ"
+        )
     "Defn.Object" ->
-      lift (
-        DefnObject
-          <$> o .: "mods"
-          <*> explicitParseField nameParser o "name" <*>
-          o .: "templ"
-      )
+      lift
+        ( DefnObject
+            <$> o .: "mods"
+              <*> explicitParseField nameParser o "name"
+              <*> o .: "templ"
+        )
     _ ->
       empty
 
@@ -297,11 +324,13 @@ instance Pretty CtorPrimary where
 
 instance FromJSON CtorPrimary where
   parseJSON =
-    withObject "Ctor.Primary" (\o ->
-      CtorPrimary
-        <$> o .: "mods"
-        <*> o .: "paramss"
-    )
+    withObject
+      "Ctor.Primary"
+      ( \o ->
+          CtorPrimary
+            <$> o .: "mods"
+            <*> o .: "paramss"
+      )
 
 data Pat
   = PatLit Lit
@@ -309,15 +338,15 @@ data Pat
   | PatTermSelect Term Text
   | PatVar Text
   | PatWildcard
-  --- | PatSeqWildcard
-  | PatBind Pat Pat
+  | --- | PatSeqWildcard
+    PatBind Pat Pat
   | PatAlternative Pat Pat
   | PatTuple [Pat]
   | PatExtract Term [Pat]
   | PatExtractInfix Pat Text [Pat]
-  --- | PatInterpolate Text [Lit] [Pat]
-  --- | PatXml [Lit] [Pat]
-  | PatTyped Pat Type
+  | --- | PatInterpolate Text [Lit] [Pat]
+    --- | PatXml [Lit] [Pat]
+    PatTyped Pat Type
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Pat where
@@ -348,59 +377,59 @@ parsePat :: Text -> Object -> MaybeT Parser Pat
 parsePat t o =
   case t of
     "Term.Name" ->
-      lift (
-        PatTermName
-          <$> nameParser (Object o)
-      )
+      lift
+        ( PatTermName
+            <$> nameParser (Object o)
+        )
     "Term.Select" ->
-      lift (
-        PatTermSelect
-          <$> o .: "qual"
-          <*> explicitParseField nameParser o "name"
-      )
+      lift
+        ( PatTermSelect
+            <$> o .: "qual"
+            <*> explicitParseField nameParser o "name"
+        )
     "Pat.Var" ->
-      lift (
-        PatVar
-          <$> explicitParseField nameParser o "name"
-      )
+      lift
+        ( PatVar
+            <$> explicitParseField nameParser o "name"
+        )
     "Pat.Wildcard" ->
       pure PatWildcard
     "Pat.Bind" ->
-      lift (
-        PatBind
-          <$> o .: "lhs"
-          <*> o .: "rhs"
-      )
+      lift
+        ( PatBind
+            <$> o .: "lhs"
+            <*> o .: "rhs"
+        )
     "Pat.Alternative" ->
-      lift (
-        PatAlternative
-          <$> o .: "lhs"
-          <*> o .: "rhs"
-      )
+      lift
+        ( PatAlternative
+            <$> o .: "lhs"
+            <*> o .: "rhs"
+        )
     "Pat.Tuple" ->
-      lift (
-        PatTuple
-          <$> o .: "args"
-      )
+      lift
+        ( PatTuple
+            <$> o .: "args"
+        )
     "Pat.Extract" ->
-      lift (
-        PatExtract
-          <$> o .: "fun"
-          <*> o .: "args"
-      )
+      lift
+        ( PatExtract
+            <$> o .: "fun"
+            <*> o .: "args"
+        )
     "Pat.ExtractInfix" ->
-      lift (
-        PatExtractInfix
-          <$> o .: "lhs"
-          <*> explicitParseField nameParser o "op"
-          <*> o .: "rhs"
-      )
+      lift
+        ( PatExtractInfix
+            <$> o .: "lhs"
+            <*> explicitParseField nameParser o "op"
+            <*> o .: "rhs"
+        )
     "Pat.Typed" ->
-      lift (
-        PatTyped
-          <$> o .: "lhs"
-          <*> o .: "rhs"
-      )
+      lift
+        ( PatTyped
+            <$> o .: "lhs"
+            <*> o .: "rhs"
+        )
     _ ->
       PatLit
         <$> parseLit t o
@@ -416,8 +445,8 @@ data Lit
   | LitFloat Scientific
   | LitByte Int8
   | LitShort Int16
-  --- | LitChar Word16
-  | LitLong Int64
+  | --- | LitChar Word16
+    LitLong Int64
   | LitBoolean Bool
   | LitUnit
   | LitString Text
@@ -430,19 +459,19 @@ instance Pretty Lit where
   pretty (LitInt value) =
     pretty value
   pretty (LitDouble value) =
-    pretty value
+    pretty (show value)
   pretty (LitFloat value) =
-    pretty value
+    pretty (show value) <> "f"
   pretty (LitByte value) =
     pretty value
   pretty (LitShort value) =
     pretty value
   pretty (LitLong value) =
-    pretty value
+    pretty value <> "L"
   pretty (LitBoolean value) =
     if value
-    then "true"
-    else "false"
+      then "true"
+      else "false"
   pretty LitUnit =
     "()"
   pretty (LitString syntax) =
@@ -484,17 +513,17 @@ parseLit t o =
             <$> o .: "value"
         )
     "Lit.Boolean" ->
-      lift (
-        LitBoolean
-          <$> o .: "value"
-      )
+      lift
+        ( LitBoolean
+            <$> o .: "value"
+        )
     "Lit.Unit" ->
       pure LitUnit
     "Lit.String" ->
-      lift (
-        LitString
-          <$> nameParser (Object o)
-      )
+      lift
+        ( LitString
+            <$> nameParser (Object o)
+        )
     _ ->
       empty
 
@@ -507,17 +536,17 @@ data Type
   | TypeApply Type [Type]
   | TypeApplyInfix Type Text Type
   | TypeFunction [Type] Type
-  --- | TypeImplicitFunction [Type] Type
-  | TypeTuple [Type]
+  | --- | TypeImplicitFunction [Type] Type
+    TypeTuple [Type]
   | TypeWith Type Type
-  --- | TypeAnd Type Type
-  --- | TypeOr Type Type
-  | TypeRefine (Maybe Type) [Stat]
-  --- | TypeExistential Type [Stat]
-  | TypeAnnotate Type [Init]
-  --- | TypeLambda [TypeParam] Type
-  --- | TypeMethod [[TypeParam]] Type
-  | TypePlaceholder Bounds
+  | --- | TypeAnd Type Type
+    --- | TypeOr Type Type
+    TypeRefine (Maybe Type) [Stat]
+  | --- | TypeExistential Type [Stat]
+    TypeAnnotate Type [Init]
+  | --- | TypeLambda [TypeParam] Type
+    --- | TypeMethod [[TypeParam]] Type
+    TypePlaceholder Bounds
   | TypeByName Type
   | TypeRepeated Type
   --- | TypeVar Text
@@ -552,62 +581,62 @@ parseType :: Text -> Object -> MaybeT Parser Type
 parseType t o =
   case t of
     "Type.Apply" ->
-      lift (
-        TypeApply
-          <$> o .: "tpe"
-          <*> o .: "args"
-      )
+      lift
+        ( TypeApply
+            <$> o .: "tpe"
+            <*> o .: "args"
+        )
     "Type.ApplyInfix" ->
-      lift (
-        TypeApplyInfix
-          <$> o .: "lhs"
-          <*> explicitParseField nameParser o "op"
-          <*> o .: "rhs"
-      )
+      lift
+        ( TypeApplyInfix
+            <$> o .: "lhs"
+            <*> explicitParseField nameParser o "op"
+            <*> o .: "rhs"
+        )
     "Type.Function" ->
-      lift (
-        TypeFunction
-          <$> o .: "params"
-          <*> o .: "res"
-      )
+      lift
+        ( TypeFunction
+            <$> o .: "params"
+            <*> o .: "res"
+        )
     "Type.Tuple" ->
-      lift (
-        TypeTuple
-          <$> o .: "args"
-      )
+      lift
+        ( TypeTuple
+            <$> o .: "args"
+        )
     "Type.With" ->
-      lift (
-        TypeWith
-          <$> o .: "lhs"
-          <*> o .: "rhs"
-      )
+      lift
+        ( TypeWith
+            <$> o .: "lhs"
+            <*> o .: "rhs"
+        )
     "Type.Refine" ->
-      lift (
-        TypeRefine
-          <$> o .:? "tpe"
-          <*> o .: "stats"
-      )
+      lift
+        ( TypeRefine
+            <$> o .:? "tpe"
+            <*> o .: "stats"
+        )
     "Type.Annotate" ->
-      lift (
-        TypeAnnotate
-          <$> o .: "tpe"
-          <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
-      )
+      lift
+        ( TypeAnnotate
+            <$> o .: "tpe"
+            <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
+        )
     "Type.Placeholder" ->
-      lift (
-        TypePlaceholder
-          <$> o .: "bounds"
-      )
+      lift
+        ( TypePlaceholder
+            <$> o .: "bounds"
+        )
     "Type.ByName" ->
-      lift (
-        TypeByName
-          <$> o .: "tpe"
-      )
+      lift
+        ( TypeByName
+            <$> o .: "tpe"
+        )
     "Type.Repeated" ->
-      lift (
-        TypeRepeated
-          <$> o .: "tpe"
-      )
+      lift
+        ( TypeRepeated
+            <$> o .: "tpe"
+        )
     _ ->
       TypeRef
         <$> parseTypeRef t o
@@ -626,49 +655,51 @@ instance Pretty TypeParam where
     where
       name' =
         if T.null name
-        then "_"
-        else pretty name
+          then "_"
+          else pretty name
       tparams' =
         if null tparams
-        then mempty
-        else list (pretty <$> tparams)
+          then mempty
+          else list (pretty <$> tparams)
       cbounds' =
         if null cbounds
-        then mempty
-        else ":" <+> encloseSep mempty mempty ": " (pretty <$> cbounds)
+          then mempty
+          else ":" <+> encloseSep mempty mempty ": " (pretty <$> cbounds)
 
 instance FromJSON TypeParam where
   parseJSON =
-    withObject "Type.Param" (\o ->
-      TypeParam <$> o .: "mods" <*> explicitParseField nameParser o "name" <*> o .: "tparams" <*> o .: "tbounds" <*> o .: "vbounds" <*> o .: "cbounds"
-    )
+    withObject
+      "Type.Param"
+      ( \o ->
+          TypeParam <$> o .: "mods" <*> explicitParseField nameParser o "name" <*> o .: "tparams" <*> o .: "tbounds" <*> o .: "vbounds" <*> o .: "cbounds"
+      )
 
 data Term
   = TermLit Lit
   | TermRef TermRef
   | TermInterpolate Text [Lit] [Term]
-  --- | TermXml [Lit] [Term]
-  | TermApply Term [Term]
+  | --- | TermXml [Lit] [Term]
+    TermApply Term [Term]
   | TermApplyType Term [Type]
   | TermApplyInfix Term Text [Type] [Term]
   | TermApplyUnary Text Term
   | TermAssign Term Term
-  --- | TermReturn Term
-  --- | TermThrow Term
-  | TermAscribe Term Type
+  | --- | TermReturn Term
+    --- | TermThrow Term
+    TermAscribe Term Type
   | TermAnnotate Term [Init]
   | TermTuple [Term]
   | TermBlock [Stat]
   | TermIf Term Term Term
   | TermMatch Term [Case]
-  --- | TermTry Term [Case] (Maybe Term)
-  --- | TermTryWithHandler Term Term (Maybe Term)
-  | TermFunction [TermParam] Term
+  | --- | TermTry Term [Case] (Maybe Term)
+    --- | TermTryWithHandler Term Term (Maybe Term)
+    TermFunction [TermParam] Term
   | TermPartialFunction [Case]
-  --- | TermWhile Term Term
-  --- | TermDo Term Term
-  --- | TermFor [Enumerator] Term
-  | TermForYield [Enumerator] Term
+  | --- | TermWhile Term Term
+    --- | TermDo Term Term
+    --- | TermFor [Enumerator] Term
+    TermForYield [Enumerator] Term
   | TermNew Init
   | TermNewAnonymous Template
   | TermPlaceholder
@@ -682,9 +713,9 @@ instance Pretty Term where
   pretty (TermInterpolate prefix parts args) =
     pretty prefix <> "\"" <> go parts args <> "\""
     where
-      go (LitString p:ps) (a:as) =
+      go (LitString p : ps) (a : as) =
         pretty p <> "${" <> pretty a <> "}" <> go ps as
-      go (LitString p:_) _ =
+      go (LitString p : _) _ =
         pretty p
       go _ _ =
         mempty
@@ -693,15 +724,15 @@ instance Pretty Term where
     where
       targs' =
         if null targs
-        then mempty
-        else list (pretty <$> targs)
+          then mempty
+          else list (pretty <$> targs)
   pretty (TermApplyInfix lhs op targs args) =
     parens (pretty lhs <+> pretty op <> targs' <+> args')
     where
       targs' =
         if null targs
-        then mempty
-        else list (pretty <$> targs)
+          then mempty
+          else list (pretty <$> targs)
       args' =
         case args of
           [arg] ->
@@ -724,16 +755,16 @@ instance Pretty Term where
     tupled (pretty <$> args)
   pretty (TermBlock stats) =
     vsep
-      (  [ "{" ]
-      <> (indent 2 . pretty <$> stats)
-      <> [ "}" ]
+      ( ["{"]
+          <> (indent 2 . pretty <$> stats)
+          <> ["}"]
       )
   pretty (TermIf cond thenp elsep) =
     vsep
-      [ "if (" <> pretty cond <> ")"
-      , indent 2 (pretty thenp)
-      , "else"
-      , indent 2 (pretty elsep)
+      [ "if (" <> pretty cond <> ")",
+        indent 2 (pretty thenp),
+        "else",
+        indent 2 (pretty elsep)
       ]
   pretty (TermMatch expr cases) =
     pretty expr <+> "match" <+> lbrace <> line <> vsep (indent 2 . pretty <$> cases) <> line <> rbrace
@@ -741,9 +772,9 @@ instance Pretty Term where
     parens (tupled (pretty <$> params) <+> "=>" <+> pretty body)
   pretty (TermPartialFunction cases) =
     vsep
-      (  [ lbrace ]
-      <> (indent 2 . pretty <$> cases)
-      <> [ rbrace ]
+      ( [lbrace]
+          <> (indent 2 . pretty <$> cases)
+          <> [rbrace]
       )
   pretty (TermForYield enums body) =
     "for" <+> encloseSep mempty mempty hardline (["{"] <> (indent 2 . pretty <$> enums) <> ["}"]) <+> "yield" <+> pretty body
@@ -760,118 +791,118 @@ parseTerm :: Text -> Object -> MaybeT Parser Term
 parseTerm t o =
   case t of
     "Term.Interpolate" ->
-      lift (
-        TermInterpolate
-          <$> explicitParseField nameParser o "prefix"
-          <*> o .: "parts"
-          <*> o .: "args"
-      )
+      lift
+        ( TermInterpolate
+            <$> explicitParseField nameParser o "prefix"
+            <*> o .: "parts"
+            <*> o .: "args"
+        )
     "Term.Apply" ->
-      lift (
-        TermApply
-          <$> o .: "fun"
-          <*> o .: "args"
-      )
+      lift
+        ( TermApply
+            <$> o .: "fun"
+            <*> o .: "args"
+        )
     "Term.ApplyType" ->
-      lift (
-        TermApplyType
-          <$> o .: "fun"
-          <*> o .: "targs"
-      )
+      lift
+        ( TermApplyType
+            <$> o .: "fun"
+            <*> o .: "targs"
+        )
     "Term.ApplyInfix" ->
-      lift (
-        TermApplyInfix
-          <$> o .: "lhs"
-          <*> explicitParseField nameParser o "op"
-          <*> o .: "targs"
-          <*> o .: "args"
-      )
+      lift
+        ( TermApplyInfix
+            <$> o .: "lhs"
+            <*> explicitParseField nameParser o "op"
+            <*> o .: "targs"
+            <*> o .: "args"
+        )
     "Term.ApplyUnary" ->
-      lift (
-        TermApplyUnary
-          <$> explicitParseField nameParser o "op"
-          <*> o .: "arg"
-      )
+      lift
+        ( TermApplyUnary
+            <$> explicitParseField nameParser o "op"
+            <*> o .: "arg"
+        )
     "Term.Assign" ->
-      lift (
-        TermAssign
-          <$> o .: "lhs"
-          <*> o .: "rhs"
-      )
+      lift
+        ( TermAssign
+            <$> o .: "lhs"
+            <*> o .: "rhs"
+        )
     "Term.Ascribe" ->
-      lift (
-        TermAscribe
-          <$> o .: "expr"
-          <*> o .: "tpe"
-      )
+      lift
+        ( TermAscribe
+            <$> o .: "expr"
+            <*> o .: "tpe"
+        )
     "Term.Annotate" ->
-      lift (
-        TermAnnotate
-          <$> o .: "expr"
-          <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
-      )
+      lift
+        ( TermAnnotate
+            <$> o .: "expr"
+            <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
+        )
     "Term.Tuple" ->
-      lift (
-        TermTuple
-          <$> o .: "args"
-      )
+      lift
+        ( TermTuple
+            <$> o .: "args"
+        )
     "Term.Block" ->
-      lift (
-        TermBlock
-          <$> o .: "stats"
-      )
+      lift
+        ( TermBlock
+            <$> o .: "stats"
+        )
     "Term.If" ->
-      lift (
-        TermIf
-          <$> o .: "cond"
-          <*> o .: "thenp"
-          <*> o .: "elsep"
-      )
+      lift
+        ( TermIf
+            <$> o .: "cond"
+            <*> o .: "thenp"
+            <*> o .: "elsep"
+        )
     "Term.Match" ->
-      lift (
-        TermMatch
-          <$> o .: "expr"
-          <*> o .: "cases"
-      )
+      lift
+        ( TermMatch
+            <$> o .: "expr"
+            <*> o .: "cases"
+        )
     "Term.Function" ->
-      lift (
-        TermFunction
-          <$> o .: "params"
-          <*> o .: "body"
-      )
+      lift
+        ( TermFunction
+            <$> o .: "params"
+            <*> o .: "body"
+        )
     "Term.PartialFunction" ->
-      lift (
-        TermPartialFunction
-          <$> o .: "cases"
-      )
+      lift
+        ( TermPartialFunction
+            <$> o .: "cases"
+        )
     "Term.ForYield" ->
-      lift (
-        TermForYield
-          <$> o .: "enums"
-          <*> o .: "body"
-      )
+      lift
+        ( TermForYield
+            <$> o .: "enums"
+            <*> o .: "body"
+        )
     "Term.New" ->
-      lift (
-        TermNew
-          <$> o .: "init"
-      )
+      lift
+        ( TermNew
+            <$> o .: "init"
+        )
     "Term.NewAnonymous" ->
-      lift (
-        TermNewAnonymous
-          <$> o .: "templ"
-      )
+      lift
+        ( TermNewAnonymous
+            <$> o .: "templ"
+        )
     "Term.Placeholder" ->
       pure TermPlaceholder
     "Term.Eta" ->
-      lift (
-        TermEta
-          <$> o .: "expr"
-      )
+      lift
+        ( TermEta
+            <$> o .: "expr"
+        )
     _ ->
       asum
         [ TermRef
-            <$> parseTermRef t o
-        , TermLit
+            <$> parseTermRef t o,
+          TermLit
             <$> parseLit t o
         ]
 
@@ -893,11 +924,11 @@ parseEnumerator :: Text -> Object -> MaybeT Parser Enumerator
 parseEnumerator t o =
   case t of
     "Enumerator.Generator" ->
-      lift (
-        EnumeratorGenerator
-          <$> o .: "pat"
-          <*> o .: "rhs"
-      )
+      lift
+        ( EnumeratorGenerator
+            <$> o .: "pat"
+            <*> o .: "rhs"
+        )
     _ ->
       empty
 
@@ -912,18 +943,20 @@ data Case
 instance Pretty Case where
   pretty (Case pat cond body) =
     vsep
-      [ hsep (["case", pretty pat] <> maybe [] (\c -> ["if", pretty c]) cond <> ["=>"])
-      , indent 2 (pretty body)
+      [ hsep (["case", pretty pat] <> maybe [] (\c -> ["if", pretty c]) cond <> ["=>"]),
+        indent 2 (pretty body)
       ]
 
 instance FromJSON Case where
   parseJSON =
-    withObject "Case" (\o ->
-      Case
-        <$> o .: "pat"
-        <*> o .:? "cond"
-        <*> o .: "body"
-    )
+    withObject
+      "Case"
+      ( \o ->
+          Case
+            <$> o .: "pat"
+            <*> o .:? "cond"
+            <*> o .: "body"
+      )
 
 data TermParam
   = TermParam [Mod] Text (Maybe Type) (Maybe Term)
@@ -935,33 +968,35 @@ instance Pretty TermParam where
     where
       name' =
         if T.null name
-        then "_"
-        else pretty name
+          then "_"
+          else pretty name
       default'' =
         foldMap (\t -> ["=", pretty t]) default'
 
 instance FromJSON TermParam where
   parseJSON =
-    withObject "Term.Param" (\o ->
-      TermParam
-        <$> o .: "mods"
-        <*> explicitParseField nameParser o "name"
-        <*> o .:? "decltpe"
-        <*> o .:? "default"
-    )
+    withObject
+      "Term.Param"
+      ( \o ->
+          TermParam
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .:? "decltpe"
+            <*> o .:? "default"
+      )
 
 data TermRef
   = TermRefThis Text
-  --- | TermRefSuper Text Text
-  | TermRefName Text
+  | --- | TermRefSuper Text Text
+    TermRefName Text
   | TermRefSelect Term Text
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty TermRef where
   pretty (TermRefThis qual) =
     if T.null qual
-    then "this"
-    else "this." <> pretty qual
+      then "this"
+      else "this." <> pretty qual
   pretty (TermRefName name) =
     pretty name
   pretty (TermRefSelect qual name) =
@@ -971,16 +1006,16 @@ parseTermRef :: Text -> Object -> MaybeT Parser TermRef
 parseTermRef t o =
   case t of
     "Term.This" ->
-      lift (
-        TermRefThis
-          <$> explicitParseField nameParser o "qual"
-      )
+      lift
+        ( TermRefThis
+            <$> explicitParseField nameParser o "qual"
+        )
     "Term.Select" ->
-      lift (
-        TermRefSelect
-          <$> o .: "qual"
-          <*> explicitParseField nameParser o "name"
-      )
+      lift
+        ( TermRefSelect
+            <$> o .: "qual"
+            <*> explicitParseField nameParser o "name"
+        )
     "Term.Name" ->
       termRefName
     "Name.Indeterminate" ->
@@ -991,10 +1026,10 @@ parseTermRef t o =
       empty
   where
     termRefName =
-      lift (
-        TermRefName
-          <$> nameParser (Object o)
-      )
+      lift
+        ( TermRefName
+            <$> nameParser (Object o)
+        )
 
 instance FromJSON TermRef where
   parseJSON =
@@ -1006,20 +1041,24 @@ data Self
 
 instance Pretty Self where
   pretty (Self name decltpe) =
-    foldMap (\t ->
-      space <> name' <+> ":" <+> pretty t <+> "=>"
-    ) decltpe
+    foldMap
+      ( \t ->
+          space <> name' <+> ":" <+> pretty t <+> "=>"
+      )
+      decltpe
     where
       name' =
         if T.null name
-        then "this"
-        else pretty name
+          then "this"
+          else pretty name
 
 instance FromJSON Self where
   parseJSON =
-    withObject "Self" (\o ->
-      Self <$> explicitParseField nameParser o "name" <*> o .:? "decltpe"
-    )
+    withObject
+      "Self"
+      ( \o ->
+          Self <$> explicitParseField nameParser o "name" <*> o .:? "decltpe"
+      )
 
 data Bounds
   = Bounds (Maybe Type) (Maybe Type)
@@ -1031,9 +1070,11 @@ instance Pretty Bounds where
 
 instance FromJSON Bounds where
   parseJSON =
-    withObject "Bounds" (\o ->
-      Bounds <$> o .:? "lo" <*> o .:? "hi"
-    )
+    withObject
+      "Bounds"
+      ( \o ->
+          Bounds <$> o .:? "lo" <*> o .:? "hi"
+      )
 
 data TypeRef
   = TypeRefName Text
@@ -1056,27 +1097,27 @@ parseTypeRef :: Text -> Object -> MaybeT Parser TypeRef
 parseTypeRef t o =
   case t of
     "Type.Name" ->
-      lift (
-        TypeRefName
-          <$> nameParser (Object o)
-      )
+      lift
+        ( TypeRefName
+            <$> nameParser (Object o)
+        )
     "Type.Select" ->
-      lift (
-        TypeRefSelect
-          <$> o .: "qual"
-          <*> explicitParseField nameParser o "name"
-      )
+      lift
+        ( TypeRefSelect
+            <$> o .: "qual"
+            <*> explicitParseField nameParser o "name"
+        )
     "Type.Project" ->
-      lift (
-        TypeRefProject
-          <$> o .: "qual"
-          <*> explicitParseField nameParser o "name"
-      )
+      lift
+        ( TypeRefProject
+            <$> o .: "qual"
+            <*> explicitParseField nameParser o "name"
+        )
     "Type.Singleton" ->
-      lift (
-        TypeRefSingleton
-          <$> o .: "ref"
-      )
+      lift
+        ( TypeRefSingleton
+            <$> o .: "ref"
+        )
     _ ->
       empty
 
@@ -1117,11 +1158,13 @@ instance Pretty Importer where
 
 instance FromJSON Importer where
   parseJSON =
-    withObject "Importer" (\o ->
-      Importer
-        <$> o .: "ref"
-        <*> o .: "importees"
-    )
+    withObject
+      "Importer"
+      ( \o ->
+          Importer
+            <$> o .: "ref"
+            <*> o .: "importees"
+      )
 
 data Importee
   = ImporteeWildcard
@@ -1146,21 +1189,21 @@ parseImportee t o =
     "Importee.Wildcard" ->
       pure ImporteeWildcard
     "Importee.Name" ->
-      lift (
-        ImporteeName
-          <$> explicitParseField nameParser o "name"
-      )
+      lift
+        ( ImporteeName
+            <$> explicitParseField nameParser o "name"
+        )
     "Importee.Rename" ->
-      lift (
-        ImporteeRename
-          <$> explicitParseField nameParser o "name"
-          <*> explicitParseField nameParser o "rename"
-      )
+      lift
+        ( ImporteeRename
+            <$> explicitParseField nameParser o "name"
+            <*> explicitParseField nameParser o "rename"
+        )
     "Importee.Unimport" ->
-      lift (
-        ImporteeUnimport
-          <$> explicitParseField nameParser o "name"
-      )
+      lift
+        ( ImporteeUnimport
+            <$> explicitParseField nameParser o "name"
+        )
     _ ->
       empty
 
@@ -1178,11 +1221,13 @@ instance Pretty Init where
 
 instance FromJSON Init where
   parseJSON =
-    withObject "Init" (\o ->
-      Init
-        <$> o .: "tpe"
-        <*> o .: "argss"
-    )
+    withObject
+      "Init"
+      ( \o ->
+          Init
+            <$> o .: "tpe"
+            <*> o .: "argss"
+      )
 
 data Template
   = Template [Stat] [Init] Self [Stat]
@@ -1192,24 +1237,26 @@ instance Pretty Template where
   pretty (Template _early inits self stats) =
     vsep
       ( [inits' <> "{" <> pretty self]
-      <> (indent 2 . pretty <$> stats)
-      <> ["}"]
+          <> (indent 2 . pretty <$> stats)
+          <> ["}"]
       )
     where
       inits' =
         if null inits
-        then mempty
-        else encloseSep mempty mempty " with " (pretty <$> inits) <> space
+          then mempty
+          else encloseSep mempty mempty " with " (pretty <$> inits) <> space
 
 instance FromJSON Template where
   parseJSON =
-    withObject "Template" (\o ->
-      Template
-        <$> o .: "early"
-        <*> o .: "inits"
-        <*> o .: "self"
-        <*> o .: "stats"
-    )
+    withObject
+      "Template"
+      ( \o ->
+          Template
+            <$> o .: "early"
+            <*> o .: "inits"
+            <*> o .: "self"
+            <*> o .: "stats"
+      )
 
 data Mod
   = ModAnnot Init
@@ -1269,20 +1316,20 @@ parseMod :: Text -> Object -> MaybeT Parser Mod
 parseMod t o =
   case t of
     "Mod.Annot" ->
-      lift (
-        ModAnnot
-          <$> o .: "init"
-      )
+      lift
+        ( ModAnnot
+            <$> o .: "init"
+        )
     "Mod.Private" ->
-      lift (
-        ModPrivate
-          <$> o .: "within"
-      )
+      lift
+        ( ModPrivate
+            <$> o .: "within"
+        )
     "Mod.Protected" ->
-      lift (
-        ModProtected
-          <$> o .: "within"
-      )
+      lift
+        ( ModProtected
+            <$> o .: "within"
+        )
     "Mod.Implicit" ->
       pure ModImplicit
     "Mod.Final" ->
@@ -1313,8 +1360,8 @@ prettyDecltpe =
 prettyTemplate :: Template -> Doc ann
 prettyTemplate templ@(Template _ inits _ _) =
   if null inits
-  then pretty templ
-  else "extends" <+> pretty templ
+    then pretty templ
+    else "extends" <+> pretty templ
 
 nameParser :: Value -> Parser Text
 nameParser =
