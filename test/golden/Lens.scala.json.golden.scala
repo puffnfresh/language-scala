@@ -408,11 +408,11 @@ package scalaz {
     implicit def LensFamilyState[A, B](lens : LensFamily[A, _, B, _]) : State[ A
     , B ] =
       lens.st
-    implicit def LensFamilyUnzip[S, R] : Unzip[ »[ (±) => LensFamily[ S
+    implicit def LensFamilyUnzip[S, R] : Unzip[ Î»[ (Î±) => LensFamily[ S
     , R
-    , ±
-    , ± ] ] ] =
-      new Unzip[»[(±) => LensFamily[S, R, ±, ±]]] {
+    , Î±
+    , Î± ] ] ] =
+      new Unzip[Î»[(Î±) => LensFamily[S, R, Î±, Î±]]] {
         def unzip[A, B](a : LensFamily[S, R, (A, B), (A, B)]) =
           ( lensFamily( ((x) => {
             val c =

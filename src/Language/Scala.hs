@@ -48,7 +48,7 @@ import           Data.Foldable             (asum)
 import           Data.Int                  (Int16, Int32, Int64, Int8)
 import           Data.Text                 (Text)
 import qualified Data.Text                 as T
-import           Data.Text.Prettyprint.Doc (Doc, Pretty (..), brackets, comma,
+import           Data.Text.Prettyprint.Doc (semi, Doc, Pretty (..), brackets, comma,
                                             encloseSep, hardline, hsep, indent,
                                             lbrace, line, list, lparen, parens,
                                             rbrace, rparen, space, tupled, vsep,
@@ -486,7 +486,7 @@ data Type
   | TypeWith Type Type
   --- | TypeAnd Type Type
   --- | TypeOr Type Type
-  --- | TypeRefine Type Type
+  | TypeRefine (Maybe Type) [Stat]
   --- | TypeExistential Type [Stat]
   | TypeAnnotate Type [Init]
   --- | TypeLambda [TypeParam] Type
@@ -511,6 +511,8 @@ instance Pretty Type where
     tupled (pretty <$> args)
   pretty (TypeWith lhs rhs) =
     pretty lhs <+> "with" <+> pretty rhs
+  pretty (TypeRefine tpe stats) =
+    pretty tpe <+> encloseSep lbrace rbrace semi (pretty <$> stats)
   pretty (TypeAnnotate tpe annots) =
     pretty tpe <+> hsep (("@" <>) . pretty <$> annots)
   pretty (TypePlaceholder bounds) =
@@ -553,11 +555,17 @@ parseType t o =
           <$> o .: "lhs"
           <*> o .: "rhs"
       )
+    "Type.Refine" ->
+      lift (
+        TypeRefine
+          <$> o .:? "tpe"
+          <*> o .: "stats"
+      )
     "Type.Annotate" ->
       lift (
         TypeAnnotate
           <$> o .: "tpe"
-          <*> (o .: "annots" >>= listParser (withObject "annots" (.: "init")))
+          <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
       )
     "Type.Placeholder" ->
       lift (
@@ -622,7 +630,7 @@ data Term
   --- | TermReturn Term
   --- | TermThrow Term
   | TermAscribe Term Type
-  --- | TermAnnotate Term Init
+  | TermAnnotate Term [Init]
   | TermTuple [Term]
   | TermBlock [Stat]
   | TermIf Term Term Term
@@ -684,6 +692,8 @@ instance Pretty Term where
     pretty lit
   pretty (TermAscribe expr tpe) =
     parens (pretty expr) <+> ":" <+> pretty tpe
+  pretty (TermAnnotate expr annots) =
+    parens (pretty expr <> ":" <+> hsep (("@" <>) . pretty <$> annots))
   pretty (TermTuple args) =
     tupled (pretty <$> args)
   pretty (TermBlock stats) =
@@ -767,6 +777,12 @@ parseTerm t o =
         TermAscribe
           <$> o .: "expr"
           <*> o .: "tpe"
+      )
+    "Term.Annotate" ->
+      lift (
+        TermAnnotate
+          <$> o .: "expr"
+          <*> (o .: "annots" >>= listParser (withObject "Mod.Annot" (.: "init")))
       )
     "Term.Tuple" ->
       lift (
@@ -888,13 +904,15 @@ data TermParam
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty TermParam where
-  pretty (TermParam mods name decltpe _default') =
-    hsep ((pretty <$> mods) <> [name' <> prettyDecltpe decltpe])
+  pretty (TermParam mods name decltpe default') =
+    hsep ((pretty <$> mods) <> ([name' <> prettyDecltpe decltpe] <> default''))
     where
       name' =
         if T.null name
         then "_"
         else pretty name
+      default'' =
+        foldMap (\t -> ["=", pretty t]) default'
 
 instance FromJSON TermParam where
   parseJSON =
@@ -994,7 +1012,7 @@ instance FromJSON Bounds where
 data TypeRef
   = TypeRefName Text
   | TypeRefSelect TermRef Text
-  --- | TypeRefProject Type Text
+  | TypeRefProject Type Text
   | TypeRefSingleton TermRef
   deriving (Eq, Ord, Read, Show)
 
@@ -1003,6 +1021,8 @@ instance Pretty TypeRef where
     pretty value
   pretty (TypeRefSelect ref name) =
     pretty ref <> "." <> pretty name
+  pretty (TypeRefProject qual name) =
+    parens (pretty qual) <> "#" <> pretty name
   pretty (TypeRefSingleton ref) =
     pretty ref <> ".type"
 
@@ -1017,6 +1037,12 @@ parseTypeRef t o =
     "Type.Select" ->
       lift (
         TypeRefSelect
+          <$> o .: "qual"
+          <*> explicitParseField nameParser o "name"
+      )
+    "Type.Project" ->
+      lift (
+        TypeRefProject
           <$> o .: "qual"
           <*> explicitParseField nameParser o "name"
       )
@@ -1075,7 +1101,7 @@ data Importee
   = ImporteeWildcard
   | ImporteeName Text
   | ImporteeRename Text Text
-  --- | ImporteeUnimport Text
+  | ImporteeUnimport Text
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Importee where
@@ -1085,6 +1111,8 @@ instance Pretty Importee where
     pretty name
   pretty (ImporteeRename name rename) =
     pretty name <+> "=>" <+> pretty rename
+  pretty (ImporteeUnimport name) =
+    pretty name <+> "=>" <+> "_"
 
 parseImportee :: Text -> Object -> MaybeT Parser Importee
 parseImportee t o =
@@ -1101,6 +1129,11 @@ parseImportee t o =
         ImporteeRename
           <$> explicitParseField nameParser o "name"
           <*> explicitParseField nameParser o "rename"
+      )
+    "Importee.Unimport" ->
+      lift (
+        ImporteeUnimport
+          <$> explicitParseField nameParser o "name"
       )
     _ ->
       empty

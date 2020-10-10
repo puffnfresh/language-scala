@@ -30,6 +30,7 @@ test-suite language-scala-test
                      , tasty-golden >= 2.2
                      , aeson
                      , bytestring
+                     , text
                      , prettyprinter
                      , language-scala
   default-language:    Haskell2010
