@@ -650,9 +650,13 @@ data TypeParam
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty TypeParam where
-  pretty (TypeParam _mods name tparams tbounds _vbounds cbounds) =
-    name' <> tparams' <> pretty tbounds <> cbounds'
+  pretty (TypeParam mods name tparams tbounds _vbounds cbounds) =
+    mods' <> name' <> tparams' <> pretty tbounds <> cbounds'
     where
+      mods' =
+        if null mods
+          then mempty
+          else hsep (pretty <$> mods) <> space
       name' =
         if T.null name
           then "_"
@@ -908,13 +912,15 @@ instance FromJSON Term where
 
 data Enumerator
   = EnumeratorGenerator Pat Term
-  --- | EnumeratorVal Pat Term
+  | EnumeratorVal Pat Term
   --- | EnumeratorGuard Term
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Enumerator where
   pretty (EnumeratorGenerator pat rhs) =
     pretty pat <+> "<-" <+> pretty rhs
+  pretty (EnumeratorVal pat rhs) =
+    pretty pat <+> "=" <+> pretty rhs
 
 parseEnumerator :: Text -> Object -> MaybeT Parser Enumerator
 parseEnumerator t o =
@@ -922,6 +928,12 @@ parseEnumerator t o =
     "Enumerator.Generator" ->
       lift
         ( EnumeratorGenerator
+            <$> o .: "pat"
+            <*> o .: "rhs"
+        )
+    "Enumerator.Val" ->
+      lift
+        ( EnumeratorVal
             <$> o .: "pat"
             <*> o .: "rhs"
         )
@@ -1357,8 +1369,16 @@ parseMod t o =
       pure ModOverride
     "Mod.Lazy" ->
       pure ModLazy
+    "Mod.Covariant" ->
+      pure ModCovariant
+    "Mod.Contravariant" ->
+      pure ModContravariant
     "Mod.ValParam" ->
       pure ModValParam
+    "Mod.VarParam" ->
+      pure ModVarParam
+    "Mod.Inline" ->
+      pure ModInline
     _ ->
       empty
 
