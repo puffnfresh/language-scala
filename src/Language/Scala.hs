@@ -689,15 +689,15 @@ data Term
   | TermApplyUnary Text Term
   | TermAssign Term Term
   | --- | TermReturn Term
-    --- | TermThrow Term
-    TermAscribe Term Type
+    TermThrow Term
+  | TermAscribe Term Type
   | TermAnnotate Term [Init]
   | TermTuple [Term]
   | TermBlock [Stat]
   | TermIf Term Term Term
   | TermMatch Term [Case]
-  | --- | TermTry Term [Case] (Maybe Term)
-    --- | TermTryWithHandler Term Term (Maybe Term)
+  | TermTry Term [Case] (Maybe Term)
+  | --- | TermTryWithHandler Term Term (Maybe Term)
     TermFunction [TermParam] Term
   | TermPartialFunction [Case]
   | --- | TermWhile Term Term
@@ -751,6 +751,8 @@ instance Pretty Term where
     pretty lhs <+> "=" <+> pretty rhs
   pretty (TermLit lit) =
     pretty lit
+  pretty (TermThrow expr) =
+    "throw" <+> pretty expr
   pretty (TermAscribe expr tpe) =
     parens (parens (pretty expr) <+> ":" <+> pretty tpe)
   pretty (TermAnnotate expr annots) =
@@ -768,6 +770,8 @@ instance Pretty Term where
       ]
   pretty (TermMatch expr cases) =
     pretty expr <+> "match" <+> lbrace <> line <> vsep (indent 2 . pretty <$> cases) <> line <> rbrace
+  pretty (TermTry expr catchp _finallyp) =
+    "try" <+> pretty expr <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp)
   pretty (TermFunction params body) =
     parens (tupled (pretty <$> params) <+> "=>" <+> pretty body)
   pretty (TermPartialFunction cases) =
@@ -831,6 +835,11 @@ parseTerm t o =
             <$> o .: "lhs"
             <*> o .: "rhs"
         )
+    "Term.Throw" ->
+      lift
+        ( TermThrow
+            <$> o .: "expr"
+        )
     "Term.Ascribe" ->
       lift
         ( TermAscribe
@@ -865,6 +874,13 @@ parseTerm t o =
         ( TermMatch
             <$> o .: "expr"
             <*> o .: "cases"
+        )
+    "Term.Try" ->
+      lift
+        ( TermTry
+            <$> o .: "expr"
+            <*> o .: "catchp"
+            <*> o .:? "finallyp"
         )
     "Term.Function" ->
       lift

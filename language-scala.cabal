@@ -30,7 +30,7 @@ test-suite language-scala-golden
                      , tasty >= 0.8
                      , tasty-golden >= 2.2
                      , aeson
-                     , bytestring
+                     , filepath
                      , text
                      , prettyprinter
                      , language-scala

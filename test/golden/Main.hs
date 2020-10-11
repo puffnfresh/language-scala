@@ -9,6 +9,7 @@ import Data.Text.Prettyprint.Doc.Render.Text (renderLazy)
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import Data.Text.Prettyprint.Doc.Internal (layoutPretty)
 import Data.Text.Prettyprint.Doc (defaultLayoutOptions)
+import System.FilePath ((</>))
 
 main :: IO ()
 main =
@@ -22,4 +23,4 @@ prettyTest f =
 
 tests :: IO TestTree
 tests =
-  testGroup "Golden" . map prettyTest <$> findByExtension [".json"] "test/fixtures"
+  testGroup "Golden" . map prettyTest <$> findByExtension [".json"] ("test" </> "fixtures")
