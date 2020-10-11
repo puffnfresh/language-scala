@@ -708,7 +708,7 @@ data Term
   | TermNewAnonymous Template
   | TermPlaceholder
   | TermEta Term
-  --- | TermRepeated Term
+  | TermRepeated Term
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Term where
@@ -786,6 +786,8 @@ instance Pretty Term where
     "_"
   pretty (TermEta expr) =
     pretty expr <+> "_"
+  pretty (TermRepeated expr) =
+    pretty expr <+> ":" <+> "_*"
 
 parseTerm :: Text -> Object -> MaybeT Parser Term
 parseTerm t o =
@@ -894,6 +896,11 @@ parseTerm t o =
     "Term.Placeholder" ->
       pure TermPlaceholder
     "Term.Eta" ->
+      lift
+        ( TermEta
+            <$> o .: "expr"
+        )
+    "Term.Repeated" ->
       lift
         ( TermEta
             <$> o .: "expr"

@@ -22,4 +22,4 @@ prettyTest f =
 
 tests :: IO TestTree
 tests =
-  testGroup "Tests" . map prettyTest <$> findByExtension [".json"] "test"
+  testGroup "Golden" . map prettyTest <$> findByExtension [".json"] "test/fixtures"
