@@ -15,8 +15,7 @@ package scalaz {
       
         return_(a)
       }
-    def return_[S[_], A](value : => A)(implicit S : Applicative[S]) : Free[ S
-    , A ] =
+    def return_[S[_], A](value : => A)(implicit S : Applicative[S]) : Free[S, A] =
       liftF[S, A](S.point(value))
     def pure[S[_], A](value : A) : Free[S, A] =
       point(value)
@@ -28,8 +27,7 @@ package scalaz {
       pointUnitCache.asInstanceOf[Free[S, Unit]]
     def suspend[S[_], A](value : => Free[S, A]) : Free[S, A] =
       pointUnit.flatMap((_) => value)
-    def liftFU[MA](value : => MA)( implicit MA : Unapply[ Functor
-    , MA ] ) : Free[MA.M, MA.A] =
+    def liftFU[MA](value : => MA)(implicit MA : Unapply[Functor, MA]) : Free[MA.M, MA.A] =
       liftF(MA(value))
     def joinF[S[_], A](value : Free[Free[S, *], A]) : Free[S, A] =
       value.flatMapSuspension(NaturalTransformation.refl[Free[S, *]])
@@ -45,8 +43,7 @@ package scalaz {
     }
     private case class Suspend[S[_], A] (a : S[A]) extends Free[S, A] {
     }
-    private case class Gosub[S[_], A0, B] ( a0 : Free[S, A0]
-    , f0 : (A0) => Free[S, B] ) extends Free[S, B] {
+    private case class Gosub[S[_], A0, B] (a0 : Free[S, A0], f0 : (A0) => Free[S, B]) extends Free[S, B] {
       type A = A0
       def a : Free[S, A] =
         a0
@@ -69,8 +66,7 @@ package scalaz {
       this flatMap f
     final def flatMap[B](f : (A) => Free[S, B]) : Free[S, B] =
       Gosub(this, f)
-    final def fold[B]( r : (A) => B
-    , s : (S[Free[S, A]]) => B )(implicit S : Functor[S]) : B =
+    final def fold[B](r : (A) => B, s : (S[Free[S, A]]) => B)(implicit S : Functor[S]) : B =
       resume.fold(s, r)
     final def resume(implicit S : Functor[S]) : S[Free[S, A]] \/ A =
       resumeC.leftMap(_.run)
@@ -91,10 +87,7 @@ package scalaz {
           }
       }
     final def mapSuspension[T[_]](f : S ~> T) : Free[T, A] =
-      flatMapSuspension( new (S ~> Free[T, *]) {
-        def apply[X](s : S[X]) =
-          Suspend(f(s))
-      } )
+      flatMapSuspension(new (S ~> Free[T, *]) {   def apply[X](s : S[X]) =   Suspend(f(s)) })
     final def mapFirstSuspension(f : S ~> S) : Free[S, A] =
       step match {
         case Suspend (s) =>
@@ -111,22 +104,18 @@ package scalaz {
       }
     final def flatMapSuspension[T[_]](f : S ~> Free[T, *]) : Free[T, A] =
       foldMap[Free[T, *]](f)(freeMonad[T])
-    final def zapWith[G[_], B, C](bs : Cofree[G, B])( f : ( A
-    , B ) => C )(implicit d : Zap[S, G]) : C =
+    final def zapWith[G[_], B, C](bs : Cofree[G, B])(f : (A, B) => C)(implicit d : Zap[S, G]) : C =
       Zap.monadComonadZap.zapWith(this, bs)(f)
-    final def zap[G[_], B](fs : Cofree[G, (A) => B])( implicit d : Zap[ S
-    , G ] ) : B =
+    final def zap[G[_], B](fs : Cofree[G, (A) => B])(implicit d : Zap[S, G]) : B =
       zapWith(fs)((a, f) => f(a))
-    final def bounce( f : (S[Free[S, A]]) => Free[ S
-    , A ] )(implicit S : Functor[S]) : Free[S, A] =
+    final def bounce(f : (S[Free[S, A]]) => Free[S, A])(implicit S : Functor[S]) : Free[S, A] =
       resume match {
         case -\/ (s) =>
           f(s)
         case \/- (r) =>
           Return(r)
       }
-    final def go( f : (S[Free[S, A]]) => Free[ S
-    , A ] )(implicit S : Functor[S]) : A =
+    final def go(f : (S[Free[S, A]]) => Free[S, A])(implicit S : Functor[S]) : A =
       {
         @tailrec def go2(t : Free[S, A]) : A =
           t.resume match {
@@ -138,8 +127,7 @@ package scalaz {
       
         go2(this)
       }
-    final def runM[M[_]]( f : (S[Free[S, A]]) => M[ Free[ S
-    , A ] ] )(implicit S : Functor[S], M : Monad[M]) : M[A] =
+    final def runM[M[_]](f : (S[Free[S, A]]) => M[Free[S, A]])(implicit S : Functor[S], M : Monad[M]) : M[A] =
       {
         def runM2(t : Free[S, A]) : M[A] =
           t.resume match {
@@ -151,10 +139,7 @@ package scalaz {
       
         runM2(this)
       }
-    final def runRecM[M[_]]( f : (S[Free[S, A]]) => M[ Free[ S
-    , A ] ] )( implicit S : Functor[S]
-    , M : Applicative[M]
-    , B : BindRec[M] ) : M[A] =
+    final def runRecM[M[_]](f : (S[Free[S, A]]) => M[Free[S, A]])(implicit S : Functor[S], M : Applicative[M], B : BindRec[M]) : M[A] =
       {
         B.tailrecM(this)( _.resume match {
           case -\/ (sf) =>
@@ -179,15 +164,12 @@ package scalaz {
       }
     @tailrec private[scalaz] final def foldStep[B]( onReturn : (A) => B
     , onSuspend : (S[A]) => B
-    , onGosub : ~>[ ( {type l[a] = (S[a], (a) => Free[S, A])})#l
-    , ( {type l[a] = B})#l ] ) : B =
+    , onGosub : ~>[( {type l[a] = (S[a], (a) => Free[S, A])})#l, ( {type l[a] = B})#l] ) : B =
       this match {
         case Gosub (fz, f) =>
           fz match {
             case Gosub (fy, g) =>
-              fy.flatMap((y) => g(y).flatMap(f)).foldStep( onReturn
-              , onSuspend
-              , onGosub )
+              fy.flatMap((y) => g(y).flatMap(f)).foldStep(onReturn, onSuspend, onGosub)
             case Suspend (sz) =>
               onGosub((sz, f))
             case Return (z) =>
@@ -207,8 +189,7 @@ package scalaz {
         case a @ Gosub (_, _) =>
           M.bind(a.a foldMap f)((c) => a.f(c) foldMap f)
       }
-    final def foldMapRec[M[_]](f : S ~> M)( implicit M : Applicative[M]
-    , B : BindRec[M] ) : M[A] =
+    final def foldMapRec[M[_]](f : S ~> M)(implicit M : Applicative[M], B : BindRec[M]) : M[A] =
       B.tailrecM(this)( {
         _.step match {
           case Return (a) =>
@@ -223,15 +204,14 @@ package scalaz {
         }
       } )
     import Id.{_}
-    final def foldRight[ G[ _ ] ]( z : Id ~> G )( f : λ[ ( α ) => S[ G[ α ] ] ] ~> G )( implicit S : Functor[ S ] ) : G[ A ] =
+    final def foldRight[G[_]](z : Id ~> G)(f : λ[(α) => S[G[α]]] ~> G)(implicit S : Functor[S]) : G[A] =
       this.resume match {
         case -\/ (s) =>
           f(S.map(s)(_.foldRight(z)(f)))
         case \/- (r) =>
           z(r)
       }
-    @tailrec final def foldRun[B](b : B)( f : λ[(α) => (B, S[α])] ~> ( B
-    , * ) ) : (B, A) =
+    @tailrec final def foldRun[B](b : B)(f : λ[(α) => (B, S[α])] ~> (B, *)) : (B, A) =
       step match {
         case Return (a) =>
           (b, a)
@@ -247,12 +227,10 @@ package scalaz {
                 g.f(z).foldRun(b1)(f)
               }
             case _ =>
-              sys.error( "Unreachable code: `Gosub` returned from `step` must have `Suspend` on the left" )
+              sys.error("Unreachable code: `Gosub` returned from `step` must have `Suspend` on the left")
           }
       }
-    final def foldRunM[M[_], B](b : B)( f : λ[ (α) => ( B
-    , S[α] ) ] ~> λ[(α) => M[(B, α)]] )( implicit M0 : Applicative[M]
-    , M1 : BindRec[M] ) : M[(B, A)] =
+    final def foldRunM[M[_], B](b : B)(f : λ[(α) => (B, S[α])] ~> λ[(α) => M[(B, α)]])(implicit M0 : Applicative[M], M1 : BindRec[M]) : M[(B, A)] =
       M1.tailrecM((b, this))( {
         case (b, fa) =>
           fa.step match {
@@ -268,7 +246,7 @@ package scalaz {
                       -\/((b, g.f(z)))
                   } )
                 case _ =>
-                  sys.error( "Unreachable code: `Gosub` returned from `step` must have `Suspend` on the left" )
+                  sys.error("Unreachable code: `Gosub` returned from `step` must have `Suspend` on the left")
               }
           }
       } )
@@ -290,16 +268,14 @@ package scalaz {
           case (a @ Gosub (_, _), b @ Suspend (_)) =>
             a.a.flatMap((x) => b.flatMap((y) => a.f(x).map(f(_, y))))
           case (a @ Gosub (_, _), b @ Gosub (_, _)) =>
-            a.a.zipWith(b.a)( ( x
-            , y ) => a.f(x).zipWith(b.f(y))(f) ).flatMap((x) => x)
+            a.a.zipWith(b.a)((x, y) => a.f(x).zipWith(b.f(y))(f)).flatMap((x) => x)
           case (a, b @ Gosub (_, _)) =>
             a.flatMap((x) => b.a.flatMap((y) => b.f(y).map(f(x, _))))
         }
       }
     def collect[B](implicit ev : Free[S, A] === Source[B, A]) : (Vector[B], A) =
       {
-        @tailrec def go( c : Source[B, A]
-        , v : Vector[B] = Vector() ) : (Vector[B], A) =
+        @tailrec def go(c : Source[B, A], v : Vector[B] = Vector()) : (Vector[B], A) =
           c.resume match {
             case -\/ ((b, cont)) =>
               go(cont, v :+ b)
@@ -309,8 +285,7 @@ package scalaz {
       
         go(ev(this))
       }
-    def drive[E, B](sink : Sink[Option[E], B])( implicit ev : Free[ S
-    , A ] === Source[E, A] ) : (A, B) =
+    def drive[E, B](sink : Sink[Option[E], B])(implicit ev : Free[S, A] === Source[E, A]) : (A, B) =
       {
         @tailrec def go(src : Source[E, A], snk : Sink[Option[E], B]) : (A, B) =
           (src.resume, snk.resume) match {
@@ -340,8 +315,7 @@ package scalaz {
       
         go(ev(this), ss)
       }
-    def drain[E, B](source : Source[E, B])( implicit ev : Free[S, A] === Sink[ E
-    , A ] ) : (A, B) =
+    def drain[E, B](source : Source[E, B])(implicit ev : Free[S, A] === Sink[E, A]) : (A, B) =
       {
         @tailrec def go(src : Source[E, B], snk : Sink[E, A]) : (A, B) =
           (src.resume, snk.resume) match {
@@ -448,8 +422,7 @@ package scalaz {
         override def zip[A, B](aa : => Free[S, A], bb : => Free[S, B]) =
           (aa.resumeC, bb.resumeC) match {
             case (-\/ (a), -\/ (b)) =>
-              liftF(Z.zip(a.fi, b.fi)).flatMap( (ab) => zip( a.k(ab._1)
-              , b.k(ab._2) ) )
+              liftF(Z.zip(a.fi, b.fi)).flatMap((ab) => zip(a.k(ab._1), b.k(ab._2)))
             case (-\/ (a), \/- (b)) =>
               liftF(a.fi).flatMap((i) => a.k(i).map((_, b)))
             case (\/- (a), -\/ (b)) =>
@@ -471,30 +444,24 @@ package scalaz {
 
   private sealed trait FreeFoldable[F[_]]  extends Foldable[Free[F, *]] {
     def F: Foldable[F]
-    override final def foldMap[A, B: Monoid]( fa : Free[ F
-    , A ] )(f : (A) => B) : B =
+    override final def foldMap[A, B: Monoid](fa : Free[F, A])(f : (A) => B) : B =
       fa.foldStep( f
       , (fa) => F.foldMap(fa)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
           F.foldMap(a._1)((x) => foldMap(a._2 apply x)(f))
       } )
-    override final def foldLeft[A, B](fa : Free[F, A], z : B)( f : ( B
-    , A ) => B ) : B =
+    override final def foldLeft[A, B](fa : Free[F, A], z : B)(f : (B, A) => B) : B =
       fa.foldStep( (a) => f(z, a)
       , (fa) => F.foldLeft(fa, z)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
           F.foldLeft(a._1, z)((b, x) => foldLeft(a._2 apply x, b)(f))
       } )
-    override final def foldRight[A, B](fa : Free[F, A], z : => B)( f : ( A
-    , => B ) => B ) : B =
+    override final def foldRight[A, B](fa : Free[F, A], z : => B)(f : (A, => B) => B) : B =
       fa.foldStep( (a) => f(a, z)
       , (fa) => F.foldRight(fa, z)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
           F.foldRight(a._1, z)((x, b) => foldRight(a._2 apply x, b)(f))
       } )
@@ -502,44 +469,34 @@ package scalaz {
 
   private sealed trait FreeFoldable1[F[_]]  extends Foldable1[Free[F, *]] {
     def F: Foldable1[F]
-    override final def foldMap1[A, B: Semigroup]( fa : Free[ F
-    , A ] )(f : (A) => B) : B =
+    override final def foldMap1[A, B: Semigroup](fa : Free[F, A])(f : (A) => B) : B =
       fa.foldStep( f
       , (fa) => F.foldMap1(fa)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
           F.foldMap1(a._1)((x) => foldMap1(a._2 apply x)(f))
       } )
-    override final def foldMapRight1[A, B]( fa : Free[ F
-    , A ] )(z : (A) => B)(f : (A, => B) => B) : B =
+    override final def foldMapRight1[A, B](fa : Free[F, A])(z : (A) => B)(f : (A, => B) => B) : B =
       fa.foldStep( z
       , (fa) => F.foldMapRight1(fa)(z)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMapRight1(a._1)((x) => foldMapRight1(a._2 apply x)(z)(f))( ( x
-          , b ) => foldRight(a._2 apply x, b)(f) )
+          F.foldMapRight1(a._1)((x) => foldMapRight1(a._2 apply x)(z)(f))((x, b) => foldRight(a._2 apply x, b)(f))
       } )
-    override final def foldMapLeft1[A, B]( fa : Free[ F
-    , A ] )(z : (A) => B)(f : (B, A) => B) : B =
+    override final def foldMapLeft1[A, B](fa : Free[F, A])(z : (A) => B)(f : (B, A) => B) : B =
       fa.foldStep( z
       , (fa) => F.foldMapLeft1(fa)(z)(f)
-      , new ~>[ ( {type l[a] = (F[a], (a) => Free[F, A])})#l
-      , ( {type l[a] = B})#l ] {
+      , new ~>[( {type l[a] = (F[a], (a) => Free[F, A])})#l, ( {type l[a] = B})#l] {
         override def apply[X](a : (F[X], (X) => Free[F, A])) =
-          F.foldMapLeft1(a._1)((x) => foldMapLeft1(a._2 apply x)(z)(f))( ( b
-          , x ) => foldLeft(a._2 apply x, b)(f) )
+          F.foldMapLeft1(a._1)((x) => foldMapLeft1(a._2 apply x)(z)(f))((b, x) => foldLeft(a._2 apply x, b)(f))
       } )
   }
 
-  private sealed trait FreeTraverse[F[_]]  extends Traverse[Free[F, *]]
-   with FreeFoldable[F] {
+  private sealed trait FreeTraverse[F[_]]  extends Traverse[Free[F, *]] with FreeFoldable[F] {
     implicit def F: Traverse[F]
     override final def map[A, B](fa : Free[F, A])(f : (A) => B) =
       fa map f
-    override final def traverseImpl[G[_], A, B]( fa : Free[ F
-    , A ] )(f : (A) => G[B])(implicit G : Applicative[G]) : G[Free[F, B]] =
+    override final def traverseImpl[G[_], A, B](fa : Free[F, A])(f : (A) => G[B])(implicit G : Applicative[G]) : G[Free[F, B]] =
       fa.resume match {
         case -\/ (s) =>
           G.map(F.traverseImpl(s)(traverseImpl[G, A, B](_)(f)))(roll)
@@ -548,13 +505,9 @@ package scalaz {
       }
   }
 
-  private sealed abstract class FreeTraverse1[F[_]]  extends Traverse1[ Free[ F
-  , * ] ]
-   with FreeTraverse[F]
-   with FreeFoldable1[F] {
+  private sealed abstract class FreeTraverse1[F[_]]  extends Traverse1[Free[F, *]] with FreeTraverse[F] with FreeFoldable1[F] {
     implicit def F: Traverse1[F]
-    override final def traverse1Impl[G[_], A, B]( fa : Free[ F
-    , A ] )(f : (A) => G[B])(implicit G : Apply[G]) : G[Free[F, B]] =
+    override final def traverse1Impl[G[_], A, B](fa : Free[F, A])(f : (A) => G[B])(implicit G : Apply[G]) : G[Free[F, B]] =
       fa.resume match {
         case -\/ (s) =>
           G.map(F.traverse1Impl(s)(traverse1Impl[G, A, B](_)(f)))(roll)

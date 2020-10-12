@@ -3,8 +3,7 @@ package scalaz {
 
   trait Foldable[F[_]]  { self =>
     def foldMap[A, B](fa : F[A])(f : (A) => B)(implicit F : Monoid[B]): B
-    def foldMap1Opt[ A
-    , B ](fa : F[A])(f : (A) => B)(implicit F : Semigroup[B]) : Option[B] =
+    def foldMap1Opt[A, B](fa : F[A])(f : (A) => B)(implicit F : Semigroup[B]) : Option[B] =
       {
         import std.option.{_}
       
@@ -25,16 +24,14 @@ package scalaz {
         def G =
           implicitly
       }
-    def product[G[_]](implicit G0 : Foldable[G]) : Foldable[ λ[ (α) => ( F[α]
-    , G[α] ) ] ] =
+    def product[G[_]](implicit G0 : Foldable[G]) : Foldable[λ[(α) => (F[α], G[α])]] =
       new ProductFoldable[F, G] {
         implicit def F =
           self
         implicit def G =
           G0
       }
-    def product0[G[_]](implicit G0 : Foldable1[G]) : Foldable1[ λ[ (α) => ( F[α]
-    , G[α] ) ] ] =
+    def product0[G[_]](implicit G0 : Foldable1[G]) : Foldable1[λ[(α) => (F[α], G[α])]] =
       new ProductFoldable1R[F, G] {
         def F =
           self
@@ -45,76 +42,53 @@ package scalaz {
       {
         import Dual.{_}, Endo.{_}, syntax.std.all.{_}
       
-        Tag.unwrap( foldMap( fa )( ( a : A ) => Dual( Endo.endo( f.flip.curried( a ) ) ) )( dualMonoid ) ) apply z
+        Tag.unwrap(foldMap(fa)((a : A) => Dual(Endo.endo(f.flip.curried(a))))(dualMonoid)) apply z
       }
-    def foldRightM[G[_], A, B](fa : F[A], z : => B)( f : ( A
-    , => B ) => G[B] )(implicit M : Monad[G]) : G[B] =
-      foldLeft[A, (B) => G[B]](fa, M.point(_))( (b, a) => (w) => M.bind( f( a
-      , w ) )(b) )(z)
-    def foldLeftM[G[_], A, B](fa : F[A], z : B)( f : ( B
-    , A ) => G[B] )(implicit M : Monad[G]) : G[B] =
-      foldRight[A, (B) => G[B]](fa, M.point(_))( (a, b) => (w) => M.bind( f( w
-      , a ) )(b) )(z)
-    def foldMapM[G[_], A, B](fa : F[A])(f : (A) => G[B])( implicit B : Monoid[B]
-    , G : Monad[G] ) : G[B] =
-      foldRightM[G, A, B](fa, B.zero)( ( a
-      , b2 ) => G.map(f(a))((b1) => B.append(b1, b2)) )
+    def foldRightM[G[_], A, B](fa : F[A], z : => B)(f : (A, => B) => G[B])(implicit M : Monad[G]) : G[B] =
+      foldLeft[A, (B) => G[B]](fa, M.point(_))((b, a) => (w) => M.bind(f(a, w))(b))(z)
+    def foldLeftM[G[_], A, B](fa : F[A], z : B)(f : (B, A) => G[B])(implicit M : Monad[G]) : G[B] =
+      foldRight[A, (B) => G[B]](fa, M.point(_))((a, b) => (w) => M.bind(f(w, a))(b))(z)
+    def foldMapM[G[_], A, B](fa : F[A])(f : (A) => G[B])(implicit B : Monoid[B], G : Monad[G]) : G[B] =
+      foldRightM[G, A, B](fa, B.zero)((a, b2) => G.map(f(a))((b1) => B.append(b1, b2)))
     def fold[M: Monoid](t : F[M]) : M =
       foldMap[M, M](t)((x) => x)
     def fold1Opt[A: Semigroup](fa : F[A]) : Option[A] =
       foldMap1Opt(fa)((a) => a)
-    def traverse_[ M[_]
-    , A
-    , B ](fa : F[A])(f : (A) => M[B])(implicit a : Applicative[M]) : M[Unit] =
+    def traverse_[M[_], A, B](fa : F[A])(f : (A) => M[B])(implicit a : Applicative[M]) : M[Unit] =
       foldLeft(fa, a.pure(()))((x, y) => a.ap(f(y))(a.map(x)((_) => (_) => ())))
-    final def traverseU_[ A
-    , GB ](fa : F[A])(f : (A) => GB)( implicit G : Unapply[ Applicative
-    , GB ] ) : G.M[Unit] =
+    final def traverseU_[A, GB](fa : F[A])(f : (A) => GB)(implicit G : Unapply[Applicative, GB]) : G.M[Unit] =
       traverse_[G.M, A, G.A](fa)(G.leibniz.onF(f))(G.TC)
-    def traverseS_[S, A, B](fa : F[A])(f : (A) => State[S, B]) : State[ S
-    , Unit ] =
+    def traverseS_[S, A, B](fa : F[A])(f : (A) => State[S, B]) : State[S, Unit] =
       State( {
         (s) => (foldLeft(fa, s)((s, a) => f(a)(s)._1), ())
       } )
-    def sequence_[ M[_]
-    , A ](fa : F[M[A]])(implicit a : Applicative[M]) : M[Unit] =
+    def sequence_[M[_], A](fa : F[M[A]])(implicit a : Applicative[M]) : M[Unit] =
       traverse_(fa)((x) => x)
     def sequenceS_[S, A](fga : F[State[S, A]]) : State[S, Unit] =
       traverseS_(fga)((x) => x)
     def sequenceF_[M[_], A](ffa : F[Free[M, A]]) : Free[M, Unit] =
-      foldLeft[Free[M, A], Free[M, Unit]](ffa, Free.pure[M, Unit](()))( ( c
-      , d ) => c.flatMap((_) => d.map((_) => ())) )
+      foldLeft[Free[M, A], Free[M, Unit]](ffa, Free.pure[M, Unit](()))((c, d) => c.flatMap((_) => d.map((_) => ())))
     final def foldr[A, B](fa : F[A], z : => B)(f : (A) => (=> B) => B) : B =
       foldRight(fa, z)((a, b) => f(a)(b))
-    def foldMapRight1Opt[A, B](fa : F[A])(z : (A) => B)( f : ( A
-    , => B ) => B ) : Option[B] =
-      foldRight(fa, None : Option[B])( (a, optB) => optB map f( a
-      , _ ) orElse Some(z(a)) )
+    def foldMapRight1Opt[A, B](fa : F[A])(z : (A) => B)(f : (A, => B) => B) : Option[B] =
+      foldRight(fa, None : Option[B])((a, optB) => optB map f(a, _) orElse Some(z(a)))
     def foldRight1Opt[A](fa : F[A])(f : (A, => A) => A) : Option[A] =
       foldMapRight1Opt(fa)(identity)(f)
     def foldr1Opt[A](fa : F[A])(f : (A) => (=> A) => A) : Option[A] =
-      foldRight(fa, None : Option[A])( ( a
-      , optA ) => optA map ((aa) => f(a)(aa)) orElse Some(a) )
+      foldRight(fa, None : Option[A])((a, optA) => optA map ((aa) => f(a)(aa)) orElse Some(a))
     final def foldl[A, B](fa : F[A], z : B)(f : (B) => (A) => B) : B =
       foldLeft(fa, z)((b, a) => f(b)(a))
-    def foldMapLeft1Opt[A, B](fa : F[A])(z : (A) => B)( f : ( B
-    , A ) => B ) : Option[B] =
-      foldLeft(fa, None : Option[B])( (optB, a) => optB map f( _
-      , a ) orElse Some(z(a)) )
+    def foldMapLeft1Opt[A, B](fa : F[A])(z : (A) => B)(f : (B, A) => B) : Option[B] =
+      foldLeft(fa, None : Option[B])((optB, a) => optB map f(_, a) orElse Some(z(a)))
     def foldLeft1Opt[A](fa : F[A])(f : (A, A) => A) : Option[A] =
       foldMapLeft1Opt(fa)(identity)(f)
     def foldl1Opt[A](fa : F[A])(f : (A) => (A) => A) : Option[A] =
-      foldLeft(fa, None : Option[A])( ( optA
-      , a ) => optA map ((aa) => f(aa)(a)) orElse Some(a) )
-    final def foldrM[G[_], A, B]( fa : F[A]
-    , z : => B )(f : (A) => (=> B) => G[B])(implicit M : Monad[G]) : G[B] =
+      foldLeft(fa, None : Option[A])((optA, a) => optA map ((aa) => f(aa)(a)) orElse Some(a))
+    final def foldrM[G[_], A, B](fa : F[A], z : => B)(f : (A) => (=> B) => G[B])(implicit M : Monad[G]) : G[B] =
       foldRightM(fa, z)((a, b) => f(a)(b))
-    final def foldlM[G[_], A, B]( fa : F[A]
-    , z : => B )(f : (B) => (A) => G[B])(implicit M : Monad[G]) : G[B] =
+    final def foldlM[G[_], A, B](fa : F[A], z : => B)(f : (B) => (A) => G[B])(implicit M : Monad[G]) : G[B] =
       foldLeftM(fa, z)((b, a) => f(b)(a))
-    final def findMapM[ M[_]: Monad
-    , A
-    , B ](fa : F[A])(f : (A) => M[Option[B]]) : M[Option[B]] =
+    final def findMapM[M[_]: Monad, A, B](fa : F[A])(f : (A) => M[Option[B]]) : M[Option[B]] =
       toEphemeralStream(fa) findMapM f
     def findLeft[A](fa : F[A])(f : (A) => Boolean) : Option[A] =
       foldLeft[A, Option[A]](fa, None)( (b, a) => b.orElse( if (f(a))
@@ -162,20 +136,17 @@ package scalaz {
     def toIList[A](fa : F[A]) : IList[A] =
       foldLeft(fa, IList.empty[A])((t, h) => h :: t).reverse
     def toEphemeralStream[A](fa : F[A]) : EphemeralStream[A] =
-      foldRight( fa
-      , EphemeralStream.emptyEphemeralStream[A] )(EphemeralStream.cons(_, _))
+      foldRight(fa, EphemeralStream.emptyEphemeralStream[A])(EphemeralStream.cons(_, _))
     def all[A](fa : F[A])(p : (A) => Boolean) : Boolean =
       foldRight(fa, true)(p(_) && (_))
-    def allM[ G[_]
-    , A ]( fa : F[ A ] )( p : ( A ) => G[ Boolean ] )( implicit G : Monad[ G ] ) : G[ Boolean ] =
+    def allM[G[_], A](fa : F[A])(p : (A) => G[Boolean])(implicit G : Monad[G]) : G[Boolean] =
       foldRight(fa, G.point(true))( (a, b) => G.bind(p(a))( (q) => if (q)
         b
       else
         G.point(false) ) )
     def any[A](fa : F[A])(p : (A) => Boolean) : Boolean =
       foldRight(fa, false)(p(_) || (_))
-    def anyM[ G[_]
-    , A ]( fa : F[ A ] )( p : ( A ) => G[ Boolean ] )( implicit G : Monad[ G ] ) : G[ Boolean ] =
+    def anyM[G[_], A](fa : F[A])(p : (A) => G[Boolean])(implicit G : Monad[G]) : G[Boolean] =
       foldRight(fa, G.point(false))( (a, b) => G.bind(p(a))( (q) => if (q)
         G.point(true)
       else
@@ -344,9 +315,7 @@ package scalaz {
       foldLeft(fa, A.zero)(A.append(_, _))
     def suml1Opt[A](fa : F[A])(implicit A : Semigroup[A]) : Option[A] =
       foldLeft1Opt(fa)(A.append(_, _))
-    def psumMap[ A
-    , B
-    , G[_] ](fa : F[A])(f : (A) => G[B])(implicit G : PlusEmpty[G]) : G[B] =
+    def psumMap[A, B, G[_]](fa : F[A])(f : (A) => G[B])(implicit G : PlusEmpty[G]) : G[B] =
       foldMap(fa)(f)(G.monoid)
     def psum[G[_], A](fa : F[G[A]])(implicit G : PlusEmpty[G]) : G[A] =
       fold(fa)(G.monoid)
@@ -363,8 +332,7 @@ package scalaz {
         (l, oa) => some(A.append(l, oa map A.append(a, _) getOrElse A.zero))
       } ).getOrElse(A.zero)
     def splitWith[A](fa : F[A])(p : (A) => Boolean) : List[NonEmptyList[A]] =
-      foldRight(fa, Maybe.empty[(NonEmptyList[NonEmptyList[A]], Boolean)])( ( a
-      , b ) => {
+      foldRight(fa, Maybe.empty[(NonEmptyList[NonEmptyList[A]], Boolean)])( (a, b) => {
         val pa =
           p(a)
       
@@ -379,8 +347,7 @@ package scalaz {
         }
         , pa ) )
       } ).cata(_._1.list.toList, List.empty)
-    def splitBy[A, B: Equal](fa : F[A])(f : (A) => B) : IList[ ( B
-    , NonEmptyList[A] ) ] =
+    def splitBy[A, B: Equal](fa : F[A])(f : (A) => B) : IList[(B, NonEmptyList[A])] =
       foldRight(fa, IList[(B, NonEmptyList[A])]())( (a, bas) => {
         val fa =
           f(a)
@@ -395,8 +362,7 @@ package scalaz {
               ICons((fa, NonEmptyList.nel(a, IList.empty)), bas)
         }
       } )
-    def splitByRelation[A](fa : F[A])( r : ( A
-    , A ) => Boolean ) : IList[NonEmptyList[A]] =
+    def splitByRelation[A](fa : F[A])(r : (A, A) => Boolean) : IList[NonEmptyList[A]] =
       foldRight(fa, IList[NonEmptyList[A]]())( (a, neas) => neas match {
         case INil () =>
           IList.single(NonEmptyList.nel(a, IList.empty))
@@ -410,12 +376,10 @@ package scalaz {
       {
         import scalaz.syntax.foldable.{_}
       
-        def squash( t : ( List[NonEmptyList[A]]
-        , IList[A] ) ) : List[NonEmptyList[A]] =
+        def squash(t : (List[NonEmptyList[A]], IList[A])) : List[NonEmptyList[A]] =
           t._2.toNel.toList ::: t._1
       
-        squash( foldRight( fa
-        , (List.empty[NonEmptyList[A]], IList.empty[A]) )( (a, l) => if (p(a))
+        squash( foldRight(fa, (List.empty[NonEmptyList[A]], IList.empty[A]))( (a, l) => if (p(a))
           (l._1, a :: l._2)
         else
           (squash(l), IList.empty) ) )
@@ -443,11 +407,9 @@ package scalaz {
     trait FoldableLaw  {
       import std.vector.{_}
       def leftFMConsistent[A: Equal](fa : F[A]) : Boolean =
-        Equal[Vector[A]].equal( foldMap(fa)(Vector(_))
-        , foldLeft(fa, Vector.empty[A])(_ :+ (_)) )
+        Equal[Vector[A]].equal(foldMap(fa)(Vector(_)), foldLeft(fa, Vector.empty[A])(_ :+ (_)))
       def rightFMConsistent[A: Equal](fa : F[A]) : Boolean =
-        Equal[Vector[A]].equal( foldMap(fa)(Vector(_))
-        , foldRight(fa, Vector.empty[A])(_ +: (_)) )
+        Equal[Vector[A]].equal(foldMap(fa)(Vector(_)), foldRight(fa, Vector.empty[A])(_ +: (_)))
     }
     def foldableLaw : FoldableLaw =
       new FoldableLaw {
@@ -462,8 +424,7 @@ package scalaz {
   object Foldable {
     @inline def apply[F[_]](implicit F : Foldable[F]) : Foldable[F] =
       F
-    def fromIso[ F[_]
-    , G[_] ](D : F ~> G)(implicit E : Foldable[G]) : Foldable[F] =
+    def fromIso[F[_], G[_]](D : F ~> G)(implicit E : Foldable[G]) : Foldable[F] =
       new IsomorphismFoldable[F, G] {
         override def G : Foldable[G] =
           E
@@ -475,8 +436,7 @@ package scalaz {
         foldMap(fa)((a : A) => Endo.endoByName[B](f(a, _))) apply z
     }
     trait FromFoldr[F[_]]  extends Foldable[F] {
-      override def foldMap[ A
-      , B ](fa : F[A])(f : (A) => B)(implicit F : Monoid[B]) =
+      override def foldMap[A, B](fa : F[A])(f : (A) => B)(implicit F : Monoid[B]) =
         foldRight[A, B](fa, F.zero)((x, y) => F.append(f(x), y))
     }
   }
@@ -484,8 +444,7 @@ package scalaz {
   trait IsomorphismFoldable[F[_], G[_]]  extends Foldable[F] {
     implicit def G: Foldable[G]
     protected[this] def naturalTrans: F ~> G
-    override def foldMap[ A
-    , B ](fa : F[A])(f : (A) => B)(implicit F : Monoid[B]) : B =
+    override def foldMap[A, B](fa : F[A])(f : (A) => B)(implicit F : Monoid[B]) : B =
       G.foldMap(naturalTrans(fa))(f)
     override def foldLeft[A, B](fa : F[A], z : B)(f : (B, A) => B) : B =
       G.foldLeft(naturalTrans(fa), z)(f)

@@ -157,7 +157,7 @@ package scalaz {
             found && l.isSubsetOfX(lt) && r.isSubsetOfX(gt)
           }
       }
-    final def isProperSubsetOf( other : ISet[ A ] )( implicit o : Order[ A ] ) : Boolean =
+    final def isProperSubsetOf(other : ISet[A])(implicit o : Order[A]) : Boolean =
       this.size < other.size && this.isSubsetOf(other)
     final def insert(x : A)(implicit o : Order[A]) : ISet[A] =
       this match {
@@ -237,10 +237,7 @@ package scalaz {
       }
     final def union(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
       {
-        def hedgeUnion( blo : Option[A]
-        , bhi : Option[A]
-        , t1 : ISet[A]
-        , t2 : ISet[A] )(implicit o : Order[A]) : ISet[A] =
+        def hedgeUnion(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A])(implicit o : Order[A]) : ISet[A] =
           (t1, t2) match {
             case (t1, Tip ()) =>
               t1
@@ -253,9 +250,7 @@ package scalaz {
                 val bmi =
                   some(x)
               
-                join( x
-                , hedgeUnion(blo, bmi, l, t2.trim(blo, bmi))
-                , hedgeUnion(bmi, bhi, r, t2.trim(bmi, bhi)) )
+                join(x, hedgeUnion(blo, bmi, l, t2.trim(blo, bmi)), hedgeUnion(bmi, bhi, r, t2.trim(bmi, bhi)))
               }
           }
       
@@ -284,10 +279,7 @@ package scalaz {
       }
     final def difference(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
       {
-        def hedgeDiff( blo : Option[A]
-        , bhi : Option[A]
-        , t1 : ISet[A]
-        , t2 : ISet[A] ) : ISet[A] =
+        def hedgeDiff(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A]) : ISet[A] =
           (t1, t2) match {
             case (Tip (), _) =>
               Tip()
@@ -298,10 +290,7 @@ package scalaz {
                 val bmi =
                   some(x)
               
-                hedgeDiff(blo, bmi, t.trim(blo, bmi), l) merge hedgeDiff( bmi
-                , bhi
-                , t.trim(bmi, bhi)
-                , r )
+                hedgeDiff(blo, bmi, t.trim(blo, bmi), l) merge hedgeDiff(bmi, bhi, t.trim(bmi, bhi), r)
               }
           }
       
@@ -318,10 +307,7 @@ package scalaz {
       difference(other)
     final def intersection(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
       {
-        def hedgeInt( blo : Option[A]
-        , bhi : Option[A]
-        , t1 : ISet[A]
-        , t2 : ISet[A] ) : ISet[A] =
+        def hedgeInt(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A]) : ISet[A] =
           (t1, t2) match {
             case (_, Tip ()) =>
               t2
@@ -423,9 +409,7 @@ package scalaz {
               (l, r)
           }
       }
-    final def splitMember(x : A)(implicit o : Order[A]) : ( ISet[A]
-    , Boolean
-    , ISet[A] ) =
+    final def splitMember(x : A)(implicit o : Order[A]) : (ISet[A], Boolean, ISet[A]) =
       this match {
         case Tip () =>
           (this, false, this)
@@ -681,8 +665,7 @@ package scalaz {
             else
               glue(l, r)
       }
-    final def trim( a : Option[A]
-    , b : Option[A] )(implicit o : Order[A]) : ISet[A] =
+    final def trim(a : Option[A], b : Option[A])(implicit o : Order[A]) : ISet[A] =
       (a, b) match {
         case (None, None) =>
           this
@@ -801,7 +784,7 @@ package scalaz {
           cord"ISet(${content})"
         }
       } )
-    implicit def setMonoid[ A: Order ] : Monoid[ ISet[ A ] ] with SemiLattice[ ISet[ A ] ] =
+    implicit def setMonoid[A: Order] : Monoid[ISet[A]] with SemiLattice[ISet[A]] =
       new Monoid[ISet[A]] with SemiLattice[ISet[A]] {
         def zero : ISet[A] =
           empty[A]
@@ -840,8 +823,7 @@ package scalaz {
             case Tip () =>
               None
           }
-        def foldMap[ A
-        , B ](fa : ISet[A])(f : (A) => B)(implicit F : Monoid[B]) : B =
+        def foldMap[A, B](fa : ISet[A])(f : (A) => B)(implicit F : Monoid[B]) : B =
           fa match {
             case Tip () =>
               F.zero
@@ -914,8 +896,7 @@ package scalaz {
       xs.foldLeft(empty[A])((a, b) => a insert b)
     final def fromIList[A](xs : IList[A])(implicit o : Order[A]) : ISet[A] =
       xs.foldLeft(empty[A])((a, b) => a insert b)
-    final def fromFoldable[F[_], A](xs : F[A])( implicit F : Foldable[F]
-    , o : Order[A] ) : ISet[A] =
+    final def fromFoldable[F[_], A](xs : F[A])(implicit F : Foldable[F], o : Order[A]) : ISet[A] =
       F.foldLeft(xs, empty[A])((a, b) => a insert b)
     final def unions[A](xs : List[ISet[A]])(implicit o : Order[A]) : ISet[A] =
       xs.foldLeft(ISet.empty[A])(_ union (_))
@@ -1013,9 +994,7 @@ package scalaz {
       def apply[A]() : ISet[A] =
         value.asInstanceOf[ISet[A]]
     }
-    private[scalaz] final case class Bin[A] ( a : A
-    , l : ISet[A]
-    , r : ISet[A] ) extends ISet[A] {
+    private[scalaz] final case class Bin[A] (a : A, l : ISet[A], r : ISet[A]) extends ISet[A] {
       val size =
         l.size + r.size + 1
     }

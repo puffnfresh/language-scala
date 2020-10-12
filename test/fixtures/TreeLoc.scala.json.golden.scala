@@ -5,10 +5,7 @@ package scalaz {
 
   import EphemeralStream.{EStream, ##::, emptyEphemeralStream}
 
-  final case class TreeLoc[A] ( tree : Tree[A]
-  , lefts : TreeForest[A]
-  , rights : TreeForest[A]
-  , parents : Parents[A] ) {
+  final case class TreeLoc[A] (tree : Tree[A], lefts : TreeForest[A], rights : TreeForest[A], parents : Parents[A]) {
     import Tree.{_}
     def parent : Option[TreeLoc[A]] =
       parents match {
@@ -55,9 +52,7 @@ package scalaz {
     def getChild(n : Int) : Option[TreeLoc[A]] =
       for {
       
-        lr <- splitChildren( EphemeralStream.emptyEphemeralStream
-        , tree.subForest
-        , n )
+        lr <- splitChildren(EphemeralStream.emptyEphemeralStream, tree.subForest, n)
       
         ls = lr._1
       
@@ -68,10 +63,7 @@ package scalaz {
       } yield loc(h, t, lr._2, downParents)
     def findChild(p : (Tree[A]) => Boolean) : Option[TreeLoc[A]] =
       {
-        @tailrec def split( acc : TreeForest[A]
-        , xs : TreeForest[A] ) : Option[ ( TreeForest[A]
-        , Tree[A]
-        , TreeForest[A] ) ] =
+        @tailrec def split(acc : TreeForest[A], xs : TreeForest[A]) : Option[(TreeForest[A], Tree[A], TreeForest[A])] =
           (acc, xs) match {
             case (acc, x ##:: (xs)) =>
               if (p(x))
@@ -123,16 +115,11 @@ package scalaz {
     def insertDownFirst(t : Tree[A]) : TreeLoc[A] =
       loc(t, EphemeralStream.emptyEphemeralStream, tree.subForest, downParents)
     def insertDownLast(t : Tree[A]) : TreeLoc[A] =
-      loc( t
-      , tree.subForest.reverse
-      , EphemeralStream.emptyEphemeralStream
-      , downParents )
+      loc(t, tree.subForest.reverse, EphemeralStream.emptyEphemeralStream, downParents)
     def insertDownAt(n : Int, t : Tree[A]) : Option[TreeLoc[A]] =
       for {
       
-        lr <- splitChildren( EphemeralStream.emptyEphemeralStream
-        , tree.subForest
-        , n )
+        lr <- splitChildren(EphemeralStream.emptyEphemeralStream, tree.subForest, n)
       
       } yield loc(t, lr._1, lr._2, downParents)
     def delete : Option[TreeLoc[A]] =
@@ -148,8 +135,7 @@ package scalaz {
               
                 loc1 <- parent
               
-              } yield loc1.modifyTree( (t : Tree[A]) => Node( t.rootLabel
-              , emptyEphemeralStream ) )
+              } yield loc1.modifyTree((t : Tree[A]) => Node(t.rootLabel, emptyEphemeralStream))
           }
       }
     def path : EStream[A] =
@@ -189,8 +175,7 @@ package scalaz {
             (tz, f)
           }
       
-        def uf[A]( a : TreeLoc[A]
-        , f : (TreeLoc[A]) => Option[TreeLoc[A]] ) : EStream[Tree[TreeLoc[A]]] =
+        def uf[A](a : TreeLoc[A], f : (TreeLoc[A]) => Option[TreeLoc[A]]) : EStream[Tree[TreeLoc[A]]] =
           {
             EphemeralStream.unfold(f(a))( {
               (o : Option[TreeLoc[A]]) => for {
@@ -210,10 +195,7 @@ package scalaz {
             } yield ((uf(z, lft), z, uf(z, rgt)), z.parent)
           } )
       
-        TreeLoc.loc( Tree.unfoldTree(this)(dwn[A](_ : TreeLoc[A]))
-        , uf(this, lft)
-        , uf(this, rgt)
-        , p )
+        TreeLoc.loc(Tree.unfoldTree(this)(dwn[A](_ : TreeLoc[A])), uf(this, lft), uf(this, rgt), p)
       }
     private def downParents =
       (lefts, tree.rootLabel, rights) ##:: parents
@@ -231,32 +213,19 @@ package scalaz {
         override def cojoin[A](a : TreeLoc[A]) : TreeLoc[TreeLoc[A]] =
           a.cojoin
         override def all[A](fa : TreeLoc[A])(f : (A) => Boolean) =
-          Foldable[ Tree ].all( fa.tree )( f ) && ForestT.all( fa.lefts )( f ) && ForestT.all( fa.rights )( f ) && ParentsT.all( fa.parents )( f )
+          Foldable[Tree].all(fa.tree)(f) && ForestT.all(fa.lefts)(f) && ForestT.all(fa.rights)(f) && ParentsT.all(fa.parents)(f)
         override def any[A](fa : TreeLoc[A])(f : (A) => Boolean) =
-          Foldable[ Tree ].any( fa.tree )( f ) || ForestT.any( fa.lefts )( f ) || ForestT.any( fa.rights )( f ) || ParentsT.any( fa.parents )( f )
-        override def foldMap1[ A
-        , B ](fa : TreeLoc[A])(f : (A) => B)(implicit B : Semigroup[B]) =
+          Foldable[Tree].any(fa.tree)(f) || ForestT.any(fa.lefts)(f) || ForestT.any(fa.rights)(f) || ParentsT.any(fa.parents)(f)
+        override def foldMap1[A, B](fa : TreeLoc[A])(f : (A) => B)(implicit B : Semigroup[B]) =
           foldMapLeft1(fa)(f)((b, a) => B.append(b, f(a)))
-        override def foldMap[ A
-        , B ](fa : TreeLoc[A])(f : (A) => B)(implicit B : Monoid[B]) =
-          B.append( B.append( Foldable[Tree].foldMap(fa.tree)(f)
-          , ForestT.foldMap(fa.lefts)(f) )
-          , B.append( ForestT.foldMap(fa.rights)(f)
-          , ParentsT.foldMap(fa.parents)(f) ) )
+        override def foldMap[A, B](fa : TreeLoc[A])(f : (A) => B)(implicit B : Monoid[B]) =
+          B.append( B.append(Foldable[Tree].foldMap(fa.tree)(f), ForestT.foldMap(fa.lefts)(f))
+          , B.append(ForestT.foldMap(fa.rights)(f), ParentsT.foldMap(fa.parents)(f)) )
         override def foldLeft[A, B](fa : TreeLoc[A], z : B)(f : (B, A) => B) =
-          ParentsT.foldLeft( fa.parents
-          , ForestT.foldLeft( fa.rights
-          , ForestT.foldLeft( fa.lefts
-          , Foldable[Tree].foldLeft(fa.tree, z)(f) )(f) )(f) )(f)
-        override def foldMapLeft1[A, B](fa : TreeLoc[A])(z : (A) => B)( f : ( B
-        , A ) => B ) =
-          ParentsT.foldLeft( fa.parents
-          , ForestT.foldLeft( fa.rights
-          , ForestT.foldLeft( fa.lefts
-          , Foldable1[Tree].foldMapLeft1(fa.tree)(z)(f) )(f) )(f) )(f)
-        override def traverse1Impl[ G[_]
-        , A
-        , B ](fa : TreeLoc[A])(f : (A) => G[B])(implicit G : Apply[G]) =
+          ParentsT.foldLeft(fa.parents, ForestT.foldLeft(fa.rights, ForestT.foldLeft(fa.lefts, Foldable[Tree].foldLeft(fa.tree, z)(f))(f))(f))(f)
+        override def foldMapLeft1[A, B](fa : TreeLoc[A])(z : (A) => B)(f : (B, A) => B) =
+          ParentsT.foldLeft(fa.parents, ForestT.foldLeft(fa.rights, ForestT.foldLeft(fa.lefts, Foldable1[Tree].foldMapLeft1(fa.tree)(z)(f))(f))(f))(f)
+        override def traverse1Impl[G[_], A, B](fa : TreeLoc[A])(f : (A) => G[B])(implicit G : Apply[G]) =
           fa.lefts match {
             case l ##:: (ls) =>
               {
@@ -271,10 +240,7 @@ package scalaz {
                     
                       fa.parents match {
                         case p ##:: (ps) =>
-                          G.apply4( fa.tree.traverse1(f)
-                          , lefts1
-                          , rights1
-                          , ParentsT1.traverse1(OneAnd(p, ps))(f) )( ( tree
+                          G.apply4(fa.tree.traverse1(f), lefts1, rights1, ParentsT1.traverse1(OneAnd(p, ps))(f))( ( tree
                           , lefts
                           , rights
                           , parents ) => TreeLoc( tree = tree
@@ -282,11 +248,7 @@ package scalaz {
                           , rights = rights.head ##:: rights.tail
                           , parents = parents.head ##:: parents.tail ) )
                         case s if s.isEmpty =>
-                          G.apply3( fa.tree.traverse1(f)
-                          , lefts1
-                          , rights1 )( ( tree
-                          , lefts
-                          , rights ) => TreeLoc( tree = tree
+                          G.apply3(fa.tree.traverse1(f), lefts1, rights1)( (tree, lefts, rights) => TreeLoc( tree = tree
                           , lefts = lefts.head ##:: lefts.tail
                           , rights = rights.head ##:: rights.tail
                           , parents = emptyEphemeralStream ) )
@@ -295,17 +257,12 @@ package scalaz {
                   case s if s.isEmpty =>
                     fa.parents match {
                       case p ##:: (ps) =>
-                        G.apply3( fa.tree.traverse1(f)
-                        , lefts1
-                        , ParentsT1.traverse1(OneAnd(p, ps))(f) )( ( tree
-                        , lefts
-                        , parents ) => TreeLoc( tree = tree
+                        G.apply3(fa.tree.traverse1(f), lefts1, ParentsT1.traverse1(OneAnd(p, ps))(f))( (tree, lefts, parents) => TreeLoc( tree = tree
                         , lefts = lefts.head ##:: lefts.tail
                         , rights = emptyEphemeralStream
                         , parents = parents.head ##:: parents.tail ) )
                       case s if s.isEmpty =>
-                        G.apply2(fa.tree.traverse1(f), lefts1)( ( tree
-                        , lefts ) => TreeLoc( tree = tree
+                        G.apply2(fa.tree.traverse1(f), lefts1)( (tree, lefts) => TreeLoc( tree = tree
                         , lefts = lefts.head ##:: lefts.tail
                         , rights = emptyEphemeralStream
                         , parents = emptyEphemeralStream ) )
@@ -321,17 +278,14 @@ package scalaz {
                   
                     fa.parents match {
                       case p ##:: (ps) =>
-                        G.apply3( fa.tree.traverse1(f)
-                        , rights1
-                        , ParentsT1.traverse1(OneAnd(p, ps))(f) )( ( tree
+                        G.apply3(fa.tree.traverse1(f), rights1, ParentsT1.traverse1(OneAnd(p, ps))(f))( ( tree
                         , rights
                         , parents ) => TreeLoc( tree = tree
                         , lefts = emptyEphemeralStream
                         , rights = rights.head ##:: rights.tail
                         , parents = parents.head ##:: parents.tail ) )
                       case s if s.isEmpty =>
-                        G.apply2(fa.tree.traverse1(f), rights1)( ( tree
-                        , rights ) => TreeLoc( tree = tree
+                        G.apply2(fa.tree.traverse1(f), rights1)( (tree, rights) => TreeLoc( tree = tree
                         , lefts = emptyEphemeralStream
                         , rights = rights.head ##:: rights.tail
                         , parents = emptyEphemeralStream ) )
@@ -340,26 +294,19 @@ package scalaz {
                 case s if s.isEmpty =>
                   fa.parents match {
                     case p ##:: (ps) =>
-                      G.apply2( fa.tree.traverse1(f)
-                      , ParentsT1.traverse1(OneAnd(p, ps))(f) )( ( tree
-                      , parents ) => TreeLoc( tree = tree
+                      G.apply2(fa.tree.traverse1(f), ParentsT1.traverse1(OneAnd(p, ps))(f))( (tree, parents) => TreeLoc( tree = tree
                       , lefts = emptyEphemeralStream
                       , rights = emptyEphemeralStream
                       , parents = parents.head ##:: parents.tail ) )
                     case s if s.isEmpty =>
-                      G.map(fa.tree.traverse1(f))( (t) => TreeLoc( t
-                      , emptyEphemeralStream
-                      , emptyEphemeralStream
-                      , emptyEphemeralStream ) )
+                      G.map(fa.tree.traverse1(f))((t) => TreeLoc(t, emptyEphemeralStream, emptyEphemeralStream, emptyEphemeralStream))
                   }
               }
           }
-        override def foldMapRight1[A, B](fa : TreeLoc[A])(z : (A) => B)( f : ( A
-        , => B ) => B ) =
+        override def foldMapRight1[A, B](fa : TreeLoc[A])(z : (A) => B)(f : (A, => B) => B) =
           ParentsT.foldMapRight1Opt(fa.parents)(z)(f) match {
             case Some (p) =>
-              fa.tree.foldRight( ForestT.foldRight( fa.lefts
-              , ForestT.foldRight(fa.rights, p)(f) )(f) )(f)
+              fa.tree.foldRight(ForestT.foldRight(fa.lefts, ForestT.foldRight(fa.rights, p)(f))(f))(f)
             case None =>
               ForestT.foldMapRight1Opt(fa.rights)(z)(f) match {
                 case Some (r) =>
@@ -375,8 +322,7 @@ package scalaz {
           }
         private[this] val ForestT : Traverse[TreeForest] =
           Traverse[EStream].compose[Tree]
-        private[this] val ForestT1 : Traverse1[ λ[ (a) => OneAnd[ EStream
-        , Tree[a] ] ] ] =
+        private[this] val ForestT1 : Traverse1[λ[(a) => OneAnd[EStream, Tree[a]]]] =
           Traverse1[OneAnd[EStream, *]].compose[Tree]
         private[this] implicit val ParentT : Traverse1[Parent] =
           new Traverse1[Parent] {
@@ -384,32 +330,22 @@ package scalaz {
               ForestT.all(fa._1)(f) && f(fa._2) && ForestT.all(fa._3)(f)
             override def any[A](fa : Parent[A])(f : (A) => Boolean) =
               ForestT.any(fa._1)(f) || f(fa._2) || ForestT.any(fa._3)(f)
-            override def foldLeft[A, B](fa : Parent[A], z : B)( f : ( B
-            , A ) => B ) =
-              ForestT.foldLeft( fa._3
-              , f(ForestT.foldLeft(fa._1, z)(f), fa._2) )(f)
-            override def foldMap[ A
-            , B ](fa : Parent[A])(f : (A) => B)(implicit B : Monoid[B]) =
-              B.append( B.append(ForestT.foldMap(fa._1)(f), f(fa._2))
-              , ForestT.foldMap(fa._3)(f) )
-            override def traverse1Impl[ G[_]
-            , A
-            , B ]( fa : Parent[ A ] )( f : ( A ) => G[ B ] )( implicit G : Apply[ G ] ) : G[ Parent[ B ] ] =
+            override def foldLeft[A, B](fa : Parent[A], z : B)(f : (B, A) => B) =
+              ForestT.foldLeft(fa._3, f(ForestT.foldLeft(fa._1, z)(f), fa._2))(f)
+            override def foldMap[A, B](fa : Parent[A])(f : (A) => B)(implicit B : Monoid[B]) =
+              B.append(B.append(ForestT.foldMap(fa._1)(f), f(fa._2)), ForestT.foldMap(fa._3)(f))
+            override def traverse1Impl[G[_], A, B](fa : Parent[A])(f : (A) => G[B])(implicit G : Apply[G]) : G[Parent[B]] =
               {
                 (fa._1, fa._3) match {
                   case (x ##:: (xs), y ##:: (ys)) =>
-                    G.apply3( ForestT1.traverse1(OneAnd(x, xs))(f)
-                    , f(fa._2)
-                    , ForestT1.traverse1(OneAnd(y, ys))(f) )( {
+                    G.apply3(ForestT1.traverse1(OneAnd(x, xs))(f), f(fa._2), ForestT1.traverse1(OneAnd(y, ys))(f))( {
                       case (l, c, r) =>
                         (l.head ##:: l.tail, c, r.head ##:: r.tail)
                     } )
                   case (x ##:: (xs), _) =>
                     G.apply2(ForestT1.traverse1(OneAnd(x, xs))(f), f(fa._2))( {
                       case (l, c) =>
-                        ( l.head ##:: l.tail
-                        , c
-                        , EphemeralStream.emptyEphemeralStream )
+                        (l.head ##:: l.tail, c, EphemeralStream.emptyEphemeralStream)
                     } )
                   case (_, x ##:: (xs)) =>
                     G.apply2(f(fa._2), ForestT1.traverse1(OneAnd(x, xs))(f))( {
@@ -417,13 +353,10 @@ package scalaz {
                         (emptyEphemeralStream, c, r.head ##:: r.tail)
                     } )
                   case (x, y) if x.isEmpty && y.isEmpty =>
-                    G.map(f(fa._2))( (c) => ( emptyEphemeralStream
-                    , c
-                    , emptyEphemeralStream ) )
+                    G.map(f(fa._2))((c) => (emptyEphemeralStream, c, emptyEphemeralStream))
                 }
               }
-            override def foldMapRight1[ A
-            , B ](fa : Parent[A])(z : (A) => B)(f : (A, => B) => B) : B =
+            override def foldMapRight1[A, B](fa : Parent[A])(z : (A) => B)(f : (A, => B) => B) : B =
               ForestT.foldMapRight1Opt(fa._3)(z)(f) match {
                 case Some (r) =>
                   ForestT.foldRight(fa._1, f(fa._2, r))(f)
@@ -433,8 +366,7 @@ package scalaz {
           }
         private[this] val ParentsT : Traverse[Parents] =
           Traverse[EStream].compose[Parent]
-        private[this] val ParentsT1 : Traverse1[ λ[ (a) => OneAnd[ EStream
-        , Parent[a] ] ] ] =
+        private[this] val ParentsT1 : Traverse1[λ[(a) => OneAnd[EStream, Parent[a]]]] =
           Traverse1[OneAnd[EStream, *]].compose[Parent]
       }
     implicit def treeLocEqual[A](implicit A : Equal[A]) : Equal[TreeLoc[A]] =
@@ -448,10 +380,7 @@ package scalaz {
           A
         import std.tuple.{_}
         override def order(a : TreeLoc[A], b : TreeLoc[A]) =
-          Divide[Order].dividing4( (x : TreeLoc[A]) => ( x.tree
-          , x.lefts
-          , x.rights
-          , x.parents ) ).order(a, b)
+          Divide[Order].dividing4((x : TreeLoc[A]) => (x.tree, x.lefts, x.rights, x.parents)).order(a, b)
       }
   }
 
@@ -459,10 +388,7 @@ package scalaz {
     type TreeForest[A] = EStream[Tree[A]]
     type Parent[A] = (TreeForest[A], A, TreeForest[A])
     type Parents[A] = EStream[Parent[A]]
-    def loc[A]( t : Tree[A]
-    , l : TreeForest[A]
-    , r : TreeForest[A]
-    , p : Parents[A] ) : TreeLoc[A] =
+    def loc[A](t : Tree[A], l : TreeForest[A], r : TreeForest[A], p : Parents[A]) : TreeLoc[A] =
       TreeLoc(t, l, r, p)
     def fromForest[A](ts : TreeForest[A]) : Option[TreeLoc[A]] =
       ts match {
@@ -473,9 +399,7 @@ package scalaz {
       }
     private def combChildren[A](ls : EStream[A], t : A, rs : EStream[A]) =
       ls.foldLeft(t ##:: rs)((a, b) => b ##:: a)
-    @tailrec private def splitChildren[A]( acc : EStream[A]
-    , xs : EStream[A]
-    , n : Int ) : Option[(EStream[A], EStream[A])] =
+    @tailrec private def splitChildren[A](acc : EStream[A], xs : EStream[A], n : Int) : Option[(EStream[A], EStream[A])] =
       (acc, xs, n) match {
         case (acc, xs, 0) =>
           Some((acc, xs))
@@ -491,9 +415,7 @@ package scalaz {
     import std.tuple.{_}
     override final def equal(a : TreeLoc[A], b : TreeLoc[A]) =
       {
-        Equal[Tree[A]].equal( a.tree
-        , b.tree ) && Equal[TreeForest[A]].equal( a.lefts
-        , b.lefts ) && Equal[TreeForest[A]].equal( a.rights
+        Equal[Tree[A]].equal(a.tree, b.tree) && Equal[TreeForest[A]].equal(a.lefts, b.lefts) && Equal[TreeForest[A]].equal( a.rights
         , b.rights ) && Equal[Parents[A]].equal(a.parents, b.parents)
       }
   }

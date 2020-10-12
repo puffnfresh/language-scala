@@ -17,8 +17,7 @@ package scalaz {
     import std.function.{_}
   
     sealed abstract class IO[A]  {
-      private[effect] def apply( rw : Tower[ IvoryTower ] ): Trampoline[ ( Tower[ IvoryTower ]
-      , A ) ]
+      private[effect] def apply(rw : Tower[IvoryTower]): Trampoline[(Tower[IvoryTower], A)]
       import IO.{_}
       def unsafePerformIO() : A =
         apply(ivoryTower).run._2
@@ -57,8 +56,7 @@ package scalaz {
           case e: Throwable =>
             handler(e)(rw)
         } )
-      def catchSome[B]( p : (Throwable) => Option[B]
-      , handler : (B) => IO[A] ) : IO[A] =
+      def catchSome[B](p : (Throwable) => Option[B], handler : (B) => IO[A]) : IO[A] =
         except( (e) => p(e) match {
           case Some (z) =>
             handler(z)
@@ -97,8 +95,7 @@ package scalaz {
         } yield r
       def bracket_[B, C](after : IO[B])(during : IO[C]) : IO[C] =
         bracket((_) => after)((_) => during)
-      def bracketOnError[ B
-      , C ](after : (A) => IO[B])(during : (A) => IO[C]) : IO[C] =
+      def bracketOnError[B, C](after : (A) => IO[B])(during : (A) => IO[C]) : IO[C] =
         for {
         
           a <- this
@@ -106,16 +103,14 @@ package scalaz {
           r <- during(a) onException after(a)
         
         } yield r
-      def bracketIO[ M[_]
-      , B ]( after : ( A ) => IO[ Unit ] )( during : ( A ) => M[ B ] )( implicit m : MonadControlIO[ M ] ) : M[ B ] =
-        controlIO( ( runInIO : RunInBase[ M
-        , IO ] ) => bracket(after)(runInIO.apply compose during) )
+      def bracketIO[M[_], B](after : (A) => IO[Unit])(during : (A) => M[B])(implicit m : MonadControlIO[M]) : M[B] =
+        controlIO((runInIO : RunInBase[M, IO]) => bracket(after)(runInIO.apply compose during))
       def using[C](f : (A) => IO[C])(implicit resource : Resource[A]) : IO[C] =
         bracket(resource.close)(f)
     }
   
     sealed abstract class IOInstances1  {
-      implicit def IOSemigroup[ A ]( implicit A : Semigroup[ A ] ) : Semigroup[ IO[ A ] ] =
+      implicit def IOSemigroup[A](implicit A : Semigroup[A]) : Semigroup[IO[A]] =
         Semigroup.liftSemigroup[IO, A](IO.ioMonad, A)
       implicit val iOLiftIO : LiftIO[IO] =
         new IOLiftIO {
@@ -187,14 +182,12 @@ package scalaz {
         io((rw) => return_(rw -> println(S shows a)))
       type RunInBase[M[_], Base[_]] = Forall[λ[(α) => (M[α]) => Base[M[α]]]]
       import scalaz.Isomorphism.{<~>}
-      def hoistRunInBase[F[_], G[_]](iso : F <~> G)( r : RunInBase[ G
-      , IO ] ) : RunInBase[F, IO] =
+      def hoistRunInBase[F[_], G[_]](iso : F <~> G)(r : RunInBase[G, IO]) : RunInBase[F, IO] =
         new RunInBase[F, IO] {
           def apply[B] =
             (x : F[B]) => r.apply(iso.to(x)).map(iso.from(_))
         }
-      def io[A]( f : (Tower[IvoryTower]) => Trampoline[ ( Tower[IvoryTower]
-      , A ) ] ) : IO[A] =
+      def io[A](f : (Tower[IvoryTower]) => Trampoline[(Tower[IvoryTower], A)]) : IO[A] =
         new IO[A] {
           private[effect] def apply(rw : Tower[IvoryTower]) =
             Free(() => f(rw))
@@ -203,15 +196,11 @@ package scalaz {
         STToIO(newVar(a)) flatMap ((v) => IO(IORef.ioRef(v)))
       def throwIO[A](e : Throwable) : IO[A] =
         IO(throw e)
-      def idLiftControl[M[_], A]( f : ( RunInBase[ M
-      , M ] ) => M[A] )(implicit m : Monad[M]) : M[A] =
+      def idLiftControl[M[_], A](f : (RunInBase[M, M]) => M[A])(implicit m : Monad[M]) : M[A] =
         f(new RunInBase[M, M] {   def apply[B] =   (x : M[B]) => m.point(x) })
-      def controlIO[M[_], A]( f : ( RunInBase[ M
-      , IO ] ) => IO[M[A]] )(implicit M : MonadControlIO[M]) : M[A] =
+      def controlIO[M[_], A](f : (RunInBase[M, IO]) => IO[M[A]])(implicit M : MonadControlIO[M]) : M[A] =
         M.join(M.liftControlIO(f))
-      def onExit[S, P[_]: MonadIO](finalizer : IO[Unit]) : RegionT[ S
-      , P
-      , FinalizerHandle[RegionT[S, P, *]] ] =
+      def onExit[S, P[_]: MonadIO](finalizer : IO[Unit]) : RegionT[S, P, FinalizerHandle[RegionT[S, P, *]]] =
         regionT( kleisli( (hsIORef) => (for {
         
           refCntIORef <- newIORef(1)
@@ -221,9 +210,7 @@ package scalaz {
           _ <- hsIORef.mod(h :: (_))
         
         } yield finalizerHandle[RegionT[S, P, *]](h)).liftIO[P] ) )
-      def runRegionT[P[_]: MonadControlIO, A]( r : Forall[ RegionT[ *
-      , P
-      , A ] ] ) : P[A] =
+      def runRegionT[P[_]: MonadControlIO, A](r : Forall[RegionT[*, P, A]]) : P[A] =
         {
           def after(hsIORef : IORef[IList[RefCountedFinalizer]]) =
             for {
@@ -241,11 +228,10 @@ package scalaz {
             
             } yield ()
         
-          newIORef( IList[ RefCountedFinalizer ](  ) ).bracketIO( after )( ( s ) => r.apply.value.run( s ) )
+          newIORef(IList[RefCountedFinalizer]()).bracketIO(after)((s) => r.apply.value.run(s))
         }
       def tailrecM[A, B](a : A)(f : (A) => IO[A \/ B]) : IO[B] =
-        io( (rw) => BindRec[Trampoline].tailrecM[ (Tower[IvoryTower], A)
-        , (Tower[IvoryTower], B) ]((rw, a))( {
+        io( (rw) => BindRec[Trampoline].tailrecM[(Tower[IvoryTower], A), (Tower[IvoryTower], B)]((rw, a))( {
           case (nw0, x) =>
             f(x)(nw0).map( {
               case (nw1, e) =>

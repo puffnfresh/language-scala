@@ -1,8 +1,7 @@
 package scalaz {
   package std {
     sealed trait EitherInstances0  {
-      implicit def eitherEqual[A, B]( implicit A0 : Equal[A]
-      , B0 : Equal[B] ) : Equal[Either[A, B]] =
+      implicit def eitherEqual[A, B](implicit A0 : Equal[A], B0 : Equal[B]) : Equal[Either[A, B]] =
         new EitherEqual[A, B] {
           implicit def A =
             A0
@@ -14,16 +13,14 @@ package scalaz {
     trait EitherInstances  extends EitherInstances0 {
       implicit val eitherInstance : Bitraverse[Either] =
         new Bitraverse[Either] {
-          override def bimap[A, B, C, D](fab : Either[A, B])( f : (A) => C
-          , g : (B) => D ) =
+          override def bimap[A, B, C, D](fab : Either[A, B])(f : (A) => C, g : (B) => D) =
             fab match {
               case Left (a) =>
                 Left(f(a))
               case Right (b) =>
                 Right(g(b))
             }
-          def bitraverseImpl[G[_]: Applicative, A, B, C, D]( fab : Either[ A
-          , B ] )(f : (A) => G[C], g : (B) => G[D]) =
+          def bitraverseImpl[G[_]: Applicative, A, B, C, D](fab : Either[A, B])(f : (A) => G[C], g : (B) => G[D]) =
             fab match {
               case Left (a) =>
                 Applicative[G].map(f(a))((b) => Left(b))
@@ -31,13 +28,8 @@ package scalaz {
                 Applicative[G].map(g(b))((d) => Right(d))
             }
         }
-      implicit def eitherMonad[L] : Traverse[ Either[ L
-      , * ] ] with MonadError[Either[L, *], L] with BindRec[ Either[ L
-      , * ] ] with Cozip[Either[L, *]] =
-        new Traverse[Either[L, *]]
-         with MonadError[Either[L, *], L]
-         with BindRec[Either[L, *]]
-         with Cozip[Either[L, *]] {
+      implicit def eitherMonad[L] : Traverse[Either[L, *]] with MonadError[Either[L, *], L] with BindRec[Either[L, *]] with Cozip[Either[L, *]] =
+        new Traverse[Either[L, *]] with MonadError[Either[L, *], L] with BindRec[Either[L, *]] with Cozip[Either[L, *]] {
           def bind[A, B](fa : Either[L, A])(f : (A) => Either[L, B]) =
             fa match {
               case Left (a) =>
@@ -52,8 +44,7 @@ package scalaz {
               case a =>
                 a.asInstanceOf[Either[L, B]]
             }
-          override def apply2[A, B, C]( fa : => Either[L, A]
-          , fb : => Either[L, B] )(f : (A, B) => C) : Either[L, C] =
+          override def apply2[A, B, C](fa : => Either[L, A], fb : => Either[L, B])(f : (A, B) => C) : Either[L, C] =
             fa match {
               case Right (a) =>
                 fb match {
@@ -76,16 +67,14 @@ package scalaz {
             Left(e)
           def point[A](a : => A) =
             Right(a)
-          def traverseImpl[G[_]: Applicative, A, B]( fa : Either[ L
-          , A ] )(f : (A) => G[B]) =
+          def traverseImpl[G[_]: Applicative, A, B](fa : Either[L, A])(f : (A) => G[B]) =
             fa match {
               case Left (x) =>
                 Applicative[G].point(Left(x))
               case Right (x) =>
                 Applicative[G].map(f(x))(Right(_))
             }
-          override def foldRight[A, B](fa : Either[L, A], z : => B)( f : ( A
-          , => B ) => B ) =
+          override def foldRight[A, B](fa : Either[L, A], z : => B)(f : (A, => B) => B) =
             fa match {
               case Left (_) =>
                 z
@@ -104,8 +93,7 @@ package scalaz {
                     \/-(Right(b))
                 }
             }
-          @scala.annotation.tailrec def tailrecM[ A
-          , B ](a : A)(f : (A) => Either[L, A \/ B]) : Either[L, B] =
+          @scala.annotation.tailrec def tailrecM[A, B](a : A)(f : (A) => Either[L, A \/ B]) : Either[L, B] =
             f(a) match {
               case Left (l) =>
                 Left(l)
@@ -115,8 +103,7 @@ package scalaz {
                 Right(b)
             }
         }
-      implicit def eitherOrder[A, B]( implicit OrderA : Order[A]
-      , OrderB : Order[B] ) : Order[Either[A, B]] =
+      implicit def eitherOrder[A, B](implicit OrderA : Order[A], OrderB : Order[B]) : Order[Either[A, B]] =
         new EitherOrder[A, B] {
           implicit def A =
             OrderA
@@ -125,17 +112,12 @@ package scalaz {
         }
       implicit def eitherAssociative : Associative[Either] =
         new Associative[Either] {
-          override def reassociateLeft[A, B, C]( f : Either[ A
-          , Either[B, C] ] ) : Either[Either[A, B], C] =
-            f.fold( (a) => Left(Left(a))
-            , _.fold((b) => Left(Right(b)), Right(_)) )
-          override def reassociateRight[A, B, C]( f : Either[ Either[A, B]
-          , C ] ) : Either[A, Either[B, C]] =
-            f.fold( _.fold(Left(_), (b) => Right(Left(b)))
-            , (c) => Right(Right(c)) )
+          override def reassociateLeft[A, B, C](f : Either[A, Either[B, C]]) : Either[Either[A, B], C] =
+            f.fold((a) => Left(Left(a)), _.fold((b) => Left(Right(b)), Right(_)))
+          override def reassociateRight[A, B, C](f : Either[Either[A, B], C]) : Either[A, Either[B, C]] =
+            f.fold(_.fold(Left(_), (b) => Right(Left(b))), (c) => Right(Right(c)))
         }
-      implicit def eitherShow[A, B]( implicit SA : Show[A]
-      , SB : Show[B] ) : Show[Either[A, B]] =
+      implicit def eitherShow[A, B](implicit SA : Show[A], SB : Show[B]) : Show[Either[A, B]] =
         {
           import scalaz.syntax.show.{_}
         
@@ -167,8 +149,7 @@ package scalaz {
         A.equalIsNatural && B.equalIsNatural
     }
   
-    private trait EitherOrder[A, B]  extends Order[Either[A, B]]
-     with EitherEqual[A, B] {
+    private trait EitherOrder[A, B]  extends Order[Either[A, B]] with EitherEqual[A, B] {
       implicit def A: Order[A]
       implicit def B: Order[B]
       import Ordering.{_}

@@ -7,11 +7,8 @@ package scalaz {
     import Id.{_}
   
     trait AnyValInstances  {
-      implicit val unitInstance : Monoid[ Unit ] with Enum[ Unit ] with Show[ Unit ] with SemiLattice[ Unit ] =
-        new Monoid[Unit]
-         with Enum[Unit]
-         with Show[Unit]
-         with SemiLattice[Unit] {
+      implicit val unitInstance : Monoid[Unit] with Enum[Unit] with Show[Unit] with SemiLattice[Unit] =
+        new Monoid[Unit] with Enum[Unit] with Show[Unit] with SemiLattice[Unit] {
           override def show(f : Unit) : Cord =
             Cord()
           override def shows(f : Unit) =
@@ -72,18 +69,13 @@ package scalaz {
         override def equalIsNatural : Boolean =
           true
         val conjunction : Monoid[Boolean] =
-          Conjunction.unsubst[ Monoid
-          , Boolean ](booleanConjunctionNewTypeInstance)
+          Conjunction.unsubst[Monoid, Boolean](booleanConjunctionNewTypeInstance)
         val disjunction : Monoid[Boolean] =
-          Disjunction.unsubst[ Monoid
-          , Boolean ](booleanDisjunctionNewTypeInstance)
+          Disjunction.unsubst[Monoid, Boolean](booleanDisjunctionNewTypeInstance)
       }
       implicit val booleanDisjunctionNewTypeInstance : Monoid[ Boolean @@ Disjunction ] with Enum[ Boolean @@ Disjunction ] with Band[ Boolean @@ Disjunction ] =
-        new Monoid[Boolean @@ Disjunction]
-         with Enum[Boolean @@ Disjunction]
-         with Band[Boolean @@ Disjunction] {
-          def append( f1 : Boolean @@ Disjunction
-          , f2 : => Boolean @@ Disjunction ) =
+        new Monoid[Boolean @@ Disjunction] with Enum[Boolean @@ Disjunction] with Band[Boolean @@ Disjunction] {
+          def append(f1 : Boolean @@ Disjunction, f2 : => Boolean @@ Disjunction) =
             Disjunction(Tag.unwrap(f1) || Tag.unwrap(f2))
           def zero : Boolean @@ Disjunction =
             Disjunction(false)
@@ -101,8 +93,7 @@ package scalaz {
             Disjunction.subst(Enum[Boolean].min)
           override def max =
             Disjunction.subst(Enum[Boolean].max)
-          override def unfoldrSumOpt[ S ]( s : S )( f : ( S ) => Maybe[ ( Boolean @@ Disjunction
-          , S ) ] ) : Maybe[Boolean @@ Disjunction] =
+          override def unfoldrSumOpt[S](s : S)(f : (S) => Maybe[(Boolean @@ Disjunction, S)]) : Maybe[Boolean @@ Disjunction] =
             {
               val f0 =
                 Disjunction.unsubst[λ[(x) => (S) => Maybe[(x, S)]], Boolean](f)
@@ -120,8 +111,7 @@ package scalaz {
                   Disjunction(b || go(s))
               }
             }
-          override def unfoldlSumOpt[S](s : S)( f : (S) => Maybe[ ( S
-          , Boolean @@ Disjunction ) ] ) : Maybe[Boolean @@ Disjunction] =
+          override def unfoldlSumOpt[S](s : S)(f : (S) => Maybe[(S, Boolean @@ Disjunction)]) : Maybe[Boolean @@ Disjunction] =
             {
               val f0 =
                 Disjunction.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Boolean](f)
@@ -141,11 +131,8 @@ package scalaz {
             }
         }
       implicit val booleanConjunctionNewTypeInstance : Monoid[ Boolean @@ Conjunction ] with Enum[ Boolean @@ Conjunction ] with Band[ Boolean @@ Conjunction ] =
-        new Monoid[Boolean @@ Conjunction]
-         with Enum[Boolean @@ Conjunction]
-         with Band[Boolean @@ Conjunction] {
-          def append( f1 : Boolean @@ Conjunction
-          , f2 : => Boolean @@ Conjunction ) =
+        new Monoid[Boolean @@ Conjunction] with Enum[Boolean @@ Conjunction] with Band[Boolean @@ Conjunction] {
+          def append(f1 : Boolean @@ Conjunction, f2 : => Boolean @@ Conjunction) =
             Conjunction(Tag.unwrap(f1) && Tag.unwrap(f2))
           def zero : Boolean @@ Conjunction =
             Conjunction(true)
@@ -163,8 +150,7 @@ package scalaz {
             Conjunction.subst(Enum[Boolean].min)
           override def max =
             Conjunction.subst(Enum[Boolean].max)
-          override def unfoldrSumOpt[ S ]( s : S )( f : ( S ) => Maybe[ ( Boolean @@ Conjunction
-          , S ) ] ) : Maybe[Boolean @@ Conjunction] =
+          override def unfoldrSumOpt[S](s : S)(f : (S) => Maybe[(Boolean @@ Conjunction, S)]) : Maybe[Boolean @@ Conjunction] =
             {
               val f0 =
                 Conjunction.unsubst[λ[(x) => (S) => Maybe[(x, S)]], Boolean](f)
@@ -182,8 +168,7 @@ package scalaz {
                   Conjunction(b && go(s))
               }
             }
-          override def unfoldlSumOpt[S](s : S)( f : (S) => Maybe[ ( S
-          , Boolean @@ Conjunction ) ] ) : Maybe[Boolean @@ Conjunction] =
+          override def unfoldlSumOpt[S](s : S)(f : (S) => Maybe[(S, Boolean @@ Conjunction)]) : Maybe[Boolean @@ Conjunction] =
             {
               val f0 =
                 Conjunction.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Boolean](f)
@@ -236,10 +221,9 @@ package scalaz {
             true
         }
       import Tags.{Multiplication}
-      implicit val byteMultiplicationNewType : Monoid[ Byte @@ Multiplication ] with Enum[ Byte @@ Multiplication ] =
+      implicit val byteMultiplicationNewType : Monoid[Byte @@ Multiplication] with Enum[Byte @@ Multiplication] =
         new Monoid[Byte @@ Multiplication] with Enum[Byte @@ Multiplication] {
-          def append( f1 : Byte @@ Multiplication
-          , f2 : => Byte @@ Multiplication ) =
+          def append(f1 : Byte @@ Multiplication, f2 : => Byte @@ Multiplication) =
             Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toByte)
           def zero : Byte @@ Multiplication =
             Multiplication(1)
@@ -293,10 +277,9 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
         }
-      implicit val charMultiplicationNewType : Monoid[ Char @@ Multiplication ] with Enum[ Char @@ Multiplication ] =
+      implicit val charMultiplicationNewType : Monoid[Char @@ Multiplication] with Enum[Char @@ Multiplication] =
         new Monoid[Char @@ Multiplication] with Enum[Char @@ Multiplication] {
-          def append( f1 : Char @@ Multiplication
-          , f2 : => Char @@ Multiplication ) =
+          def append(f1 : Char @@ Multiplication, f2 : => Char @@ Multiplication) =
             Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toChar)
           def zero : Char @@ Multiplication =
             Multiplication(1)
@@ -317,7 +300,7 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
         }
-      implicit val shortInstance : Monoid[ Short ] with Enum[ Short ] with Show[ Short ] =
+      implicit val shortInstance : Monoid[Short] with Enum[Short] with Show[Short] =
         new Monoid[Short] with Enum[Short] with Show[Short] {
           override def show(f : Short) : Cord =
             Cord(shows(f))
@@ -350,10 +333,9 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
         }
-      implicit val shortMultiplicationNewType : Monoid[ Short @@ Multiplication ] with Enum[ Short @@ Multiplication ] =
+      implicit val shortMultiplicationNewType : Monoid[Short @@ Multiplication] with Enum[Short @@ Multiplication] =
         new Monoid[Short @@ Multiplication] with Enum[Short @@ Multiplication] {
-          def append( f1 : Short @@ Multiplication
-          , f2 : => Short @@ Multiplication ) =
+          def append(f1 : Short @@ Multiplication, f2 : => Short @@ Multiplication) =
             Multiplication((Tag.unwrap(f1) * Tag.unwrap(f2)).toShort)
           def zero : Short @@ Multiplication =
             Multiplication(1)
@@ -369,8 +351,7 @@ package scalaz {
             Multiplication.subst(Enum[Short].min)
           override def max =
             Multiplication.subst(Enum[Short].max)
-          def order( a1 : Short @@ Multiplication
-          , a2 : Short @@ Multiplication ) =
+          def order(a1 : Short @@ Multiplication, a2 : Short @@ Multiplication) =
             Order[Short].order(Tag.unwrap(a1), Tag.unwrap(a2))
         }
       implicit val intInstance : Monoid[Int] with Enum[Int] with Show[Int] =
@@ -406,10 +387,9 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
         }
-      implicit val intMultiplicationNewType : Monoid[ Int @@ Multiplication ] with Enum[ Int @@ Multiplication ] =
+      implicit val intMultiplicationNewType : Monoid[Int @@ Multiplication] with Enum[Int @@ Multiplication] =
         new Monoid[Int @@ Multiplication] with Enum[Int @@ Multiplication] {
-          def append( f1 : Int @@ Multiplication
-          , f2 : => Int @@ Multiplication ) =
+          def append(f1 : Int @@ Multiplication, f2 : => Int @@ Multiplication) =
             Multiplication(Tag.unwrap(f1) * Tag.unwrap(f2))
           def zero : Int @@ Multiplication =
             Multiplication(1)
@@ -427,8 +407,7 @@ package scalaz {
             Multiplication.subst(Enum[Int].max)
           def order(a1 : Int @@ Multiplication, a2 : Int @@ Multiplication) =
             Order[Int].order(Tag.unwrap(a1), Tag.unwrap(a2))
-          override def unfoldlSumOpt[S](s : S)( f : (S) => Maybe[ ( S
-          , Int @@ Multiplication ) ] ) =
+          override def unfoldlSumOpt[S](s : S)(f : (S) => Maybe[(S, Int @@ Multiplication)]) =
             {
               val f0 =
                 Multiplication.unsubst[λ[(x) => (S) => Maybe[(S, x)]], Int](f)
@@ -449,8 +428,7 @@ package scalaz {
                   Multiplication(go(s, i))
               }
             }
-          override def unfoldrSumOpt[ S ]( s : S )( f : ( S ) => Maybe[ ( Int @@ Multiplication
-          , S ) ] ) =
+          override def unfoldrSumOpt[S](s : S)(f : (S) => Maybe[(Int @@ Multiplication, S)]) =
             unfoldlSumOpt[S](s)(f(_) map (_.swap))
         }
       implicit val longInstance : Monoid[Long] with Enum[Long] with Show[Long] =
@@ -486,10 +464,9 @@ package scalaz {
           override def equalIsNatural : Boolean =
             true
         }
-      implicit val longMultiplicationNewType : Monoid[ Long @@ Multiplication ] with Enum[ Long @@ Multiplication ] =
+      implicit val longMultiplicationNewType : Monoid[Long @@ Multiplication] with Enum[Long @@ Multiplication] =
         new Monoid[Long @@ Multiplication] with Enum[Long @@ Multiplication] {
-          def append( f1 : Long @@ Multiplication
-          , f2 : => Long @@ Multiplication ) =
+          def append(f1 : Long @@ Multiplication, f2 : => Long @@ Multiplication) =
             Multiplication(Tag.unwrap(f1) * Tag.unwrap(f2))
           def zero : Long @@ Multiplication =
             Multiplication(1)
@@ -571,17 +548,13 @@ package scalaz {
           f
         else
           ()
-      final def unlessM[ M[_]
-      , A ]( cond : Boolean )( f : => M[ A ] )( implicit M : Applicative[ M ] ) : M[ Unit ] =
+      final def unlessM[M[_], A](cond : Boolean)(f : => M[A])(implicit M : Applicative[M]) : M[Unit] =
         M.unlessM(cond)(f)
-      final def unlessMU[ MA ]( cond : Boolean )( f : => MA )( implicit M : Unapply[ Applicative
-      , MA ] ) : M.M[Unit] =
+      final def unlessMU[MA](cond : Boolean)(f : => MA)(implicit M : Unapply[Applicative, MA]) : M.M[Unit] =
         M.TC.unlessM(cond)(M(f))
-      final def whenM[ M[_]
-      , A ]( cond : Boolean )( f : => M[ A ] )( implicit M : Applicative[ M ] ) : M[ Unit ] =
+      final def whenM[M[_], A](cond : Boolean)(f : => M[A])(implicit M : Applicative[M]) : M[Unit] =
         M.whenM(cond)(f)
-      final def whenMU[ MA ]( cond : Boolean )( f : => MA )( implicit M : Unapply[ Applicative
-      , MA ] ) : M.M[Unit] =
+      final def whenMU[MA](cond : Boolean)(f : => MA)(implicit M : Unapply[Applicative, MA]) : M.M[Unit] =
         M.TC.whenM(cond)(M(f))
       final def fold[A](cond : Boolean, t : => A, f : => A) : A =
         if (cond)
@@ -598,38 +571,32 @@ package scalaz {
           1
         else
           0
-      final def valueOrZero[ A ]( cond : Boolean )( value : => A )( implicit z : Monoid[ A ] ) : A =
+      final def valueOrZero[A](cond : Boolean)(value : => A)(implicit z : Monoid[A]) : A =
         if (cond)
           value
         else
           z.zero
-      final def zeroOrValue[ A ]( cond : Boolean )( value : => A )( implicit z : Monoid[ A ] ) : A =
+      final def zeroOrValue[A](cond : Boolean)(value : => A)(implicit z : Monoid[A]) : A =
         if (!cond)
           value
         else
           z.zero
-      final def pointOrEmpty[ M[_]
-      , A ](cond : Boolean)(a : => A)( implicit M : Applicative[M]
-      , M0 : PlusEmpty[M] ) : M[A] =
+      final def pointOrEmpty[M[_], A](cond : Boolean)(a : => A)(implicit M : Applicative[M], M0 : PlusEmpty[M]) : M[A] =
         if (cond)
           M.point(a)
         else
           M0.empty
-      final def emptyOrPoint[ M[_]
-      , A ](cond : Boolean)(a : => A)( implicit M : Applicative[M]
-      , M0 : PlusEmpty[M] ) : M[A] =
+      final def emptyOrPoint[M[_], A](cond : Boolean)(a : => A)(implicit M : Applicative[M], M0 : PlusEmpty[M]) : M[A] =
         if (!cond)
           M.point(a)
         else
           M0.empty
-      final def pointOrEmptyNT[ M[ _ ] ]( cond : Boolean )( implicit M : Applicative[ M ]
-      , M0 : PlusEmpty[M] ) : Id ~> M =
+      final def pointOrEmptyNT[M[_]](cond : Boolean)(implicit M : Applicative[M], M0 : PlusEmpty[M]) : Id ~> M =
         new (Id ~> M) {
           def apply[A](a : A) =
             pointOrEmpty(cond)(a)(M, M0)
         }
-      final def emptyOrPointNT[ M[ _ ] ]( cond : Boolean )( implicit M : Applicative[ M ]
-      , M0 : PlusEmpty[M] ) : Id ~> M =
+      final def emptyOrPointNT[M[_]](cond : Boolean)(implicit M : Applicative[M], M0 : PlusEmpty[M]) : Id ~> M =
         new (Id ~> M) {
           def apply[A](a : A) =
             emptyOrPoint(cond)(a)(M, M0)

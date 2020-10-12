@@ -7,25 +7,13 @@ package scalaz {
     import PLensFamily.{_}
     def kleisli : Kleisli[Option, A1, IndexedStore[B1, B2, A2]] =
       Kleisli[Option, A1, IndexedStore[B1, B2, A2]](apply)
-    def xmapA[X1, X2](f : (A2) => X2)(g : (X1) => A1) : PLensFamily[ X1
-    , X2
-    , B1
-    , B2 ] =
+    def xmapA[X1, X2](f : (A2) => X2)(g : (X1) => A1) : PLensFamily[X1, X2, B1, B2] =
       plensFamily((x) => apply(g(x)) map (_ map f))
-    def xmapbA[X, A >: A2 <: A1](b : Bijection[A, X]) : PLensFamily[ X
-    , X
-    , B1
-    , B2 ] =
+    def xmapbA[X, A >: A2 <: A1](b : Bijection[A, X]) : PLensFamily[X, X, B1, B2] =
       xmapA(b to (_))(b from (_))
-    def xmapB[X1, X2](f : (B1) => X1)(g : (X2) => B2) : PLensFamily[ A1
-    , A2
-    , X1
-    , X2 ] =
+    def xmapB[X1, X2](f : (B1) => X1)(g : (X2) => B2) : PLensFamily[A1, A2, X1, X2] =
       plensFamily((a) => apply(a) map (_.xmap(f)(g)))
-    def xmapbB[X, B >: B1 <: B2](b : Bijection[B, X]) : PLensFamily[ A1
-    , A2
-    , X
-    , X ] =
+    def xmapbB[X, B >: B1 <: B2](b : Bijection[B, X]) : PLensFamily[A1, A2, X, X] =
       xmapB(b to (_))(b from (_))
     def get(a : A1) : Option[B1] =
       run(a) map (_.pos)
@@ -123,10 +111,7 @@ package scalaz {
       } )
     def ->>-[A >: A2 <: A1, C](f : => State[A, C]) : PState[A, C] =
       >>-((_) => f)
-    def compose[C1, C2](that : PLensFamily[C1, C2, A1, A2]) : PLensFamily[ C1
-    , C2
-    , B1
-    , B2 ] =
+    def compose[C1, C2](that : PLensFamily[C1, C2, A1, A2]) : PLensFamily[C1, C2, B1, B2] =
       plensFamily( (c) => (that run c).flatMap( (x) => {
         val (ac, a) =
           x.run
@@ -138,40 +123,22 @@ package scalaz {
           IndexedStore(ac compose ba, b)
         })
       } ) )
-    def <=<[C1, C2](that : PLensFamily[C1, C2, A1, A2]) : PLensFamily[ C1
-    , C2
-    , B1
-    , B2 ] =
+    def <=<[C1, C2](that : PLensFamily[C1, C2, A1, A2]) : PLensFamily[C1, C2, B1, B2] =
       compose(that)
-    def andThen[C1, C2](that : PLensFamily[B1, B2, C1, C2]) : PLensFamily[ A1
-    , A2
-    , C1
-    , C2 ] =
+    def andThen[C1, C2](that : PLensFamily[B1, B2, C1, C2]) : PLensFamily[A1, A2, C1, C2] =
       that compose this
-    def >=>[C1, C2](that : PLensFamily[B1, B2, C1, C2]) : PLensFamily[ A1
-    , A2
-    , C1
-    , C2 ] =
+    def >=>[C1, C2](that : PLensFamily[B1, B2, C1, C2]) : PLensFamily[A1, A2, C1, C2] =
       andThen(that)
-    def sum[C1, C2]( that : => PLensFamily[ C1
-    , C2
-    , B1
-    , B2 ] ) : PLensFamily[A1 \/ C1, A2 \/ C2, B1, B2] =
+    def sum[C1, C2](that : => PLensFamily[C1, C2, B1, B2]) : PLensFamily[A1 \/ C1, A2 \/ C2, B1, B2] =
       plensFamily( {
         case -\/ (a) =>
           run(a) map (_ map \/.left)
         case \/- (c) =>
           that run c map (_ map \/.right)
       } )
-    def |||[C1, C2]( that : => PLensFamily[ C1
-    , C2
-    , B1
-    , B2 ] ) : PLensFamily[A1 \/ C1, A2 \/ C2, B1, B2] =
+    def |||[C1, C2](that : => PLensFamily[C1, C2, B1, B2]) : PLensFamily[A1 \/ C1, A2 \/ C2, B1, B2] =
       sum(that)
-    def product[C1, C2, D1, D2]( that : PLensFamily[ C1
-    , C2
-    , D1
-    , D2 ] ) : PLensFamily[(A1, C1), (A2, C2), (B1, D1), (B2, D2)] =
+    def product[C1, C2, D1, D2](that : PLensFamily[C1, C2, D1, D2]) : PLensFamily[(A1, C1), (A2, C2), (B1, D1), (B2, D2)] =
       plensFamily( {
         case (a, c) =>
           for {
@@ -182,34 +149,25 @@ package scalaz {
           
           } yield q *** r
       } )
-    def ***[C1, C2, D1, D2]( that : PLensFamily[ C1
-    , C2
-    , D1
-    , D2 ] ) : PLensFamily[(A1, C1), (A2, C2), (B1, D1), (B2, D2)] =
+    def ***[C1, C2, D1, D2](that : PLensFamily[C1, C2, D1, D2]) : PLensFamily[(A1, C1), (A2, C2), (B1, D1), (B2, D2)] =
       product(that)
   }
 
   object PLensFamily extends PLensInstances with PLensFunctions {
-    def apply[A1, A2, B1, B2]( r : (A1) => Option[ IndexedStore[ B1
-    , B2
-    , A2 ] ] ) : PLensFamily[A1, A2, B1, B2] =
+    def apply[A1, A2, B1, B2](r : (A1) => Option[IndexedStore[B1, B2, A2]]) : PLensFamily[A1, A2, B1, B2] =
       plensFamily(r)
   }
 
   trait PLensFamilyFunctions  extends PLensInstances {
     import BijectionT.{_}
-    def plensFamily[A1, A2, B1, B2]( r : (A1) => Option[ IndexedStore[ B1
-    , B2
-    , A2 ] ] ) : PLensFamily[A1, A2, B1, B2] =
+    def plensFamily[A1, A2, B1, B2](r : (A1) => Option[IndexedStore[B1, B2, A2]]) : PLensFamily[A1, A2, B1, B2] =
       new PLensFamily[A1, A2, B1, B2] {
         def run(a : A1) : Option[IndexedStore[B1, B2, A2]] =
           r(a)
       }
-    def plensFamilyf[A1, A2, B1, B2]( r : PartialFunction[ A1
-    , IndexedStore[B1, B2, A2] ] ) : PLensFamily[A1, A2, B1, B2] =
+    def plensFamilyf[A1, A2, B1, B2](r : PartialFunction[A1, IndexedStore[B1, B2, A2]]) : PLensFamily[A1, A2, B1, B2] =
       plensFamily(r.lift)
-    def plensFamilyg[A1, A2, B1, B2]( set : (A1) => Option[(B2) => A2]
-    , get : (A1) => Option[B1] ) : PLensFamily[A1, A2, B1, B2] =
+    def plensFamilyg[A1, A2, B1, B2](set : (A1) => Option[(B2) => A2], get : (A1) => Option[B1]) : PLensFamily[A1, A2, B1, B2] =
       plensFamily( (a) => for {
       
         w <- set(a)
@@ -239,49 +197,34 @@ package scalaz {
         case -\/ (_) =>
           None
       } )
-    def tuple2PLensFamily[S1, S2, A, B]( lens : PLensFamily[ S1
-    , S2
-    , (A, B)
-    , (A, B) ] ) : (PLensFamily[S1, S2, A, A], PLensFamily[S1, S2, B, B]) =
+    def tuple2PLensFamily[S1, S2, A, B](lens : PLensFamily[S1, S2, (A, B), (A, B)]) : (PLensFamily[S1, S2, A, A], PLensFamily[S1, S2, B, B]) =
       PLensFamilyUnzip[S1, S2].unzip(lens)
-    def tuple3PLensFamily[S1, S2, A, B, C]( lens : PLensFamily[ S1
-    , S2
-    , (A, B, C)
-    , (A, B, C) ] ) : ( PLensFamily[S1, S2, A, A]
+    def tuple3PLensFamily[S1, S2, A, B, C](lens : PLensFamily[S1, S2, (A, B, C), (A, B, C)]) : ( PLensFamily[S1, S2, A, A]
     , PLensFamily[S1, S2, B, B]
     , PLensFamily[S1, S2, C, C] ) =
       PLensFamilyUnzip[S1, S2].unzip3(lens.xmapbB(tuple3B))
-    def tuple4PLensFamily[S1, S2, A, B, C, D]( lens : PLensFamily[ S1
-    , S2
-    , (A, B, C, D)
-    , (A, B, C, D) ] ) : ( PLensFamily[S1, S2, A, A]
+    def tuple4PLensFamily[S1, S2, A, B, C, D](lens : PLensFamily[S1, S2, (A, B, C, D), (A, B, C, D)]) : ( PLensFamily[S1, S2, A, A]
     , PLensFamily[S1, S2, B, B]
     , PLensFamily[S1, S2, C, C]
     , PLensFamily[S1, S2, D, D] ) =
       PLensFamilyUnzip[S1, S2].unzip4(lens.xmapbB(tuple4B))
-    def tuple5PLensFamily[S1, S2, A, B, C, D, E]( lens : PLensFamily[ S1
-    , S2
-    , (A, B, C, D, E)
-    , (A, B, C, D, E) ] ) : ( PLensFamily[S1, S2, A, A]
+    def tuple5PLensFamily[S1, S2, A, B, C, D, E](lens : PLensFamily[S1, S2, (A, B, C, D, E), (A, B, C, D, E)]) : ( PLensFamily[S1, S2, A, A]
     , PLensFamily[S1, S2, B, B]
     , PLensFamily[S1, S2, C, C]
     , PLensFamily[S1, S2, D, D]
     , PLensFamily[S1, S2, E, E] ) =
       PLensFamilyUnzip[S1, S2].unzip5(lens.xmapbB(tuple5B))
-    def tuple6PLensFamily[S1, S2, A, B, C, D, E, H]( lens : PLensFamily[ S1
-    , S2
-    , (A, B, C, D, E, H)
-    , (A, B, C, D, E, H) ] ) : ( PLensFamily[S1, S2, A, A]
+    def tuple6PLensFamily[S1, S2, A, B, C, D, E, H](lens : PLensFamily[S1, S2, (A, B, C, D, E, H), (A, B, C, D, E, H)]) : ( PLensFamily[S1, S2, A, A]
     , PLensFamily[S1, S2, B, B]
     , PLensFamily[S1, S2, C, C]
     , PLensFamily[S1, S2, D, D]
     , PLensFamily[S1, S2, E, E]
     , PLensFamily[S1, S2, H, H] ) =
       PLensFamilyUnzip[S1, S2].unzip6(lens.xmapbB(tuple6B))
-    def tuple7PLensFamily[S1, S2, A, B, C, D, E, H, I]( lens : PLensFamily[ S1
+    def tuple7PLensFamily[S1, S2, A, B, C, D, E, H, I](lens : PLensFamily[S1, S2, (A, B, C, D, E, H, I), (A, B, C, D, E, H, I)]) : ( PLensFamily[ S1
     , S2
-    , (A, B, C, D, E, H, I)
-    , (A, B, C, D, E, H, I) ] ) : ( PLensFamily[S1, S2, A, A]
+    , A
+    , A ]
     , PLensFamily[S1, S2, B, B]
     , PLensFamily[S1, S2, C, C]
     , PLensFamily[S1, S2, D, D]
@@ -289,41 +232,19 @@ package scalaz {
     , PLensFamily[S1, S2, H, H]
     , PLensFamily[S1, S2, I, I] ) =
       PLensFamilyUnzip[S1, S2].unzip7(lens.xmapbB(tuple7B))
-    def eitherLensFamily[S1, S2, A, B]( l : PLensFamily[ S1
-    , S2
-    , A \/ B
-    , A \/ B ] ) : (PLensFamily[S1, S2, A, A], PLensFamily[S1, S2, B, B]) =
+    def eitherLensFamily[S1, S2, A, B](l : PLensFamily[S1, S2, A \/ B, A \/ B]) : (PLensFamily[S1, S2, A, A], PLensFamily[S1, S2, B, B]) =
       (leftPLensFamily compose l, rightPLensFamily compose l)
     import LazyOption.{_}
-    def lazySomePLensFamily[A1, A2] : PLensFamily[ LazyOption[A1]
-    , LazyOption[A2]
-    , A1
-    , A2 ] =
+    def lazySomePLensFamily[A1, A2] : PLensFamily[LazyOption[A1], LazyOption[A2], A1, A2] =
       plensFamily(_.fold((z) => Some(IndexedStore(lazySome(_), z)), None))
     import LazyEither.{_}
-    def lazyLeftPLensFamily[A1, A2, B] : PLensFamily[ LazyEither[A1, B]
-    , LazyEither[A2, B]
-    , A1
-    , A2 ] =
-      plensFamily( _.fold( (a) => Some(IndexedStore(lazyLeft(_), a))
-      , (_) => None ) )
-    def lazyRightPLensFamily[A, B1, B2] : PLensFamily[ LazyEither[A, B1]
-    , LazyEither[A, B2]
-    , B1
-    , B2 ] =
-      plensFamily( _.fold( (_) => None
-      , (b) => Some(IndexedStore(lazyRight(_), b)) ) )
-    def factorPLensFamily[A1, A2, B1, B2, C1, C2] : PLensFamily[ ( A1
-    , B1 ) \/ (A1, C1)
-    , (A2, B2) \/ (A2, C2)
-    , (A1, B1 \/ C1)
-    , (A2, B2 \/ C2) ] =
+    def lazyLeftPLensFamily[A1, A2, B] : PLensFamily[LazyEither[A1, B], LazyEither[A2, B], A1, A2] =
+      plensFamily(_.fold((a) => Some(IndexedStore(lazyLeft(_), a)), (_) => None))
+    def lazyRightPLensFamily[A, B1, B2] : PLensFamily[LazyEither[A, B1], LazyEither[A, B2], B1, B2] =
+      plensFamily(_.fold((_) => None, (b) => Some(IndexedStore(lazyRight(_), b))))
+    def factorPLensFamily[A1, A2, B1, B2, C1, C2] : PLensFamily[(A1, B1) \/ (A1, C1), (A2, B2) \/ (A2, C2), (A1, B1 \/ C1), (A2, B2 \/ C2)] =
       ~LensFamily.factorLensFamily
-    def distributePLensFamily[A1, A2, B1, B2, C1, C2] : PLensFamily[ ( A1
-    , B1 \/ C1 )
-    , (A2, B2 \/ C2)
-    , (A1, B1) \/ (A1, C1)
-    , (A2, B2) \/ (A2, C2) ] =
+    def distributePLensFamily[A1, A2, B1, B2, C1, C2] : PLensFamily[(A1, B1 \/ C1), (A2, B2 \/ C2), (A1, B1) \/ (A1, C1), (A2, B2) \/ (A2, C2)] =
       ~LensFamily.distributeLensFamily
   }
 
@@ -336,8 +257,7 @@ package scalaz {
       }
     def plensf[A, B](r : PartialFunction[A, Store[B, A]]) : PLens[A, B] =
       plens(r.lift)
-    def plensg[A, B]( set : (A) => Option[(B) => A]
-    , get : (A) => Option[B] ) : PLens[A, B] =
+    def plensg[A, B](set : (A) => Option[(B) => A], get : (A) => Option[B]) : PLens[A, B] =
       plens( (a) => for {
       
         w <- set(a)
@@ -345,8 +265,7 @@ package scalaz {
         x <- get(a)
       
       } yield Store(w, x) )
-    def plensgf[A, B]( set : PartialFunction[A, (B) => A]
-    , get : PartialFunction[A, B] ) : PLens[A, B] =
+    def plensgf[A, B](set : PartialFunction[A, (B) => A], get : PartialFunction[A, B]) : PLens[A, B] =
       plensg(set.lift, get.lift)
     def plensId[A] : PLens[A, A] =
       LensFamily.lensId[A].partial
@@ -372,36 +291,22 @@ package scalaz {
         case -\/ (_) =>
           None
       } )
-    def tuple2PLens[S, A, B](lens : PLens[S, (A, B)]) : ( PLens[S, A]
-    , PLens[S, B] ) =
+    def tuple2PLens[S, A, B](lens : PLens[S, (A, B)]) : (PLens[S, A], PLens[S, B]) =
       PLensFamilyUnzip[S, S].unzip(lens)
-    def tuple3PLens[S, A, B, C](lens : PLens[S, (A, B, C)]) : ( PLens[S, A]
-    , PLens[S, B]
-    , PLens[S, C] ) =
+    def tuple3PLens[S, A, B, C](lens : PLens[S, (A, B, C)]) : (PLens[S, A], PLens[S, B], PLens[S, C]) =
       PLensFamilyUnzip[S, S].unzip3(lens.xmapbB(tuple3B))
-    def tuple4PLens[S, A, B, C, D](lens : PLens[S, (A, B, C, D)]) : ( PLens[ S
-    , A ]
-    , PLens[S, B]
-    , PLens[S, C]
-    , PLens[S, D] ) =
+    def tuple4PLens[S, A, B, C, D](lens : PLens[S, (A, B, C, D)]) : (PLens[S, A], PLens[S, B], PLens[S, C], PLens[S, D]) =
       PLensFamilyUnzip[S, S].unzip4(lens.xmapbB(tuple4B))
-    def tuple5PLens[S, A, B, C, D, E]( lens : PLens[ S
-    , (A, B, C, D, E) ] ) : ( PLens[S, A]
-    , PLens[S, B]
-    , PLens[S, C]
-    , PLens[S, D]
-    , PLens[S, E] ) =
+    def tuple5PLens[S, A, B, C, D, E](lens : PLens[S, (A, B, C, D, E)]) : (PLens[S, A], PLens[S, B], PLens[S, C], PLens[S, D], PLens[S, E]) =
       PLensFamilyUnzip[S, S].unzip5(lens.xmapbB(tuple5B))
-    def tuple6PLens[S, A, B, C, D, E, H]( lens : PLens[ S
-    , (A, B, C, D, E, H) ] ) : ( PLens[S, A]
+    def tuple6PLens[S, A, B, C, D, E, H](lens : PLens[S, (A, B, C, D, E, H)]) : ( PLens[S, A]
     , PLens[S, B]
     , PLens[S, C]
     , PLens[S, D]
     , PLens[S, E]
     , PLens[S, H] ) =
       PLensFamilyUnzip[S, S].unzip6(lens.xmapbB(tuple6B))
-    def tuple7PLens[S, A, B, C, D, E, H, I]( lens : PLens[ S
-    , (A, B, C, D, E, H, I) ] ) : ( PLens[S, A]
+    def tuple7PLens[S, A, B, C, D, E, H, I](lens : PLens[S, (A, B, C, D, E, H, I)]) : ( PLens[S, A]
     , PLens[S, B]
     , PLens[S, C]
     , PLens[S, D]
@@ -443,9 +348,7 @@ package scalaz {
           listNthPLens(n - 1) compose listTailPLens
     def listLookupByPLens[K, V](p : (K) => Boolean) : List[(K, V)] @?> V =
       {
-        @annotation.tailrec def lookupr( t : ( List[(K, V)]
-        , (K, V)
-        , List[(K, V)] ) ) : Option[(List[(K, V)], (K, V), List[(K, V)])] =
+        @annotation.tailrec def lookupr(t : (List[(K, V)], (K, V), List[(K, V)])) : Option[(List[(K, V)], (K, V), List[(K, V)])] =
           t match {
             case (_, (k, _), _) if p(k) =>
               Some(t)
@@ -491,9 +394,7 @@ package scalaz {
           iListNthPLens(n - 1) compose iListTailPLens
     def iListLookupByPLens[K, V](p : (K) => Boolean) : IList[(K, V)] @?> V =
       {
-        @annotation.tailrec def lookupr( t : ( IList[(K, V)]
-        , (K, V)
-        , IList[(K, V)] ) ) : Option[(IList[(K, V)], (K, V), IList[(K, V)])] =
+        @annotation.tailrec def lookupr(t : (IList[(K, V)], (K, V), IList[(K, V)])) : Option[(IList[(K, V)], (K, V), IList[(K, V)])] =
           t match {
             case (_, (k, _), _) if p(k) =>
               Some(t)
@@ -518,13 +419,9 @@ package scalaz {
     def vectorHeadPLens[A] : Vector[A] @?> A =
       vectorNthPLens(0)
     def vectorNthPLens[A](n : Int) : Vector[A] @?> A =
-      plens( (v) => v.lift(n) map ((a) => Store( (x) => v.patch(n, Vector(x), 1)
-      , a )) )
+      plens((v) => v.lift(n) map ((a) => Store((x) => v.patch(n, Vector(x), 1), a)))
     def vectorLastPLens[A] : Vector[A] @?> A =
-      plens( (v) => v.lastOption map ((a) => Store( (x) => v.patch( v.length - 1
-      , Vector(x)
-      , 1 )
-      , a )) )
+      plens((v) => v.lastOption map ((a) => Store((x) => v.patch(v.length - 1, Vector(x), 1), a)))
     import Stream.{_}
     def streamHeadPLens[A] : Stream[A] @?> A =
       plens( {
@@ -550,11 +447,7 @@ package scalaz {
           streamNthPLens(n - 1) compose streamTailPLens
     def streamLookupByPLens[K, V](p : (K) => Boolean) : Stream[(K, V)] @?> V =
       {
-        @annotation.tailrec def lookupr( t : ( Stream[(K, V)]
-        , (K, V)
-        , Stream[(K, V)] ) ) : Option[ ( Stream[(K, V)]
-        , (K, V)
-        , Stream[(K, V)] ) ] =
+        @annotation.tailrec def lookupr(t : (Stream[(K, V)], (K, V), Stream[(K, V)])) : Option[(Stream[(K, V)], (K, V), Stream[(K, V)])] =
           t match {
             case (_, (k, _), _) if p(k) =>
               Some(t)
@@ -581,7 +474,7 @@ package scalaz {
         None
       else
         Some(Store(EphemeralStream.cons(_, s.tail()), s.head())) )
-    def ephemeralStreamTailPLens[ A ] : EphemeralStream[ A ] @?> EphemeralStream[ A ] =
+    def ephemeralStreamTailPLens[A] : EphemeralStream[A] @?> EphemeralStream[A] =
       plens( (s) => if (s.isEmpty)
         None
       else
@@ -594,14 +487,11 @@ package scalaz {
           ephemeralStreamHeadPLens
         else
           ephemeralStreamNthPLens(n - 1) compose ephemeralStreamTailPLens
-    def ephemeralStreamLookupByPLens[ K
-    , V ](p : (K) => Boolean) : EphemeralStream[(K, V)] @?> V =
+    def ephemeralStreamLookupByPLens[K, V](p : (K) => Boolean) : EphemeralStream[(K, V)] @?> V =
       {
         import EphemeralStream.{cons}
       
-        @annotation.tailrec def lookupr( t : ( EphemeralStream[(K, V)]
-        , (K, V)
-        , EphemeralStream[(K, V)] ) ) : Option[ ( EphemeralStream[(K, V)]
+        @annotation.tailrec def lookupr(t : (EphemeralStream[(K, V)], (K, V), EphemeralStream[(K, V)])) : Option[ ( EphemeralStream[(K, V)]
         , (K, V)
         , EphemeralStream[(K, V)] ) ] =
           t match {
@@ -617,15 +507,12 @@ package scalaz {
         plens( (s) => if (s.isEmpty)
           None
         else
-          lookupr( ( EphemeralStream.emptyEphemeralStream
-          , s.head()
-          , s.tail() ) ) map {
+          lookupr((EphemeralStream.emptyEphemeralStream, s.head(), s.tail())) map {
             case (l, (k, v), r) =>
               Store((w) => l.reverse ++ cons((k, w), r), v)
           } )
       }
-    def ephemeralStreamLookupPLens[K: Equal, V](k : K) : EphemeralStream[ ( K
-    , V ) ] @?> V =
+    def ephemeralStreamLookupPLens[K: Equal, V](k : K) : EphemeralStream[(K, V)] @?> V =
       ephemeralStreamLookupByPLens(Equal[K].equal(k, _))
     import LensFamily.{mapVLens}
     def mapVPLens[K, V](k : K) : Map[K, V] @?> V =
@@ -641,15 +528,9 @@ package scalaz {
     implicit val plensCategory : PLensCategory =
       new PLensCategory {
       }
-    implicit def PLensFamilyState[A, B]( plens : PLensFamily[ A
-    , _
-    , B
-    , _ ] ) : PState[A, B] =
+    implicit def PLensFamilyState[A, B](plens : PLensFamily[A, _, B, _]) : PState[A, B] =
       plens.st
-    implicit def PLensFamilyUnzip[S, R] : Unzip[ λ[ (α) => PLensFamily[ S
-    , R
-    , α
-    , α ] ] ] =
+    implicit def PLensFamilyUnzip[S, R] : Unzip[λ[(α) => PLensFamily[S, R, α, α]]] =
       new Unzip[λ[(α) => PLensFamily[S, R, α, α]]] {
         def unzip[A, B](a : PLensFamily[S, R, (A, B), (A, B)]) =
           ( plensFamily( (x) => a run x map ((c) => {
@@ -673,22 +554,19 @@ package scalaz {
       def *=(that : N) : PState[S, N] =
         lens %= num.times(_, that)
     }
-    implicit def numericPLens[S, N: Numeric](lens : S @?> N) : NumericPLens[ S
-    , N ] =
+    implicit def numericPLens[S, N: Numeric](lens : S @?> N) : NumericPLens[S, N] =
       NumericPLens[S, N](lens, implicitly[Numeric[N]])
     case class FractionalPLens[S, F] (lens : S @?> F, frac : Fractional[F]) {
       def /=(that : F) : PState[S, F] =
         lens %= frac.div(_, that)
     }
-    implicit def fractionalPLens[ S
-    , F: Fractional ](lens : S @?> F) : FractionalPLens[S, F] =
+    implicit def fractionalPLens[S, F: Fractional](lens : S @?> F) : FractionalPLens[S, F] =
       FractionalPLens[S, F](lens, implicitly[Fractional[F]])
     case class IntegralPLens[S, I] (lens : S @?> I, ig : Integral[I]) {
       def %=(that : I) : PState[S, I] =
         lens %= ig.quot(_, that)
     }
-    implicit def integralPLens[ S
-    , I: Integral ](lens : S @?> I) : IntegralPLens[S, I] =
+    implicit def integralPLens[S, I: Integral](lens : S @?> I) : IntegralPLens[S, I] =
       IntegralPLens[S, I](lens, implicitly[Integral[I]])
   }
 
@@ -697,16 +575,14 @@ package scalaz {
       ab >=> bc
     def id[A] : PLens[A, A] =
       PLensFamily.plensId
-    def choice[A, B, C](f : => PLens[A, C], g : => PLens[B, C]) : PLens[ A \/ B
-    , C ] =
+    def choice[A, B, C](f : => PLens[A, C], g : => PLens[B, C]) : PLens[A \/ B, C] =
       PLensFamily.plens[A \/ B, C]( {
         case -\/ (a) =>
           f run a map (_ map \/.left)
         case \/- (b) =>
           g run b map (_ map \/.right)
       } )
-    def split[A, B, C, D](f : PLens[A, B], g : PLens[C, D]) : PLens[ (A, C)
-    , (B, D) ] =
+    def split[A, B, C, D](f : PLens[A, B], g : PLens[C, D]) : PLens[(A, C), (B, D)] =
       f *** g
   }
 }
