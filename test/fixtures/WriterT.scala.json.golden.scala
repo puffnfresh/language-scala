@@ -13,7 +13,7 @@ package scalaz {
     def mapWritten[X](f : (W) => X)(implicit F : Functor[F]) : WriterT[ X
     , F
     , A ] =
-      mapValue(((wa) => (f(wa._1), wa._2)))
+      mapValue((wa) => (f(wa._1), wa._2))
     def mapT[W2, G[_], B](f : (F[(W, A)]) => G[(W2, B)]) : WriterT[W2, G, B] =
       WriterT(f(run))
     def written(implicit F : Functor[F]) : F[W] =
@@ -21,28 +21,28 @@ package scalaz {
     def value(implicit F : Functor[F]) : F[A] =
       F.map(run)(_._2)
     def swap(implicit F : Functor[F]) : WriterT[A, F, W] =
-      mapValue(((wa) => (wa._2, wa._1)))
+      mapValue((wa) => (wa._2, wa._1))
     def :++>(w : => W)(implicit F : Functor[F], W : Semigroup[W]) : WriterT[ W
     , F
     , A ] =
       mapWritten(W.append(_, w))
     def :++>>(f : (A) => W)( implicit F : Functor[F]
     , W : Semigroup[W] ) : WriterT[W, F, A] =
-      mapValue(((wa) => (W.append(wa._1, f(wa._2)), wa._2)))
+      mapValue((wa) => (W.append(wa._1, f(wa._2)), wa._2))
     def <++:(w : W)(implicit F : Functor[F], W : Semigroup[W]) : WriterT[ W
     , F
     , A ] =
       mapWritten(W.append(w, _))
     def <<++:(f : (A) => W)( implicit F : Functor[F]
     , s : Semigroup[W] ) : WriterT[W, F, A] =
-      mapValue(((wa) => (s.append(f(wa._2), wa._1), wa._2)))
+      mapValue((wa) => (s.append(f(wa._2), wa._1), wa._2))
     def reset(implicit Z : Monoid[W], F : Functor[F]) : WriterT[W, F, A] =
-      mapWritten(((_) => Z.zero))
+      mapWritten((_) => Z.zero)
     def map[B](f : (A) => B)(implicit F : Functor[F]) : WriterT[W, F, B] =
-      writerT(F.map(run)(((wa) => (wa._1, f(wa._2)))))
+      writerT(F.map(run)((wa) => (wa._1, f(wa._2))))
     def mapF[B](f : (A) => F[B])(implicit F : Bind[F]) : WriterT[W, F, B] =
       writerT( {
-        F.bind(run)(((wa) => F.map(f(wa._2))(((a) => (wa._1, a)))))
+        F.bind(run)((wa) => F.map(f(wa._2))((a) => (wa._1, a)))
       } )
     def ap[B](f : => WriterT[W, F, (A) => B])( implicit F : Apply[F]
     , W : Semigroup[W] ) : WriterT[W, F, B] =
@@ -58,29 +58,32 @@ package scalaz {
     def flatMapF[B](f : (A) => F[(W, B)])( implicit F : Bind[F]
     , s : Semigroup[W] ) : WriterT[W, F, B] =
       writerT( F.bind(run)( {
-        ((wa) => {
+        (wa) => {
           val z =
             f(wa._2)
         
-          F.map(z)(((wb) => (s.append(wa._1, wb._1), wb._2)))
-        })
+          F.map(z)((wb) => (s.append(wa._1, wb._1), wb._2))
+        }
       } ) )
     def traverse[G[_], B](f : (A) => G[B])( implicit G : Applicative[G]
     , F : Traverse[F] ) : G[WriterT[W, F, B]] =
       {
         G.map( F.traverse(run)( {
           case (w, a) =>
-            G.map(f(a))(((b) => (w, b)))
+            G.map(f(a))((b) => (w, b))
         } ) )(WriterT(_))
       }
     def foldRight[B](z : => B)( f : ( A
     , => B ) => B )(implicit F : Foldable[F]) : B =
       F.foldr(run, z)( {
-        ((a) => ((b) => f(a._2, b)))
+        (a) => (b) => f(a._2, b)
       } )
     def bimap[C, D]( f : (W) => C
     , g : (A) => D )(implicit F : Functor[F]) : WriterT[C, F, D] =
-      writerT[F, C, D](F.map(run)({   case (a, b) =>   (f(a), g(b)) }))
+      writerT[F, C, D]( F.map(run)( {
+        case (a, b) =>
+          (f(a), g(b))
+      } ) )
     def leftMap[C](f : (W) => C)(implicit F : Functor[F]) : WriterT[C, F, A] =
       bimap(f, identity)
     def bitraverse[G[_], C, D]( f : (W) => G[C]
@@ -95,13 +98,16 @@ package scalaz {
     , S
     , F
     , A ] =
-      ReaderWriterStateT( ((r, s) => F.map(self.run)( {
+      ReaderWriterStateT( (r, s) => F.map(self.run)( {
         case (w, a) =>
           (w, a, s)
-      } )) )
+      } ) )
     def wpoint[G[_]]( implicit F : Functor[F]
     , P : Applicative[G] ) : WriterT[G[W], F, A] =
-      writerT(F.map(self.run)({   case (w, a) =>   (P.point(w), a) }))
+      writerT( F.map(self.run)( {
+        case (w, a) =>
+          (P.point(w), a)
+      } ) )
     def colocal[X](f : (W) => X)(implicit F : Functor[F]) : WriterT[X, F, A] =
       mapWritten(f)
   }
@@ -267,7 +273,7 @@ package scalaz {
       }
     implicit def writerTEqual[F[_], W, A]( implicit E : Equal[ F[ ( W
     , A ) ] ] ) : Equal[WriterT[W, F, A]] =
-      E.contramap(((_) : WriterT[W, F, A]).run)
+      E.contramap((_ : WriterT[W, F, A]).run)
     implicit def writerTMonadError[F[_], E, W]( implicit F0 : MonadError[F, E]
     , W0 : Monoid[W] ) : MonadError[WriterT[W, F, *], E] =
       new WriterTMonadError[F, E, W] {
@@ -294,7 +300,7 @@ package scalaz {
       }
     implicit def writerEqual[W, A]( implicit E : Equal[ ( W
     , A ) ] ) : Equal[Writer[W, A]] =
-      E.contramap(((_) : Writer[W, A]).run)
+      E.contramap((_ : Writer[W, A]).run)
     implicit def writerTMonadPlus[W, F[_]]( implicit W0 : Monoid[W]
     , F0 : MonadPlus[F] ) : MonadPlus[WriterT[W, F, *]] =
       new WriterTMonadPlus[F, W] {
@@ -369,7 +375,7 @@ package scalaz {
     , FAB ] {type A = AB}
     , @deprecated("scala/bug#5075", "") u2 : Unapply2[ Bifunctor
     , AB ] {type A = A0;type B = B0}
-    , l : (AB === (A0, B0)) ) : WriterT[A0, u1.M, B0] =
+    , l : AB === (A0, B0) ) : WriterT[A0, u1.M, B0] =
       WriterT(l.subst[u1.M](u1(fab)))
     def writer[W, A](v : (W, A)) : Writer[W, A] =
       writerT[Id, W, A](v)
@@ -378,13 +384,13 @@ package scalaz {
     def put[ F[_]
     , W
     , A ](value : F[A])(w : W)(implicit F : Functor[F]) : WriterT[W, F, A] =
-      WriterT(F.map(value)(((a) => (w, a))))
+      WriterT(F.map(value)((a) => (w, a)))
     def putWith[ F[_]
     , W
     , A ](value : F[A])(w : (A) => W)(implicit F : Functor[F]) : WriterT[ W
     , F
     , A ] =
-      WriterT(F.map(value)(((a) => (w(a), a))))
+      WriterT(F.map(value)((a) => (w(a), a)))
   }
 
   import WriterT.{writerT}
@@ -395,21 +401,20 @@ package scalaz {
       WriterT(F.conquer)
     override def divide2[A1, A2, Z]( a1 : => WriterT[W, F, A1]
     , a2 : => WriterT[W, F, A2] )(f : (Z) => (A1, A2)) : WriterT[W, F, Z] =
-      WriterT( F.divide2[(W, A1), (W, A2), (W, Z)](a1.run, a2.run)( (( z : ( W
+      WriterT( F.divide2[(W, A1), (W, A2), (W, Z)](a1.run, a2.run)( ( z : ( W
       , Z ) ) => (z._1, f(z._2)) match {
         case (w, (l, r)) =>
           ((w, l), (w, r))
-      }) ) )
+      } ) )
   }
 
   private trait WriterTDecidable[F[_], W]  extends Decidable[WriterT[W, F, *]]
    with WriterTDivisible[F, W] {
     implicit def F: Decidable[F]
     override def choose2[Z, A1, A2]( a1 : => WriterT[W, F, A1]
-    , a2 : => WriterT[W, F, A2] )(f : (Z) => (A1 \/ A2)) : WriterT[W, F, Z] =
-      WriterT( F.choose2[(W, Z), (W, A1), (W, A2)](a1.run, a2.run)( (( z : ( W
-      , Z ) ) => f(z._2).fold( ((l) => -\/((z._1, l)))
-      , ((r) => \/-((z._1, r))) )) ) )
+    , a2 : => WriterT[W, F, A2] )(f : (Z) => A1 \/ A2) : WriterT[W, F, Z] =
+      WriterT( F.choose2[(W, Z), (W, A1), (W, A2)](a1.run, a2.run)( ( z : ( W
+      , Z ) ) => f(z._2).fold((l) => -\/((z._1, l)), (r) => \/-((z._1, r))) ) )
   }
 
   private trait WriterTPlus[F[_], W]  extends Plus[WriterT[W, F, *]] {
@@ -428,7 +433,7 @@ package scalaz {
   private trait WriterTFunctor[F[_], W]  extends Functor[WriterT[W, F, *]] {
     implicit def F: Functor[F]
     override def map[A, B](fa : WriterT[W, F, A])(f : (A) => B) =
-      ((fa) map f)
+      fa map f
   }
 
   private trait WriterTApply[F[_], W]  extends Apply[WriterT[W, F, *]]
@@ -438,7 +443,7 @@ package scalaz {
     override def ap[A, B](fa : => WriterT[W, F, A])( f : => WriterT[ W
     , F
     , (A) => B ] ) =
-      ((fa) ap f)
+      fa ap f
   }
 
   private trait WriterTApplicative[F[_], W]  extends Applicative[ WriterT[ W
@@ -457,18 +462,18 @@ package scalaz {
     override final def bind[A, B](fa : WriterT[W, F, A])( f : (A) => WriterT[ W
     , F
     , B ] ) =
-      ((fa) flatMap f)
+      fa flatMap f
   }
 
   private trait WriterTBindRec[F[_], W]  extends BindRec[WriterT[W, F, *]]
    with WriterTBind[F, W] {
     implicit def F: BindRec[F]
     implicit def A: Applicative[F]
-    def tailrecM[A, B](a : A)(f : (A) => WriterT[W, F, (A \/ B)]) : WriterT[ W
+    def tailrecM[A, B](a : A)(f : (A) => WriterT[W, F, A \/ B]) : WriterT[ W
     , F
     , B ] =
       {
-        def go(t : (W, A)) : F[((W, A) \/ (W, B))] =
+        def go(t : (W, A)) : F[(W, A) \/ (W, B)] =
           F.map(f(t._2).run)( {
             case (w0, e) =>
               {
@@ -529,7 +534,7 @@ package scalaz {
     def traverseImpl[G[_]: Applicative, A, B]( fa : WriterT[ W
     , F
     , A ] )(f : (A) => G[B]) =
-      ((fa) traverse f)
+      fa traverse f
   }
 
   private trait WriterTBifunctor[F[_]]  extends Bifunctor[WriterT[*, F, *]] {
@@ -567,7 +572,7 @@ package scalaz {
     implicit def W: Monoid[W]
     implicit def apply[M[_]: Monad] : Monad[WriterT[W, M, *]] =
       WriterT.writerTMonad
-    def hoist[M[_]: Monad, N[_]](f : (M ~> N)) =
+    def hoist[M[_]: Monad, N[_]](f : M ~> N) =
       new (WriterT[W, M, *] ~> WriterT[W, N, *]) {
         def apply[A](fa : WriterT[W, M, A]) =
           fa.mapT(f.apply)
@@ -584,6 +589,9 @@ package scalaz {
     def writer[A](w : W, v : A) : WriterT[W, F, A] =
       WriterT.writerT(F.point((w, v)))
     def listen[A](fa : WriterT[W, F, A]) : WriterT[W, F, (A, W)] =
-      WriterT(F.map(fa.run)({   case (w, a) =>   (w, (a, w)) }))
+      WriterT( F.map(fa.run)( {
+        case (w, a) =>
+          (w, (a, w))
+      } ) )
   }
 }

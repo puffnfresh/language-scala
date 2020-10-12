@@ -15,7 +15,7 @@ import Language.Scala (Source)
 import System.Process (readProcess)
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (findByExtension, goldenVsStringDiff)
-import System.FilePath ((</>))
+import System.FilePath (dropExtension, takeBaseName, (</>))
 
 main :: IO ()
 main =
@@ -23,7 +23,7 @@ main =
 
 scalametaParserTest :: FilePath -> TestTree
 scalametaParserTest f =
-  goldenVsStringDiff f (\ref new -> ["diff", "-u", ref, new]) f $ do
+  goldenVsStringDiff (dropExtension (takeBaseName f)) (\ref new -> ["diff", "-u", ref, new]) f $ do
     parsed <- eitherDecodeFileStrict f :: IO (Either String Source)
     let script = "test" </> "scalameta-parsers" </> "scalameta-parsers-to-json.js"
     either error ((encodeUtf8 . pack <$>) . readProcess "node" [script] . show . pretty) parsed

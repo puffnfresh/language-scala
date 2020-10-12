@@ -1509,22 +1509,22 @@ package scalaz {
     }
   
     private trait Tuple1Cozip  extends Cozip[Tuple1] {
-      override def cozip[A, B](x : Tuple1[(A \/ B)]) =
+      override def cozip[A, B](x : Tuple1[A \/ B]) =
         x._1.bimap(Tuple1(_), Tuple1(_))
     }
   
     private trait Tuple2Cozip[A1]  extends Cozip[(A1, *)] {
-      override def cozip[A, B](x : (A1, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A \/ B)) =
         x._2.bimap((x._1, _), (x._1, _))
     }
   
     private trait Tuple3Cozip[A1, A2]  extends Cozip[(A1, A2, *)] {
-      override def cozip[A, B](x : (A1, A2, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A \/ B)) =
         x._3.bimap((x._1, x._2, _), (x._1, x._2, _))
     }
   
     private trait Tuple4Cozip[A1, A2, A3]  extends Cozip[(A1, A2, A3, *)] {
-      override def cozip[A, B](x : (A1, A2, A3, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A3, A \/ B)) =
         x._4.bimap((x._1, x._2, x._3, _), (x._1, x._2, x._3, _))
     }
   
@@ -1533,7 +1533,7 @@ package scalaz {
     , A3
     , A4
     , * ) ] {
-      override def cozip[A, B](x : (A1, A2, A3, A4, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A3, A4, A \/ B)) =
         x._5.bimap((x._1, x._2, x._3, x._4, _), (x._1, x._2, x._3, x._4, _))
     }
   
@@ -1543,7 +1543,7 @@ package scalaz {
     , A4
     , A5
     , * ) ] {
-      override def cozip[A, B](x : (A1, A2, A3, A4, A5, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A3, A4, A5, A \/ B)) =
         x._6.bimap( (x._1, x._2, x._3, x._4, x._5, _)
         , (x._1, x._2, x._3, x._4, x._5, _) )
     }
@@ -1555,7 +1555,7 @@ package scalaz {
     , A5
     , A6
     , * ) ] {
-      override def cozip[A, B](x : (A1, A2, A3, A4, A5, A6, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A3, A4, A5, A6, A \/ B)) =
         x._7.bimap( (x._1, x._2, x._3, x._4, x._5, x._6, _)
         , (x._1, x._2, x._3, x._4, x._5, x._6, _) )
     }
@@ -1568,7 +1568,7 @@ package scalaz {
     , A6
     , A7
     , * ) ] {
-      override def cozip[A, B](x : (A1, A2, A3, A4, A5, A6, A7, (A \/ B))) =
+      override def cozip[A, B](x : (A1, A2, A3, A4, A5, A6, A7, A \/ B)) =
         x._8.bimap( (x._1, x._2, x._3, x._4, x._5, x._6, x._7, _)
         , (x._1, x._2, x._3, x._4, x._5, x._6, x._7, _) )
     }
@@ -1585,9 +1585,9 @@ package scalaz {
       implicit def _1: Equal[A1]
       implicit def _2: Equal[A2]
       override def equal(f1 : (A1, A2), f2 : (A1, A2)) =
-        ((_1.equal(f1._1, f2._1)) && _2.equal(f1._2, f2._2))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2)
       override val equalIsNatural : Boolean =
-        ((_1.equalIsNatural) && _2.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural
     }
   
     private trait Tuple3Equal[A1, A2, A3]  extends Equal[(A1, A2, A3)] {
@@ -1595,10 +1595,10 @@ package scalaz {
       implicit def _2: Equal[A2]
       implicit def _3: Equal[A3]
       override def equal(f1 : (A1, A2, A3), f2 : (A1, A2, A3)) =
-        ((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 )
       override val equalIsNatural : Boolean =
-        ((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural
     }
   
     private trait Tuple4Equal[A1, A2, A3, A4]  extends Equal[(A1, A2, A3, A4)] {
@@ -1607,10 +1607,10 @@ package scalaz {
       implicit def _3: Equal[A3]
       implicit def _4: Equal[A4]
       override def equal(f1 : (A1, A2, A3, A4), f2 : (A1, A2, A3, A4)) =
-        ((((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))) && _4.equal(f1._4, f2._4))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 ) && _4.equal(f1._4, f2._4)
       override val equalIsNatural : Boolean =
-        ((((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)) && _4.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural && _4.equalIsNatural
     }
   
     private trait Tuple5Equal[A1, A2, A3, A4, A5]  extends Equal[ ( A1
@@ -1624,11 +1624,10 @@ package scalaz {
       implicit def _4: Equal[A4]
       implicit def _5: Equal[A5]
       override def equal(f1 : (A1, A2, A3, A4, A5), f2 : (A1, A2, A3, A4, A5)) =
-        ((((((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))) && _4.equal( f1._4
-        , f2._4 ))) && _5.equal(f1._5, f2._5))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 ) && _4.equal(f1._4, f2._4) && _5.equal(f1._5, f2._5)
       override val equalIsNatural : Boolean =
-        ((((((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)) && _4.equalIsNatural)) && _5.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural && _4.equalIsNatural && _5.equalIsNatural
     }
   
     private trait Tuple6Equal[A1, A2, A3, A4, A5, A6]  extends Equal[ ( A1
@@ -1645,11 +1644,11 @@ package scalaz {
       implicit def _6: Equal[A6]
       override def equal( f1 : (A1, A2, A3, A4, A5, A6)
       , f2 : (A1, A2, A3, A4, A5, A6) ) =
-        ((((((((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))) && _4.equal( f1._4
-        , f2._4 ))) && _5.equal(f1._5, f2._5))) && _6.equal(f1._6, f2._6))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 ) && _4.equal(f1._4, f2._4) && _5.equal( f1._5
+        , f2._5 ) && _6.equal(f1._6, f2._6)
       override val equalIsNatural : Boolean =
-        ((((((((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)) && _4.equalIsNatural)) && _5.equalIsNatural)) && _6.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural && _4.equalIsNatural && _5.equalIsNatural && _6.equalIsNatural
     }
   
     private trait Tuple7Equal[A1, A2, A3, A4, A5, A6, A7]  extends Equal[ ( A1
@@ -1668,12 +1667,11 @@ package scalaz {
       implicit def _7: Equal[A7]
       override def equal( f1 : (A1, A2, A3, A4, A5, A6, A7)
       , f2 : (A1, A2, A3, A4, A5, A6, A7) ) =
-        ((((((((((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))) && _4.equal( f1._4
-        , f2._4 ))) && _5.equal(f1._5, f2._5))) && _6.equal( f1._6
-        , f2._6 ))) && _7.equal(f1._7, f2._7))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 ) && _4.equal(f1._4, f2._4) && _5.equal( f1._5
+        , f2._5 ) && _6.equal(f1._6, f2._6) && _7.equal(f1._7, f2._7)
       override val equalIsNatural : Boolean =
-        ((((((((((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)) && _4.equalIsNatural)) && _5.equalIsNatural)) && _6.equalIsNatural)) && _7.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural && _4.equalIsNatural && _5.equalIsNatural && _6.equalIsNatural && _7.equalIsNatural
     }
   
     private trait Tuple8Equal[ A1
@@ -1694,12 +1692,12 @@ package scalaz {
       implicit def _8: Equal[A8]
       override def equal( f1 : (A1, A2, A3, A4, A5, A6, A7, A8)
       , f2 : (A1, A2, A3, A4, A5, A6, A7, A8) ) =
-        ((((((((((((((_1.equal(f1._1, f2._1)) && _2.equal( f1._2
-        , f2._2 ))) && _3.equal(f1._3, f2._3))) && _4.equal( f1._4
-        , f2._4 ))) && _5.equal(f1._5, f2._5))) && _6.equal( f1._6
-        , f2._6 ))) && _7.equal(f1._7, f2._7))) && _8.equal(f1._8, f2._8))
+        _1.equal(f1._1, f2._1) && _2.equal(f1._2, f2._2) && _3.equal( f1._3
+        , f2._3 ) && _4.equal(f1._4, f2._4) && _5.equal( f1._5
+        , f2._5 ) && _6.equal(f1._6, f2._6) && _7.equal( f1._7
+        , f2._7 ) && _8.equal(f1._8, f2._8)
       override val equalIsNatural : Boolean =
-        ((((((((((((((_1.equalIsNatural) && _2.equalIsNatural)) && _3.equalIsNatural)) && _4.equalIsNatural)) && _5.equalIsNatural)) && _6.equalIsNatural)) && _7.equalIsNatural)) && _8.equalIsNatural)
+        _1.equalIsNatural && _2.equalIsNatural && _3.equalIsNatural && _4.equalIsNatural && _5.equalIsNatural && _6.equalIsNatural && _7.equalIsNatural && _8.equalIsNatural
     }
   
     import scalaz.syntax.show.{_}

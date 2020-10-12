@@ -11,10 +11,10 @@ package scalaz {
     import ==>>.{_}
     val size: Int
     def isEmpty : Boolean =
-      ((this) == empty)
-    def +(a : (A, B))(implicit o : Order[A]) : (A ==>> B) =
+      this == empty
+    def +(a : (A, B))(implicit o : Order[A]) : A ==>> B =
       insert(a._1, a._2)
-    def insert(kx : A, x : B)(implicit n : Order[A]) : (A ==>> B) =
+    def insert(kx : A, x : B)(implicit n : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           singleton(kx, x)
@@ -30,11 +30,11 @@ package scalaz {
       }
     def insertWith( f : (B, B) => B
     , kx : A
-    , x : B )(implicit o : Order[A]) : (A ==>> B) =
-      insertWithKey(((_, a, b) => f(a, b)), kx, x)
+    , x : B )(implicit o : Order[A]) : A ==>> B =
+      insertWithKey((_, a, b) => f(a, b), kx, x)
     def insertWithKey( f : (A, B, B) => B
     , kx : A
-    , x : B )(implicit o : Order[A]) : (A ==>> B) =
+    , x : B )(implicit o : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           singleton(kx, x)
@@ -49,21 +49,21 @@ package scalaz {
           }
       }
     def filterM[F[_]](f : (B) => F[Boolean])( implicit F : Applicative[F]
-    , O : Order[A] ) : F[(A ==>> B)] =
+    , O : Order[A] ) : F[A ==>> B] =
       this match {
         case Tip () =>
           F.pure(empty)
         case Bin (kx, x, l, r) =>
           F.ap( F.tuple2( l.filterM(f)
-          , r.filterM(f) ) )( F.map(f(x))( ((b) => (( tpl : ( (A ==>> B)
-          , (A ==>> B) ) ) => if (b)
+          , r.filterM(f) ) )( F.map(f(x))( (b) => ( tpl : ( A ==>> B
+          , A ==>> B ) ) => if (b)
             Bin(kx, x, tpl._1, tpl._2)
           else
-            tpl._1.union(tpl._2))) ) )
+            tpl._1.union(tpl._2) ) )
       }
-    def -(k : A)(implicit o : Order[A]) : (A ==>> B) =
+    def -(k : A)(implicit o : Order[A]) : A ==>> B =
       delete(k)
-    def delete(k : A)(implicit n : Order[A]) : (A ==>> B) =
+    def delete(k : A)(implicit n : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           empty
@@ -77,15 +77,15 @@ package scalaz {
               balanceL(kx, x, l, r.delete(k))
           }
       }
-    def adjust(k : A, f : (B) => B)(implicit o : Order[A]) : (A ==>> B) =
-      adjustWithKey(k, ((_, x) => f(x)))
+    def adjust(k : A, f : (B) => B)(implicit o : Order[A]) : A ==>> B =
+      adjustWithKey(k, (_, x) => f(x))
     def adjustWithKey( k : A
-    , f : (A, B) => B )(implicit o : Order[A]) : (A ==>> B) =
-      updateWithKey(k, ((a, b) => just(f(a, b))))
-    def update(k : A, f : (B) => Maybe[B])(implicit o : Order[A]) : (A ==>> B) =
-      updateWithKey(k, ((_, x) => f(x)))
+    , f : (A, B) => B )(implicit o : Order[A]) : A ==>> B =
+      updateWithKey(k, (a, b) => just(f(a, b)))
+    def update(k : A, f : (B) => Maybe[B])(implicit o : Order[A]) : A ==>> B =
+      updateWithKey(k, (_, x) => f(x))
     def updateWithKey( k : A
-    , f : (A, B) => Maybe[B] )(implicit o : Order[A]) : (A ==>> B) =
+    , f : (A, B) => Maybe[B] )(implicit o : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           empty
@@ -105,7 +105,7 @@ package scalaz {
           }
       }
     def updateLookupWithKey( k : A
-    , f : (A, B) => Maybe[B] )(implicit o : Order[A]) : (Maybe[B], (A ==>> B)) =
+    , f : (A, B) => Maybe[B] )(implicit o : Order[A]) : (Maybe[B], A ==>> B) =
       this match {
         case Tip () =>
           (Maybe.empty, empty)
@@ -135,7 +135,7 @@ package scalaz {
           }
       }
     def alter( k : A
-    , f : (Maybe[B]) => Maybe[B] )(implicit o : Order[A]) : (A ==>> B) =
+    , f : (Maybe[B]) => Maybe[B] )(implicit o : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           f(Maybe.empty) match {
@@ -190,7 +190,7 @@ package scalaz {
       }
     @tailrec final def lookupLT(k : A)(implicit o : Order[A]) : Maybe[(A, B)] =
       {
-        @tailrec def goSome(kx : A, x : B, t : (A ==>> B)) : Maybe[(A, B)] =
+        @tailrec def goSome(kx : A, x : B, t : A ==>> B) : Maybe[(A, B)] =
           t match {
             case Tip () =>
               just((kx, x))
@@ -213,7 +213,7 @@ package scalaz {
       }
     @tailrec final def lookupGT(k : A)(implicit o : Order[A]) : Maybe[(A, B)] =
       {
-        @tailrec def goSome(kx : A, x : B, t : (A ==>> B)) : Maybe[(A, B)] =
+        @tailrec def goSome(kx : A, x : B, t : A ==>> B) : Maybe[(A, B)] =
           t match {
             case Tip () =>
               just((kx, x))
@@ -236,7 +236,7 @@ package scalaz {
       }
     @tailrec final def lookupLE(k : A)(implicit o : Order[A]) : Maybe[(A, B)] =
       {
-        @tailrec def goSome(kx : A, x : B, t : (A ==>> B)) : Maybe[(A, B)] =
+        @tailrec def goSome(kx : A, x : B, t : A ==>> B) : Maybe[(A, B)] =
           t match {
             case Tip () =>
               just((kx, x))
@@ -267,7 +267,7 @@ package scalaz {
       }
     @tailrec final def lookupGE(k : A)(implicit o : Order[A]) : Maybe[(A, B)] =
       {
-        @tailrec def goSome(kx : A, x : B, t : (A ==>> B)) : Maybe[(A, B)] =
+        @tailrec def goSome(kx : A, x : B, t : A ==>> B) : Maybe[(A, B)] =
           t match {
             case Tip () =>
               just((kx, x))
@@ -297,9 +297,9 @@ package scalaz {
         }
       }
     def values : IList[B] =
-      foldrWithKey(IList.empty[B])(((_, x, xs) => ((x) :: xs)))
+      foldrWithKey(IList.empty[B])((_, x, xs) => x :: xs)
     def keys : IList[A] =
-      foldrWithKey(IList.empty[A])(((x, _, xs) => ((x) :: xs)))
+      foldrWithKey(IList.empty[A])((x, _, xs) => x :: xs)
     def keySet : ISet[A] =
       this match {
         case Tip () =>
@@ -312,20 +312,20 @@ package scalaz {
     def toIList : IList[(A, B)] =
       toAscIList
     def toAscList : List[(A, B)] =
-      foldrWithKey(List.empty[(A, B)])(((k, x, xs) => (((k, x)) :: xs)))
+      foldrWithKey(List.empty[(A, B)])((k, x, xs) => (k, x) :: xs)
     def toAscIList : IList[(A, B)] =
-      foldrWithKey(IList.empty[(A, B)])(((k, x, xs) => (((k, x)) :: xs)))
+      foldrWithKey(IList.empty[(A, B)])((k, x, xs) => (k, x) :: xs)
     def toDescList : List[(A, B)] =
-      foldlWithKey(List.empty[(A, B)])(((xs, k, x) => (((k, x)) :: xs)))
+      foldlWithKey(List.empty[(A, B)])((xs, k, x) => (k, x) :: xs)
     def toDescIList : IList[(A, B)] =
-      foldlWithKey(IList.empty[(A, B)])(((xs, k, x) => (((k, x)) :: xs)))
+      foldlWithKey(IList.empty[(A, B)])((xs, k, x) => (k, x) :: xs)
     def member(k : A)(implicit n : Order[A]) : Boolean =
       lookup(k)(n).isJust
     def notMember(k : A)(implicit n : Order[A]) : Boolean =
       !member(k)
     def lookupIndex(k : A)(implicit o : Order[A]) : Maybe[Int] =
       {
-        @tailrec def go(n : Int, m : (A ==>> B)) : Maybe[Int] =
+        @tailrec def go(n : Int, m : A ==>> B) : Maybe[Int] =
           m match {
             case Tip () =>
               Maybe.empty
@@ -334,9 +334,9 @@ package scalaz {
                 case LT =>
                   go(n, l)
                 case GT =>
-                  go(((((n) + l.size)) + 1), r)
+                  go(n + l.size + 1, r)
                 case EQ =>
-                  just(((n) + l.size))
+                  just(n + l.size)
               }
           }
       
@@ -351,12 +351,12 @@ package scalaz {
             case LT =>
               l.elemAt(i)
             case GT =>
-              r.elemAt(((((i) - l.size)) - 1))
+              r.elemAt(i - l.size - 1)
             case EQ =>
               just((kx, x))
           }
       }
-    def updateAt(i : Int, f : (A, B) => Maybe[B]) : (A ==>> B) =
+    def updateAt(i : Int, f : (A, B) => Maybe[B]) : A ==>> B =
       this match {
         case Tip () =>
           sys.error("updateAt")
@@ -365,7 +365,7 @@ package scalaz {
             case LT =>
               balanceR(kx, x, l.updateAt(i, f), r)
             case GT =>
-              balanceL(kx, x, l, r.updateAt(((((i) - l.size)) - 1), f))
+              balanceL(kx, x, l, r.updateAt(i - l.size - 1, f))
             case EQ =>
               f(kx, x) match {
                 case Just (y) =>
@@ -375,8 +375,8 @@ package scalaz {
               }
           }
       }
-    def deleteAt(i : Int) : (A ==>> B) =
-      updateAt(i, ((A, B) => Maybe.empty))
+    def deleteAt(i : Int) : A ==>> B =
+      updateAt(i, (A, B) => Maybe.empty)
     @tailrec final def findMin : Maybe[(A, B)] =
       this match {
         case Bin (kx, x, Tip (), _) =>
@@ -395,7 +395,7 @@ package scalaz {
         case Tip () =>
           Maybe.empty
       }
-    def deleteMin : (A ==>> B) =
+    def deleteMin : A ==>> B =
       this match {
         case Bin (_, _, Tip (), r) =>
           r
@@ -404,7 +404,7 @@ package scalaz {
         case Tip () =>
           empty
       }
-    def deleteMax : (A ==>> B) =
+    def deleteMax : A ==>> B =
       this match {
         case Bin (_, _, l, Tip ()) =>
           l
@@ -413,9 +413,9 @@ package scalaz {
         case Tip () =>
           empty
       }
-    def updateMin(f : (B) => Maybe[B]) : (A ==>> B) =
-      updateMinWithKey(((_ : A, b) => f(b)))
-    def updateMinWithKey(f : (A, B) => Maybe[B]) : (A ==>> B) =
+    def updateMin(f : (B) => Maybe[B]) : A ==>> B =
+      updateMinWithKey((_ : A, b) => f(b))
+    def updateMinWithKey(f : (A, B) => Maybe[B]) : A ==>> B =
       this match {
         case Bin (kx, x, Tip (), r) =>
           f(kx, x) match {
@@ -429,9 +429,9 @@ package scalaz {
         case Tip () =>
           empty
       }
-    def updateMax(f : (B) => Maybe[B]) : (A ==>> B) =
-      updateMaxWithKey(((_ : A, b) => f(b)))
-    def updateMaxWithKey(f : (A, B) => Maybe[B]) : (A ==>> B) =
+    def updateMax(f : (B) => Maybe[B]) : A ==>> B =
+      updateMaxWithKey((_ : A, b) => f(b))
+    def updateMaxWithKey(f : (A, B) => Maybe[B]) : A ==>> B =
       this match {
         case Bin (kx, x, l, Tip ()) =>
           f(kx, x) match {
@@ -446,23 +446,23 @@ package scalaz {
           empty
       }
     def updateAppend(k : A, v : B)( implicit o : Order[A]
-    , bsg : Semigroup[B] ) : (A ==>> B) =
-      alter(k, ((old) => just(old.map(bsg.append(_, v)).getOrElse(v))))
-    def minViewWithKey : Maybe[((A, B), (A ==>> B))] =
+    , bsg : Semigroup[B] ) : A ==>> B =
+      alter(k, (old) => just(old.map(bsg.append(_, v)).getOrElse(v)))
+    def minViewWithKey : Maybe[((A, B), A ==>> B)] =
       this match {
         case Tip () =>
           Maybe.empty
         case x @ Bin (_, _, _, _) =>
           just(deleteFindMin(x))
       }
-    def maxViewWithKey : Maybe[((A, B), (A ==>> B))] =
+    def maxViewWithKey : Maybe[((A, B), A ==>> B)] =
       this match {
         case Tip () =>
           Maybe.empty
         case x @ Bin (_, _, _, _) =>
           just(deleteFindMax(x))
       }
-    def minView : Maybe[(B, (A ==>> B))] =
+    def minView : Maybe[(B, A ==>> B)] =
       this match {
         case Tip () =>
           Maybe.empty
@@ -474,7 +474,7 @@ package scalaz {
             just((r._1._2, r._2))
           }
       }
-    def maxView : Maybe[(B, (A ==>> B))] =
+    def maxView : Maybe[(B, A ==>> B)] =
       this match {
         case Tip () =>
           Maybe.empty
@@ -486,7 +486,7 @@ package scalaz {
             just((r._1._2, r._2))
           }
       }
-    private def deleteFindMax(t : Bin[A, B]) : ((A, B), (A ==>> B)) =
+    private def deleteFindMax(t : Bin[A, B]) : ((A, B), A ==>> B) =
       t match {
         case Bin (k, x, l, Tip ()) =>
           ((k, x), l)
@@ -498,7 +498,7 @@ package scalaz {
             (km, balanceL(k, x, l, r2))
           }
       }
-    private def deleteFindMin(t : Bin[A, B]) : ((A, B), (A ==>> B)) =
+    private def deleteFindMin(t : Bin[A, B]) : ((A, B), A ==>> B) =
       t match {
         case Bin (k, x, Tip (), r) =>
           ((k, x), r)
@@ -510,9 +510,9 @@ package scalaz {
             (km, balanceR(k, x, l2, r))
           }
       }
-    def map[C](f : (B) => C) : (A ==>> C) =
-      mapWithKey(((_, x : B) => f(x)))
-    def mapWithKey[C](f : (A, B) => C) : (A ==>> C) =
+    def map[C](f : (B) => C) : A ==>> C =
+      mapWithKey((_, x : B) => f(x))
+    def mapWithKey[C](f : (A, B) => C) : A ==>> C =
       this match {
         case Tip () =>
           empty
@@ -520,24 +520,24 @@ package scalaz {
           Bin(kx, f(kx, x), l.mapWithKey(f), r.mapWithKey(f))
       }
     def traverseWithKey[F[_], C]( f : ( A
-    , B ) => F[C] )(implicit G : Applicative[F]) : F[(A ==>> C)] =
+    , B ) => F[C] )(implicit G : Applicative[F]) : F[A ==>> C] =
       this match {
         case Tip () =>
           G.point(Tip())
         case Bin (kx, x, Tip (), Tip ()) =>
           G.apply(f(kx, x))( {
-            ((x2) => Bin(kx, x2, Tip(), Tip()))
+            (x2) => Bin(kx, x2, Tip(), Tip())
           } )
         case Bin (kx, x, l, r) =>
           G.apply3(l.traverseWithKey(f), f(kx, x), r.traverseWithKey(f))( {
-            ((l2, x2, r2) => Bin(kx, x2, l2, r2))
+            (l2, x2, r2) => Bin(kx, x2, l2, r2)
           } )
       }
-    def mapAccum[C](z : C)(f : (C, B) => (C, B)) : (C, (A ==>> B)) =
-      mapAccumWithKey(z)(((a2, _, x2) => f(a2, x2)))
-    def mapAccumWithKey[C](z : C)(f : (C, A, B) => (C, B)) : (C, (A ==>> B)) =
+    def mapAccum[C](z : C)(f : (C, B) => (C, B)) : (C, A ==>> B) =
+      mapAccumWithKey(z)((a2, _, x2) => f(a2, x2))
+    def mapAccumWithKey[C](z : C)(f : (C, A, B) => (C, B)) : (C, A ==>> B) =
       mapAccumL(z)(f)
-    def mapAccumL[C](a : C)(f : (C, A, B) => (C, B)) : (C, (A ==>> B)) =
+    def mapAccumL[C](a : C)(f : (C, A, B) => (C, B)) : (C, A ==>> B) =
       this match {
         case Tip () =>
           (a, empty)
@@ -555,11 +555,11 @@ package scalaz {
             (a3, Bin(kx, x2, l2, r2))
           }
       }
-    def mapKeys[C](f : (A) => C)(implicit o : Order[C]) : (C ==>> B) =
-      foldlWithKey(empty[C, B])(((xs, k, x) => xs.insert(f(k), x)))
+    def mapKeys[C](f : (A) => C)(implicit o : Order[C]) : C ==>> B =
+      foldlWithKey(empty[C, B])((xs, k, x) => xs.insert(f(k), x))
     def mapKeysWith[C]( f : (A) => C
-    , f2 : (B, B) => B )(implicit o : Order[C]) : (C ==>> B) =
-      fromListWith[C, B](toList.map(((x) => (f(x._1), x._2))))(f2)
+    , f2 : (B, B) => B )(implicit o : Order[C]) : C ==>> B =
+      fromListWith[C, B](toList.map((x) => (f(x._1), x._2)))(f2)
     def fold[C](z : C)(f : (A, B, C) => C) : C =
       foldrWithKey(z)(f)
     def foldlWithKey[C](z : C)(f : (C, A, B) => C) : C =
@@ -585,17 +585,17 @@ package scalaz {
         case Bin (k, x, l, r) =>
           F.append(l.foldMapWithKey(f), F.append(f(k, x), r.foldMapWithKey(f)))
       }
-    def union(other : (A ==>> B))(implicit k : Order[A]) : (A ==>> B) =
+    def union(other : A ==>> B)(implicit k : Order[A]) : A ==>> B =
       {
         def hedgeUnion( blo : Maybe[A]
         , bhi : Maybe[A]
-        , m1 : (A ==>> B)
-        , m2 : (A ==>> B) ) : (A ==>> B) =
+        , m1 : A ==>> B
+        , m2 : A ==>> B ) : A ==>> B =
           (m1, m2) match {
             case (t1, Tip ()) =>
               t1
             case (Tip (), Bin (kx, x, l, r)) =>
-              link(kx, x, ((l) filterGt blo), ((r) filterLt bhi))
+              link(kx, x, l filterGt blo, r filterLt bhi)
             case (t1, Bin (kx, x, Tip (), Tip ())) =>
               insertR(kx, x, t1)
             case (Bin (kx, x, l, r), t2) =>
@@ -615,9 +615,9 @@ package scalaz {
       
         def insertR( kx : A
         , x : B
-        , t : (A ==>> B) )(implicit o : Order[A]) : (A ==>> B) =
+        , t : A ==>> B )(implicit o : Order[A]) : A ==>> B =
           {
-            def go(kx : A, x : B, m : (A ==>> B)) : (A ==>> B) =
+            def go(kx : A, x : B, m : A ==>> B) : A ==>> B =
               m match {
                 case Tip () =>
                   singleton(kx, x)
@@ -644,27 +644,27 @@ package scalaz {
             hedgeUnion(Maybe.empty, Maybe.empty, t1, t2)
         }
       }
-    def unionWith(other : (A ==>> B))( f : ( B
-    , B ) => B )(implicit o : Order[A]) : (A ==>> B) =
-      unionWithKey(other)(((_, b, c) => f(b, c)))
-    def unionWithKey(other : (A ==>> B))( f : ( A
+    def unionWith(other : A ==>> B)( f : ( B
+    , B ) => B )(implicit o : Order[A]) : A ==>> B =
+      unionWithKey(other)((_, b, c) => f(b, c))
+    def unionWithKey(other : A ==>> B)( f : ( A
     , B
-    , B ) => B )(implicit o : Order[A]) : (A ==>> B) =
-      mergeWithKey(this, other)(((a, b, c) => just(f(a, b, c))))( ((x) => x)
-      , ((x) => x) )
-    def \\[C](other : (A ==>> C))(implicit o : Order[A]) : (A ==>> B) =
+    , B ) => B )(implicit o : Order[A]) : A ==>> B =
+      mergeWithKey(this, other)((a, b, c) => just(f(a, b, c)))( (x) => x
+      , (x) => x )
+    def \\[C](other : A ==>> C)(implicit o : Order[A]) : A ==>> B =
       difference(other)
-    def difference[C](other : (A ==>> C))(implicit o : Order[A]) : (A ==>> B) =
+    def difference[C](other : A ==>> C)(implicit o : Order[A]) : A ==>> B =
       {
         def hedgeDiff( blo : Maybe[A]
         , bhi : Maybe[A]
-        , a : (A ==>> B)
-        , b : (A ==>> C) ) : (A ==>> B) =
+        , a : A ==>> B
+        , b : A ==>> C ) : A ==>> B =
           (a, b) match {
             case (Tip (), _) =>
               empty
             case (Bin (kx, x, l, r), Tip ()) =>
-              link(kx, x, ((l) filterGt blo), ((r) filterLt bhi))
+              link(kx, x, l filterGt blo, r filterLt bhi)
             case (t, Bin (kx, _, l, r)) =>
               {
                 val bmi =
@@ -676,7 +676,7 @@ package scalaz {
                 val bb =
                   hedgeDiff(bmi, bhi, ==>>.trim(bmi, bhi, t), r)
               
-                ((aa) merge bb)
+                aa merge bb
               }
           }
       
@@ -689,19 +689,19 @@ package scalaz {
             hedgeDiff(Maybe.empty, Maybe.empty, t1, t2)
         }
       }
-    def differenceWith[C](other : (A ==>> C))( f : ( B
-    , C ) => Maybe[B] )(implicit o : Order[A]) : (A ==>> B) =
-      differenceWithKey(other)(((_, b, c) => f(b, c)))
-    def differenceWithKey[C](other : (A ==>> C))( f : ( A
+    def differenceWith[C](other : A ==>> C)( f : ( B
+    , C ) => Maybe[B] )(implicit o : Order[A]) : A ==>> B =
+      differenceWithKey(other)((_, b, c) => f(b, c))
+    def differenceWithKey[C](other : A ==>> C)( f : ( A
     , B
-    , C ) => Maybe[B] )(implicit o : Order[A]) : (A ==>> B) =
-      mergeWithKey(this, other)(f)(((x) => x), ((_) => empty))
-    def intersection[ C ]( other : (A ==>> C) )( implicit o : Order[ A ] ) : (A ==>> B) =
+    , C ) => Maybe[B] )(implicit o : Order[A]) : A ==>> B =
+      mergeWithKey(this, other)(f)((x) => x, (_) => empty)
+    def intersection[C](other : A ==>> C)(implicit o : Order[A]) : A ==>> B =
       {
         def hedgeInt( blo : Maybe[A]
         , bhi : Maybe[A]
-        , a : (A ==>> B)
-        , b : (A ==>> C) ) : (A ==>> B) =
+        , a : A ==>> B
+        , b : A ==>> C ) : A ==>> B =
           (a, b) match {
             case (_, Tip ()) =>
               empty
@@ -718,10 +718,10 @@ package scalaz {
                 val r2 =
                   hedgeInt(bmi, bhi, r, ==>>.trim(bmi, bhi, t2))
               
-                if (((t2) member kx))
+                if (t2 member kx)
                   link(kx, x, l2, r2)
                 else
-                  ((l2) merge r2)
+                  l2 merge r2
               }
           }
       
@@ -734,21 +734,21 @@ package scalaz {
             hedgeInt(Maybe.empty, Maybe.empty, t1, t2)
         }
       }
-    def intersectionWith[C, D](other : (A ==>> C))( f : ( B
-    , C ) => D )(implicit o : Order[A]) : (A ==>> D) =
-      intersectionWithKey(other)(((_, x, y) => f(x, y)))
-    def intersectionWithKey[C, D](other : (A ==>> C))( f : ( A
+    def intersectionWith[C, D](other : A ==>> C)( f : ( B
+    , C ) => D )(implicit o : Order[A]) : A ==>> D =
+      intersectionWithKey(other)((_, x, y) => f(x, y))
+    def intersectionWithKey[C, D](other : A ==>> C)( f : ( A
     , B
-    , C ) => D )(implicit o : Order[A]) : (A ==>> D) =
-      mergeWithKey(this, other)(((a, b, c) => just(f(a, b, c))))( ((_) => empty)
-      , ((_) => empty) )
-    def isSubmapOf(a : (A ==>> B))( implicit o : Order[A]
+    , C ) => D )(implicit o : Order[A]) : A ==>> D =
+      mergeWithKey(this, other)((a, b, c) => just(f(a, b, c)))( (_) => empty
+      , (_) => empty )
+    def isSubmapOf(a : A ==>> B)( implicit o : Order[A]
     , e : Equal[B] ) : Boolean =
       isSubmapOfBy(a, e.equal)
-    def isSubmapOfBy( a : (A ==>> B)
+    def isSubmapOfBy( a : A ==>> B
     , f : (B, B) => Boolean )(implicit o : Order[A]) : Boolean =
-      ((((size) <= a.size)) && submap(a, f))
-    private[scalaz] def submap( a : (A ==>> B)
+      size <= a.size && submap(a, f)
+    private[scalaz] def submap( a : A ==>> B
     , f : (B, B) => Boolean )(implicit o : Order[A]) : Boolean =
       (this, a) match {
         case (Tip (), _) =>
@@ -758,20 +758,19 @@ package scalaz {
         case (Bin (kx, x, l, r), t) =>
           {
             val (lt, found, gt) =
-              ((t) splitLookup kx)
+              t splitLookup kx
           
             found match {
               case Empty () =>
                 false
               case Just (y) =>
-                ((((f(x, y)) && l.submap(lt, f))) && r.submap(gt, f))
+                f(x, y) && l.submap(lt, f) && r.submap(gt, f)
             }
           }
       }
-    def filter(p : (B) => Boolean)(implicit o : Order[A]) : (A ==>> B) =
-      filterWithKey(((_, x) => p(x)))
-    def filterWithKey( p : ( A
-    , B ) => Boolean )(implicit o : Order[A]) : (A ==>> B) =
+    def filter(p : (B) => Boolean)(implicit o : Order[A]) : A ==>> B =
+      filterWithKey((_, x) => p(x))
+    def filterWithKey(p : (A, B) => Boolean)(implicit o : Order[A]) : A ==>> B =
       this match {
         case Tip () =>
           empty
@@ -779,50 +778,49 @@ package scalaz {
           if (p(kx, x))
             link(kx, x, l.filterWithKey(p), r.filterWithKey(p))
           else
-            ((l.filterWithKey(p)) merge r.filterWithKey(p))
+            l.filterWithKey(p) merge r.filterWithKey(p)
       }
-    def partition(p : (B) => Boolean)(implicit o : Order[A]) : ( (A ==>> B)
-    , (A ==>> B) ) =
-      partitionWithKey(((_, x) => p(x)))
+    def partition(p : (B) => Boolean)(implicit o : Order[A]) : ( A ==>> B
+    , A ==>> B ) =
+      partitionWithKey((_, x) => p(x))
     def partitionWithKey( p : ( A
-    , B ) => Boolean )(implicit o : Order[A]) : ((A ==>> B), (A ==>> B)) =
+    , B ) => Boolean )(implicit o : Order[A]) : (A ==>> B, A ==>> B) =
       this match {
         case Tip () =>
           (empty, empty)
         case Bin (kx, x, l, r) =>
           {
             val (l1, l2) =
-              ((l) partitionWithKey p)
+              l partitionWithKey p
           
             val (r1, r2) =
-              ((r) partitionWithKey p)
+              r partitionWithKey p
           
             if (p(kx, x))
-              (link(kx, x, l1, r1), ((l2) merge r2))
+              (link(kx, x, l1, r1), l2 merge r2)
             else
-              (((l1) merge r1), link(kx, x, l2, r2))
+              (l1 merge r1, link(kx, x, l2, r2))
           }
       }
-    def mapMaybe[C](f : (B) => Maybe[C])(implicit o : Order[A]) : (A ==>> C) =
-      mapMaybeWithKey(((_, x) => f(x)))
+    def mapMaybe[C](f : (B) => Maybe[C])(implicit o : Order[A]) : A ==>> C =
+      mapMaybeWithKey((_, x) => f(x))
     def mapMaybeWithKey[C]( f : ( A
-    , B ) => Maybe[C] )(implicit o : Order[A]) : (A ==>> C) =
+    , B ) => Maybe[C] )(implicit o : Order[A]) : A ==>> C =
       this match {
         case Tip () =>
           empty
         case Bin (kx, x, l, r) =>
-          f(kx, x).cata( ((y) => link( kx
+          f(kx, x).cata( (y) => link( kx
           , y
           , l.mapMaybeWithKey(f)
-          , r.mapMaybeWithKey(f) ))
+          , r.mapMaybeWithKey(f) )
           , l.mapMaybeWithKey(f).merge(r.mapMaybeWithKey(f)) )
       }
-    def mapEither[ C
-    , D ](f : (B) => (C \/ D))(implicit o : Order[A]) : ( (A ==>> C)
-    , (A ==>> D) ) =
-      mapEitherWithKey(((_, x) => f(x)))
+    def mapEither[C, D](f : (B) => C \/ D)(implicit o : Order[A]) : ( A ==>> C
+    , A ==>> D ) =
+      mapEitherWithKey((_, x) => f(x))
     def mapEitherWithKey[C, D]( f : ( A
-    , B ) => (C \/ D) )(implicit o : Order[A]) : ((A ==>> C), (A ==>> D)) =
+    , B ) => C \/ D )(implicit o : Order[A]) : (A ==>> C, A ==>> D) =
       this match {
         case Tip () =>
           (empty, empty)
@@ -836,13 +834,13 @@ package scalaz {
           
             f(kx, x) match {
               case -\/ (y) =>
-                (link(kx, y, l1, r1), ((l2) merge r2))
+                (link(kx, y, l1, r1), l2 merge r2)
               case \/- (z) =>
-                (((l1) merge r1), link(kx, z, l2, r2))
+                (l1 merge r1, link(kx, z, l2, r2))
             }
           }
       }
-    def split(k : A)(implicit o : Order[A]) : ((A ==>> B), (A ==>> B)) =
+    def split(k : A)(implicit o : Order[A]) : (A ==>> B, A ==>> B) =
       this match {
         case Tip () =>
           (empty, empty)
@@ -866,9 +864,9 @@ package scalaz {
               (l, r)
           }
       }
-    def splitLookup(k : A)(implicit o : Order[A]) : ( (A ==>> B)
+    def splitLookup(k : A)(implicit o : Order[A]) : ( A ==>> B
     , Maybe[B]
-    , (A ==>> B) ) =
+    , A ==>> B ) =
       this match {
         case Tip () =>
           (empty, Maybe.empty, empty)
@@ -877,14 +875,14 @@ package scalaz {
             case LT =>
               {
                 val (lt, z, gt) =
-                  ((l) splitLookup k)
+                  l splitLookup k
               
                 (lt, z, link(kx, x, gt, r))
               }
             case GT =>
               {
                 val (lt, z, gt) =
-                  ((r) splitLookup k)
+                  r splitLookup k
               
                 (link(kx, x, l, lt), z, gt)
               }
@@ -892,9 +890,9 @@ package scalaz {
               (l, just(x), r)
           }
       }
-    def splitLookupWithKey(k : A)(implicit o : Order[A]) : ( (A ==>> B)
+    def splitLookupWithKey(k : A)(implicit o : Order[A]) : ( A ==>> B
     , Maybe[(A, B)]
-    , (A ==>> B) ) =
+    , A ==>> B ) =
       this match {
         case Tip () =>
           (empty, Maybe.empty, empty)
@@ -903,14 +901,14 @@ package scalaz {
             case LT =>
               {
                 val (lt, z, gt) =
-                  ((l) splitLookupWithKey k)
+                  l splitLookupWithKey k
               
                 (lt, z, link(kx, x, gt, r))
               }
             case GT =>
               {
                 val (lt, z, gt) =
-                  ((r) splitLookupWithKey k)
+                  r splitLookupWithKey k
               
                 (link(kx, x, l, lt), z, gt)
               }
@@ -918,36 +916,36 @@ package scalaz {
               (l, just((kx, x)), r)
           }
       }
-    def splitRoot : IList[(A ==>> B)] =
+    def splitRoot : IList[A ==>> B] =
       this match {
         case Tip () =>
-          IList.empty[(A ==>> B)]
+          IList.empty[A ==>> B]
         case Bin (k, x, l, r) =>
           IList(l, singleton(k, x), r)
       }
-    protected def merge(other : (A ==>> B)) : (A ==>> B) =
+    protected def merge(other : A ==>> B) : A ==>> B =
       (this, other) match {
         case (Tip (), r) =>
           r
         case (l, Tip ()) =>
           l
         case (l @ Bin (kx, x, lx, rx), r @ Bin (ky, y, ly, ry)) =>
-          if (((((delta) * l.size)) < r.size))
+          if (delta * l.size < r.size)
             balanceL(ky, y, l.merge(ly), ry)
           else
-            if (((((delta) * r.size)) < l.size))
+            if (delta * r.size < l.size)
               balanceR(kx, x, lx, rx.merge(r))
             else
               glue(l, r)
       }
-    private def glue(l : (A ==>> B), r : (A ==>> B)) : (A ==>> B) =
+    private def glue(l : A ==>> B, r : A ==>> B) : A ==>> B =
       (l, r) match {
         case (Tip (), r) =>
           r
         case (l, Tip ()) =>
           l
         case (l @ Bin (_, _, _, _), r @ Bin (_, _, _, _)) =>
-          if (((l.size) > r.size))
+          if (l.size > r.size)
             {
               val ((km, m), l2) =
                 deleteFindMax(l)
@@ -963,7 +961,7 @@ package scalaz {
             }
       }
     @tailrec private final def trim( lo : (A) => Ordering
-    , hi : (A) => Ordering ) : (A ==>> B) =
+    , hi : (A) => Ordering ) : A ==>> B =
       this match {
         case Tip () =>
           empty
@@ -982,7 +980,7 @@ package scalaz {
       }
     @tailrec private final def trimLookupLo( lo : A
     , cmphi : (A) => Ordering )(implicit o : Order[A]) : ( Maybe[(A, B)]
-    , (A ==>> B) ) =
+    , A ==>> B ) =
       this match {
         case Tip () =>
           (Maybe.empty, empty)
@@ -991,14 +989,14 @@ package scalaz {
             case LT =>
               cmphi(kx) match {
                 case GT =>
-                  (((t) lookupAssoc lo), t)
+                  (t lookupAssoc lo, t)
                 case _ =>
                   l.trimLookupLo(lo, cmphi)
               }
             case GT =>
               r.trimLookupLo(lo, cmphi)
             case EQ =>
-              (just((kx, x)), r.trim(((a) => o.order(lo, a)), cmphi))
+              (just((kx, x)), r.trim((a) => o.order(lo, a), cmphi))
           }
       }
     override final def equals(other : Any) : Boolean =
@@ -1010,9 +1008,9 @@ package scalaz {
       }
     override final def hashCode : Int =
       toAscList.hashCode
-    private def filterGt(a : Maybe[A])(implicit o : Order[A]) : (A ==>> B) =
+    private def filterGt(a : Maybe[A])(implicit o : Order[A]) : A ==>> B =
       {
-        def filter(filteringKey : A, m : (A ==>> B)) : (A ==>> B) =
+        def filter(filteringKey : A, m : A ==>> B) : A ==>> B =
           m match {
             case Tip () =>
               empty
@@ -1029,9 +1027,9 @@ package scalaz {
       
         a.cata(filter(_, this), this)
       }
-    private def filterLt(a : Maybe[A])(implicit o : Order[A]) : (A ==>> B) =
+    private def filterLt(a : Maybe[A])(implicit o : Order[A]) : A ==>> B =
       {
-        def filter(filteringKey : A, m : (A ==>> B)) : (A ==>> B) =
+        def filter(filteringKey : A, m : A ==>> B) : A ==>> B =
           m match {
             case Tip () =>
               empty
@@ -1052,19 +1050,19 @@ package scalaz {
 
   sealed abstract class MapInstances2  {
     implicit def mapBand[A, B]( implicit A : Order[A]
-    , B : Band[B] ) : Band[(A ==>> B)] =
-      new Band[(A ==>> B)] {
-        def append(a : (A ==>> B), b : => (A ==>> B)) : (A ==>> B) =
-          ((a) unionWith b)(B.append(_, _))
+    , B : Band[B] ) : Band[A ==>> B] =
+      new Band[A ==>> B] {
+        def append(a : A ==>> B, b : => A ==>> B) : A ==>> B =
+          (a unionWith b)(B.append(_, _))
       }
   }
 
   sealed abstract class MapInstances1  extends MapInstances2 {
     implicit def mapLattice[A, B]( implicit A : Order[A]
-    , B : SemiLattice[B] ) : SemiLattice[(A ==>> B)] =
-      new SemiLattice[(A ==>> B)] {
-        def append(a : (A ==>> B), b : => (A ==>> B)) : (A ==>> B) =
-          ((a) unionWith b)(B.append(_, _))
+    , B : SemiLattice[B] ) : SemiLattice[A ==>> B] =
+      new SemiLattice[A ==>> B] {
+        def append(a : A ==>> B, b : => A ==>> B) : A ==>> B =
+          (a unionWith b)(B.append(_, _))
       }
   }
 
@@ -1072,12 +1070,12 @@ package scalaz {
     implicit def scalazMapInstance[S: Order] : Bind[ ==>>[ S
     , * ] ] with Align[==>>[S, *]] with Zip[==>>[S, *]] =
       new Bind[==>>[S, *]] with Align[==>>[S, *]] with Zip[==>>[S, *]] {
-        override def map[A, B](fa : (S ==>> A))(f : (A) => B) =
-          ((fa) map f)
-        def bind[A, B](fa : (S ==>> A))(f : (A) => (S ==>> B)) =
-          fa.mapMaybeWithKey(((k, v) => f(v).lookup(k)))
+        override def map[A, B](fa : S ==>> A)(f : (A) => B) =
+          fa map f
+        def bind[A, B](fa : S ==>> A)(f : (A) => S ==>> B) =
+          fa.mapMaybeWithKey((k, v) => f(v).lookup(k))
         import \&/.{_}, ==>>.{Tip}
-        override def align[A, B](a : (S ==>> A), b : (S ==>> B)) =
+        override def align[A, B](a : S ==>> A, b : S ==>> B) =
           (a, b) match {
             case (Tip (), Tip ()) =>
               Tip()
@@ -1086,30 +1084,30 @@ package scalaz {
             case (Tip (), b) =>
               b.map(That(_))
             case (a, b) =>
-              a.map( ((This( _ )) : (A \&/ B)) ).unionWith( b.map( ((That( _ )) : (A \&/ B)) ) )( {
+              a.map(This(_) : A \&/ B).unionWith(b.map(That(_) : A \&/ B))( {
                 case (This (aa), That (bb)) =>
                   Both(aa, bb)
                 case _ =>
                   sys.error("==>> align")
               } )
           }
-        override def alignWith[A, B, C](f : ((A \&/ B)) => C) =
+        override def alignWith[A, B, C](f : (A \&/ B) => C) =
           {
             case (Tip (), Tip ()) =>
               Tip()
             case (a, Tip ()) =>
-              a.map(((aa) => f(This(aa))))
+              a.map((aa) => f(This(aa)))
             case (Tip (), b) =>
-              b.map(((bb) => f(That(bb))))
+              b.map((bb) => f(That(bb)))
             case (a, b) =>
-              a.map( ((This( _ )) : (A \&/ B)) ).unionWith( b.map( ((That( _ )) : (A \&/ B)) ) )( {
+              a.map(This(_) : A \&/ B).unionWith(b.map(That(_) : A \&/ B))( {
                 case (This (aa), That (bb)) =>
                   Both(aa, bb)
                 case _ =>
                   sys.error("==>> alignWith")
               } ).map(f)
           }
-        def zip[A, B](a : => (S ==>> A), b : => (S ==>> B)) =
+        def zip[A, B](a : => S ==>> A, b : => S ==>> B) =
           {
             val a0 =
               a
@@ -1119,9 +1117,8 @@ package scalaz {
             else
               a0.intersectionWith(b)(Tuple2.apply)
           }
-        override def zipWith[A, B, C]( a : => (S ==>> A)
-        , b : => (S ==>> B) )(f : (A, B) => C)( implicit F : Functor[ ==>>[ S
-        , * ] ] ) =
+        override def zipWith[A, B, C](a : => S ==>> A, b : => S ==>> B)( f : ( A
+        , B ) => C )(implicit F : Functor[==>>[S, *]]) =
           {
             val a0 =
               a
@@ -1140,32 +1137,32 @@ package scalaz {
     import std.list.{_}
     implicit def mapShow[A: Show, B: Show] : Show[==>>[A, B]] =
       Contravariant[Show].contramap(Show[List[(A, B)]])(_.toAscList)
-    implicit def mapEqual[A: Equal, B: Equal] : Equal[(A ==>> B)] =
+    implicit def mapEqual[A: Equal, B: Equal] : Equal[A ==>> B] =
       new MapEqual[A, B] {
         def A =
           implicitly
         def B =
           implicitly
       }
-    implicit def mapOrder[A: Order, B: Order] : Order[(A ==>> B)] =
-      new Order[(A ==>> B)] with MapEqual[A, B] {
+    implicit def mapOrder[A: Order, B: Order] : Order[A ==>> B] =
+      new Order[A ==>> B] with MapEqual[A, B] {
         def A =
           implicitly
         def B =
           implicitly
-        def order(o1 : (A ==>> B), o2 : (A ==>> B)) =
+        def order(o1 : A ==>> B, o2 : A ==>> B) =
           Order[List[(A, B)]].order(o1.toAscList, o2.toAscList)
       }
     implicit def mapUnion[A, B]( implicit A : Order[A]
-    , B : Semigroup[B] ) : Monoid[(A ==>> B)] =
-      Monoid.instance(((l, r) => ((l) unionWith r)(B.append(_, _))), Tip())
+    , B : Semigroup[B] ) : Monoid[A ==>> B] =
+      Monoid.instance((l, r) => (l unionWith r)(B.append(_, _)), Tip())
     implicit def mapIntersection[A, B]( implicit A : Order[A]
-    , B : Semigroup[B] ) : Semigroup[((A ==>> B) @@ Tags.Conjunction)] =
-      Tag.subst( Semigroup.instance( (( l
-      , r ) => ((l) intersectionWith r)(B.append(_, _))) ) )
+    , B : Semigroup[B] ) : Semigroup[A ==>> B @@ Tags.Conjunction] =
+      Tag.subst( Semigroup.instance( ( l
+      , r ) => (l intersectionWith r)(B.append(_, _)) ) )
     implicit def mapCovariant[S] : Traverse[==>>[S, *]] =
       new Traverse[==>>[S, *]] {
-        override def findLeft[ A ]( fa : (S ==>> A) )( f : ( A ) => Boolean ) : Option[ A ] =
+        override def findLeft[ A ]( fa : S ==>> A )( f : ( A ) => Boolean ) : Option[ A ] =
           fa match {
             case Bin (_, x, l, r) =>
               findLeft(l)(f) match {
@@ -1180,7 +1177,7 @@ package scalaz {
             case Tip () =>
               None
           }
-        override def findRight[ A ]( fa : (S ==>> A) )( f : ( A ) => Boolean ) : Option[ A ] =
+        override def findRight[ A ]( fa : S ==>> A )( f : ( A ) => Boolean ) : Option[ A ] =
           fa match {
             case Bin (_, x, l, r) =>
               findRight(r)(f) match {
@@ -1195,57 +1192,56 @@ package scalaz {
             case Tip () =>
               None
           }
-        override def map[A, B](fa : (S ==>> A))(f : (A) => B) : (S ==>> B) =
-          ((fa) map f)
+        override def map[A, B](fa : S ==>> A)(f : (A) => B) : S ==>> B =
+          fa map f
         override def foldMap[ A
-        , B ](fa : (S ==>> A))(f : (A) => B)(implicit F : Monoid[B]) : B =
+        , B ](fa : S ==>> A)(f : (A) => B)(implicit F : Monoid[B]) : B =
           fa match {
             case Tip () =>
               F.zero
             case Bin (k, x, l, r) =>
               F.append(foldMap(l)(f), F.append(f(x), foldMap(r)(f)))
           }
-        override def foldRight[A, B](fa : (S ==>> A), z : => B)( f : ( A
+        override def foldRight[A, B](fa : S ==>> A, z : => B)( f : ( A
         , => B ) => B ) : B =
-          fa.foldrWithKey(z)(((_, b, acc) => f(b, acc)))
-        override def foldLeft[A, B](fa : (S ==>> A), z : B)( f : ( B
-        , A ) => B ) : B =
-          fa.foldlWithKey(z)(((acc, _, b) => f(acc, b)))
-        override def index[A](fa : (S ==>> A), i : Int) : Option[A] =
+          fa.foldrWithKey(z)((_, b, acc) => f(b, acc))
+        override def foldLeft[A, B](fa : S ==>> A, z : B)(f : (B, A) => B) : B =
+          fa.foldlWithKey(z)((acc, _, b) => f(acc, b))
+        override def index[A](fa : S ==>> A, i : Int) : Option[A] =
           fa.elemAt(i).map(_._2).toOption
         def traverseImpl[ F[_]
         , A
-        , B ]( fa : (S ==>> A) )( f : ( A ) => F[ B ] )( implicit G : Applicative[ F ] ) : F[ (S ==>> B) ] =
+        , B ]( fa : S ==>> A )( f : ( A ) => F[ B ] )( implicit G : Applicative[ F ] ) : F[ S ==>> B ] =
           fa match {
             case Tip () =>
               G.point(Tip())
             case Bin (kx, x, l, r) =>
               G.apply3(traverseImpl(l)(f), f(x), traverseImpl(r)(f))( {
-                ((l2, x2, r2) => Bin(kx, x2, l2, r2))
+                (l2, x2, r2) => Bin(kx, x2, l2, r2)
               } )
           }
-        override def length[A](fa : (S ==>> A)) : Int =
+        override def length[A](fa : S ==>> A) : Int =
           fa.size
-        override def any[A](fa : (S ==>> A))(f : (A) => Boolean) : Boolean =
+        override def any[A](fa : S ==>> A)(f : (A) => Boolean) : Boolean =
           fa match {
             case Tip () =>
               false
             case Bin (_, x, l, r) =>
-              ((((any(l)(f)) || f(x))) || any(r)(f))
+              any(l)(f) || f(x) || any(r)(f)
           }
-        override def all[A](fa : (S ==>> A))(f : (A) => Boolean) : Boolean =
+        override def all[A](fa : S ==>> A)(f : (A) => Boolean) : Boolean =
           fa match {
             case Tip () =>
               true
             case Bin (_, x, l, r) =>
-              ((((all(l)(f)) && f(x))) && all(r)(f))
+              all(l)(f) && f(x) && all(r)(f)
           }
       }
     implicit val mapBifoldable : Bifoldable[==>>] =
       new Bifoldable[==>>] {
         def bifoldMap[ A
         , B
-        , M ]( fa : (A ==>> B) )( f : ( A ) => M )( g : ( B ) => M )( implicit F : Monoid[ M ] ) : M =
+        , M ]( fa : A ==>> B )( f : ( A ) => M )( g : ( B ) => M )( implicit F : Monoid[ M ] ) : M =
           fa match {
             case Tip () =>
               F.zero
@@ -1253,23 +1249,23 @@ package scalaz {
               F.append( bifoldMap(l)(f)(g)
               , F.append(f(k), F.append(g(x), bifoldMap(r)(f)(g))) )
           }
-        def bifoldRight[A, B, C](fa : (A ==>> B), z : => C)( f : ( A
+        def bifoldRight[A, B, C](fa : A ==>> B, z : => C)( f : ( A
         , => C ) => C )(g : (B, => C) => C) : C =
-          fa.foldrWithKey(z)(((a, b, c) => f(a, g(b, c))))
-        override def bifoldLeft[A, B, C](fa : (A ==>> B), z : C)( f : ( C
+          fa.foldrWithKey(z)((a, b, c) => f(a, g(b, c)))
+        override def bifoldLeft[A, B, C](fa : A ==>> B, z : C)( f : ( C
         , A ) => C )(g : (C, B) => C) : C =
-          fa.foldlWithKey(z)(((c, a, b) => g(f(c, a), b)))
+          fa.foldlWithKey(z)((c, a, b) => g(f(c, a), b))
       }
   }
 
-  private[scalaz] sealed trait MapEqual[A, B]  extends Equal[(A ==>> B)] {
+  private[scalaz] sealed trait MapEqual[A, B]  extends Equal[A ==>> B] {
     import std.list.{_}
     import std.tuple.{_}
     implicit def A: Equal[A]
     implicit def B: Equal[B]
-    final override def equal(a1 : (A ==>> B), a2 : (A ==>> B)) : Boolean =
-      ((Equal[Int].equal(a1.size, a2.size)) && Equal[ List[ ( A
-      , B ) ] ].equal(a1.toAscList, a2.toAscList))
+    final override def equal(a1 : A ==>> B, a2 : A ==>> B) : Boolean =
+      Equal[Int].equal(a1.size, a2.size) && Equal[ List[ ( A
+      , B ) ] ].equal(a1.toAscList, a2.toAscList)
   }
 
   object ==>> extends MapInstances {
@@ -1280,77 +1276,77 @@ package scalaz {
     private[scalaz] object Tip {
       private[this] val value : Tip[Nothing, Nothing] =
         new Tip[Nothing, Nothing]
-      def apply[A, B]() : (A ==>> B) =
-        value.asInstanceOf[(A ==>> B)]
+      def apply[A, B]() : A ==>> B =
+        value.asInstanceOf[A ==>> B]
     }
     private[scalaz] final case class Bin[A, B] ( k : A
     , v : B
-    , l : (A ==>> B)
-    , r : (A ==>> B) ) extends ==>>[A, B] {
+    , l : A ==>> B
+    , r : A ==>> B ) extends ==>>[A, B] {
       val size =
-        ((((l.size) + r.size)) + 1)
+        l.size + r.size + 1
     }
-    final def apply[A: Order, B](x : (A, B)*) : (A ==>> B) =
-      x.foldLeft(empty[A, B])(((a, c) => a.insert(c._1, c._2)))
-    final def empty[A, B] : (A ==>> B) =
+    final def apply[A: Order, B](x : (A, B)*) : A ==>> B =
+      x.foldLeft(empty[A, B])((a, c) => a.insert(c._1, c._2))
+    final def empty[A, B] : A ==>> B =
       Tip[A, B]()
-    final def singleton[A, B](k : A, x : B) : (A ==>> B) =
+    final def singleton[A, B](k : A, x : B) : A ==>> B =
       Bin(k, x, Tip(), Tip())
-    final def fromList[A: Order, B](l : List[(A, B)]) : (A ==>> B) =
+    final def fromList[A: Order, B](l : List[(A, B)]) : A ==>> B =
       l.foldLeft(empty[A, B])( {
-        ((t, x) => t.insert(x._1, x._2))
+        (t, x) => t.insert(x._1, x._2)
       } )
-    final def fromIList[A: Order, B](l : IList[(A, B)]) : (A ==>> B) =
+    final def fromIList[A: Order, B](l : IList[(A, B)]) : A ==>> B =
       l.foldLeft(empty[A, B])( {
-        ((t, x) => t.insert(x._1, x._2))
+        (t, x) => t.insert(x._1, x._2)
       } )
     final def fromListWith[A: Order, B](l : List[(A, B)])( f : ( B
-    , B ) => B ) : (A ==>> B) =
-      fromListWithKey(l)(((_, x, y) => f(x, y)))
+    , B ) => B ) : A ==>> B =
+      fromListWithKey(l)((_, x, y) => f(x, y))
     final def fromIListWith[A: Order, B](l : IList[(A, B)])( f : ( B
-    , B ) => B ) : (A ==>> B) =
-      fromIListWithKey(l)(((_, x, y) => f(x, y)))
+    , B ) => B ) : A ==>> B =
+      fromIListWithKey(l)((_, x, y) => f(x, y))
     final def fromListWithKey[A: Order, B](l : List[(A, B)])( f : ( A
     , B
-    , B ) => B ) : (A ==>> B) =
-      l.foldLeft(empty[A, B])(((a, c) => a.insertWithKey(f, c._1, c._2)))
+    , B ) => B ) : A ==>> B =
+      l.foldLeft(empty[A, B])((a, c) => a.insertWithKey(f, c._1, c._2))
     final def fromIListWithKey[A: Order, B](l : IList[(A, B)])( f : ( A
     , B
-    , B ) => B ) : (A ==>> B) =
-      l.foldLeft(empty[A, B])(((a, c) => a.insertWithKey(f, c._1, c._2)))
+    , B ) => B ) : A ==>> B =
+      l.foldLeft(empty[A, B])((a, c) => a.insertWithKey(f, c._1, c._2))
     final def fromFoldable[F[_]: Foldable, A: Order, B]( fa : F[ ( A
-    , B ) ] ) : (A ==>> B) =
+    , B ) ] ) : A ==>> B =
       Foldable[F].foldLeft(fa, empty[A, B])( {
-        ((t, x) => t.insert(x._1, x._2))
+        (t, x) => t.insert(x._1, x._2)
       } )
     final def fromFoldableWith[F[_]: Foldable, A: Order, B]( fa : F[ ( A
-    , B ) ] )(f : (B, B) => B) : (A ==>> B) =
-      fromFoldableWithKey(fa)(((_, x, y) => f(x, y)))
+    , B ) ] )(f : (B, B) => B) : A ==>> B =
+      fromFoldableWithKey(fa)((_, x, y) => f(x, y))
     final def fromFoldableWithKey[F[_]: Foldable, A: Order, B]( fa : F[ ( A
-    , B ) ] )(f : (A, B, B) => B) : (A ==>> B) =
-      Foldable[F].foldLeft(fa, empty[A, B])( ((a, c) => a.insertWithKey( f
+    , B ) ] )(f : (A, B, B) => B) : A ==>> B =
+      Foldable[F].foldLeft(fa, empty[A, B])( (a, c) => a.insertWithKey( f
       , c._1
-      , c._2 )) )
-    final def fromSet[A: Order, B](s : ISet[A])(f : (A) => B) : (A ==>> B) =
+      , c._2 ) )
+    final def fromSet[A: Order, B](s : ISet[A])(f : (A) => B) : A ==>> B =
       s match {
         case ISet.Tip () =>
           empty
         case ISet.Bin (x, l, r) =>
           Bin(x, f(x), fromSet(l)(f), fromSet(r)(f))
       }
-    final def unions[A: Order, B](xs : IList[(A ==>> B)]) : (A ==>> B) =
-      xs.foldLeft(empty[A, B])(((a, c) => a.union(c)))
+    final def unions[A: Order, B](xs : IList[A ==>> B]) : A ==>> B =
+      xs.foldLeft(empty[A, B])((a, c) => a.union(c))
     final def unionsWith[A: Order, B]( f : ( B
-    , B ) => B )(xs : IList[(A ==>> B)]) : (A ==>> B) =
-      xs.foldLeft(empty[A, B])(((a, c) => a.unionWith(c)(f)))
+    , B ) => B )(xs : IList[A ==>> B]) : A ==>> B =
+      xs.foldLeft(empty[A, B])((a, c) => a.unionWith(c)(f))
     private[scalaz] final val ratio =
       2
     private[scalaz] final val delta =
       3
     private[scalaz] def balance[A, B]( k : A
     , x : B
-    , l : (A ==>> B)
-    , r : (A ==>> B) ) : (A ==>> B) =
+    , l : A ==>> B
+    , r : A ==>> B ) : A ==>> B =
       l match {
         case Tip () =>
           r match {
@@ -1366,7 +1362,7 @@ package scalaz {
             , rx
             , rl @ Bin (rlk, rlx, rll, rlr)
             , rr @ Bin (_, _, _, _) ) =>
-              if (((rl.size) < ((ratio) * rr.size)))
+              if (rl.size < ratio * rr.size)
                 Bin(rk, rx, Bin(k, x, Tip(), rl), rr)
               else
                 Bin(rlk, rlx, Bin(k, x, Tip(), rll), Bin(rk, rx, rlr, rr))
@@ -1382,17 +1378,17 @@ package scalaz {
                 case (Bin (_, _, _, _), Tip ()) =>
                   Bin(lk, lx, ll, singleton(k, x))
                 case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                  if (((lr.size) < ((ratio) * ll.size)))
+                  if (lr.size < ratio * ll.size)
                     Bin(lk, lx, ll, Bin(k, x, lr, Tip()))
                   else
                     Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, Tip()))
               }
             case Bin (rk, rx, rl, rr) =>
-              if (((r.size) > ((delta) * l.size)))
+              if (r.size > delta * l.size)
                 {
                   (rl, rr) match {
                     case (Bin (rlk, rlx, rll, rlr), Bin (_, _, _, _)) =>
-                      if (((rl.size) < ((ratio) * rr.size)))
+                      if (rl.size < ratio * rr.size)
                         Bin(rk, rx, Bin(k, x, l, rl), rr)
                       else
                         Bin(rlk, rlx, Bin(k, x, l, rll), Bin(rk, rx, rlr, rr))
@@ -1401,11 +1397,11 @@ package scalaz {
                   }
                 }
               else
-                if (((l.size) > ((delta) * r.size)))
+                if (l.size > delta * r.size)
                   {
                     (ll, lr) match {
                       case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                        if (((lr.size) < ((ratio) * ll.size)))
+                        if (lr.size < ratio * ll.size)
                           Bin(lk, lx, ll, Bin(k, x, lr, r))
                         else
                           Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, r))
@@ -1419,8 +1415,8 @@ package scalaz {
       }
     private[scalaz] def balanceL[A, B]( k : A
     , x : B
-    , l : (A ==>> B)
-    , r : (A ==>> B) ) : (A ==>> B) =
+    , l : A ==>> B
+    , r : A ==>> B ) : A ==>> B =
       r match {
         case Tip () =>
           l match {
@@ -1436,7 +1432,7 @@ package scalaz {
             , lx
             , ll @ Bin (_, _, _, _)
             , lr @ Bin (lrk, lrx, lrl, lrr) ) =>
-              if (((lr.size) < ((ratio) * ll.size)))
+              if (lr.size < ratio * ll.size)
                 Bin(lk, lx, ll, Bin(k, x, lr, Tip()))
               else
                 Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, Tip()))
@@ -1446,11 +1442,11 @@ package scalaz {
             case Tip () =>
               Bin(k, x, Tip(), r)
             case Bin (lk, lx, ll, lr) =>
-              if (((l.size) > ((delta) * r.size)))
+              if (l.size > delta * r.size)
                 {
                   (ll, lr) match {
                     case (Bin (_, _, _, _), Bin (lrk, lrx, lrl, lrr)) =>
-                      if (((lr.size) < ((ratio) * ll.size)))
+                      if (lr.size < ratio * ll.size)
                         Bin(lk, lx, ll, Bin(k, x, lr, r))
                       else
                         Bin(lrk, lrx, Bin(lk, lx, ll, lrl), Bin(k, x, lrr, r))
@@ -1464,8 +1460,8 @@ package scalaz {
       }
     private[scalaz] def balanceR[A, B]( k : A
     , x : B
-    , l : (A ==>> B)
-    , r : (A ==>> B) ) : (A ==>> B) =
+    , l : A ==>> B
+    , r : A ==>> B ) : A ==>> B =
       l match {
         case Tip () =>
           r match {
@@ -1481,7 +1477,7 @@ package scalaz {
             , rx
             , rl @ Bin (rlk, rlx, rll, rlr)
             , rr @ Bin (_, _, _, _) ) =>
-              if (((rl.size) < ((ratio) * rr.size)))
+              if (rl.size < ratio * rr.size)
                 Bin(rk, rx, Bin(k, x, Tip(), rl), rr)
               else
                 Bin(rlk, rlx, Bin(k, x, Tip(), rll), Bin(rk, rx, rlr, rr))
@@ -1491,11 +1487,11 @@ package scalaz {
             case Tip () =>
               Bin(k, x, l, Tip())
             case Bin (rk, rx, rl, rr) =>
-              if (((r.size) > ((delta) * l.size)))
+              if (r.size > delta * l.size)
                 {
                   (rl, rr) match {
                     case (Bin (rlk, rlx, rll, rlr), Bin (_, _, _, _)) =>
-                      if (((rl.size) < ((ratio) * rr.size)))
+                      if (rl.size < ratio * rr.size)
                         Bin(rk, rx, Bin(k, x, l, rl), rr)
                       else
                         Bin(rlk, rlx, Bin(k, x, l, rll), Bin(rk, rx, rlr, rr))
@@ -1509,30 +1505,30 @@ package scalaz {
       }
     private[scalaz] def link[A, B]( kx : A
     , x : B
-    , l : (A ==>> B)
-    , r : (A ==>> B) ) : (A ==>> B) =
+    , l : A ==>> B
+    , r : A ==>> B ) : A ==>> B =
       (l, r) match {
         case (Tip (), r) =>
           insertMin(kx, x, r)
         case (l, Tip ()) =>
           insertMax(kx, x, l)
         case (Bin (ky, y, ly, ry), Bin (kz, z, lz, rz)) =>
-          if (((((delta) * l.size)) < r.size))
+          if (delta * l.size < r.size)
             balanceL(kz, z, link(kx, x, l, lz), rz)
           else
-            if (((((delta) * r.size)) < l.size))
+            if (delta * r.size < l.size)
               balanceR(ky, y, ly, link(kx, x, ry, r))
             else
               Bin(kx, x, l, r)
       }
-    private def insertMax[A, B](kx : A, x : B, t : (A ==>> B)) : (A ==>> B) =
+    private def insertMax[A, B](kx : A, x : B, t : A ==>> B) : A ==>> B =
       t match {
         case Tip () =>
           singleton(kx, x)
         case Bin (ky, y, l, r) =>
           balanceR(ky, y, l, insertMax(kx, x, r))
       }
-    private def insertMin[A, B](kx : A, x : B, t : (A ==>> B)) : (A ==>> B) =
+    private def insertMin[A, B](kx : A, x : B, t : A ==>> B) : A ==>> B =
       t match {
         case Tip () =>
           singleton(kx, x)
@@ -1541,13 +1537,13 @@ package scalaz {
       }
     private[scalaz] def trim[A, B]( lo : Maybe[A]
     , hi : Maybe[A]
-    , t : (A ==>> B) )(implicit o : Order[A]) : (A ==>> B) =
+    , t : A ==>> B )(implicit o : Order[A]) : A ==>> B =
       (lo, hi) match {
         case (Maybe.Empty (), Maybe.Empty ()) =>
           t
         case (Just (lk), Maybe.Empty ()) =>
           {
-            @tailrec def greater(lo : A, m : (A ==>> B)) : (A ==>> B) =
+            @tailrec def greater(lo : A, m : A ==>> B) : A ==>> B =
               m match {
                 case Bin (kx, _, _, r) if o.lessThanOrEqual(kx, lo) =>
                   greater(lo, r)
@@ -1559,7 +1555,7 @@ package scalaz {
           }
         case (Maybe.Empty (), Just (hk)) =>
           {
-            @tailrec def lesser(hi : A, m : (A ==>> B)) : (A ==>> B) =
+            @tailrec def lesser(hi : A, m : A ==>> B) : A ==>> B =
               m match {
                 case Bin (kx, _, l, _) if o.greaterThanOrEqual(kx, hi) =>
                   lesser(hi, l)
@@ -1571,7 +1567,7 @@ package scalaz {
           }
         case (Just (lk), Just (hk)) =>
           {
-            @tailrec def middle(lo : A, hi : A, m : (A ==>> B)) : (A ==>> B) =
+            @tailrec def middle(lo : A, hi : A, m : A ==>> B) : A ==>> B =
               m match {
                 case Bin (kx, _, _, r) if o.lessThanOrEqual(kx, lo) =>
                   middle(lo, hi, r)
@@ -1586,12 +1582,11 @@ package scalaz {
       }
     private[scalaz] def trimLookupLo[A, B]( lk : A
     , hkMaybe : Maybe[A]
-    , t : (A ==>> B) )(implicit o : Order[A]) : (Maybe[B], (A ==>> B)) =
+    , t : A ==>> B )(implicit o : Order[A]) : (Maybe[B], A ==>> B) =
       hkMaybe match {
         case Empty () =>
           {
-            @tailrec def greater(lo : A, m : (A ==>> B)) : ( Maybe[B]
-            , (A ==>> B) ) =
+            @tailrec def greater(lo : A, m : A ==>> B) : (Maybe[B], A ==>> B) =
               m match {
                 case Tip () =>
                   (Maybe.empty, Tip())
@@ -1610,14 +1605,14 @@ package scalaz {
           }
         case Just (hk) =>
           {
-            @tailrec def middle(lo : A, hi : A, m : (A ==>> B)) : ( Maybe[B]
-            , (A ==>> B) ) =
+            @tailrec def middle(lo : A, hi : A, m : A ==>> B) : ( Maybe[B]
+            , A ==>> B ) =
               m match {
                 case Tip () =>
                   (Maybe.empty, Tip())
                 case Bin (kx, x, l, r) =>
                   o.order(lo, kx) match {
-                    case LT if ((o.order(kx, hi)) == LT) =>
+                    case LT if o.order(kx, hi) == LT =>
                       (l.lookup(lo), m)
                     case LT =>
                       middle(lo, hi, l)
@@ -1628,7 +1623,7 @@ package scalaz {
                   }
               }
           
-            @tailrec def lesser(hi : A, m : (A ==>> B)) : (A ==>> B) =
+            @tailrec def lesser(hi : A, m : A ==>> B) : A ==>> B =
               m match {
                 case Bin (k, _, l, _) if o.greaterThanOrEqual(k, hi) =>
                   lesser(hi, l)
@@ -1639,15 +1634,15 @@ package scalaz {
             middle(lk, hk, t)
           }
       }
-    def mergeWithKey[A: Order, B, C, D](a : (A ==>> B), b : (A ==>> C))( f : ( A
+    def mergeWithKey[A: Order, B, C, D](a : A ==>> B, b : A ==>> C)( f : ( A
     , B
-    , C ) => Maybe[D] )( g1 : ((A ==>> B)) => (A ==>> D)
-    , g2 : ((A ==>> C)) => (A ==>> D) )(implicit o : Order[A]) : (A ==>> D) =
+    , C ) => Maybe[D] )( g1 : (A ==>> B) => A ==>> D
+    , g2 : (A ==>> C) => A ==>> D )(implicit o : Order[A]) : A ==>> D =
       {
         def hedgeMerge( blo : Maybe[A]
         , bhi : Maybe[A]
-        , a : (A ==>> B)
-        , b : (A ==>> C) ) : (A ==>> D) =
+        , a : A ==>> B
+        , b : A ==>> C ) : A ==>> D =
           {
             (a, b) match {
               case (t1, Tip ()) =>
@@ -1677,7 +1672,7 @@ package scalaz {
                     case Maybe.Empty () =>
                       g1(singleton(kx, x)) match {
                         case Tip () =>
-                          ((l2) merge r2)
+                          l2 merge r2
                         case Bin (_, x2, Tip (), Tip ()) =>
                           link(kx, x2, l2, r2)
                         case _ =>
@@ -1686,7 +1681,7 @@ package scalaz {
                     case Just (x2) =>
                       f(kx, x, x2) match {
                         case Maybe.Empty () =>
-                          ((l2) merge r2)
+                          l2 merge r2
                         case Just (xx) =>
                           link(kx, xx, l2, r2)
                       }

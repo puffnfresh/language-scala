@@ -37,22 +37,21 @@ package scalaz {
          with Unzip[(=> T) => *]
          with Distributive[(=> T) => *] {
           def point[A](a : => A) : (=> T) => A =
-            ((_) => a)
+            (_) => a
           def bind[ A
           , B ](fa : (=> T) => A)(f : (A) => (=> T) => B) : (=> T) => B =
-            ((t) => f(fa(t))(t))
+            (t) => f(fa(t))(t)
           def zip[A, B](a : => (=> T) => A, b : => (=> T) => B) : (=> T) => ( A
           , B ) =
-            ((t) => (a(t), b(t)))
+            (t) => (a(t), b(t))
           def unzip[A, B](a : (=> T) => (A, B)) : ((=> T) => A, (=> T) => B) =
             (a(_)._1, a(_)._2)
           def distributeImpl[ G[_]: Functor
           , A
           , B ](fa : G[A])(f : (A) => (=> T) => B) : (=> T) => G[B] =
-            ((t) => Functor[G].map(fa)(((a) => f(a)(t))))
-          def tailrecM[ A
-          , B ](a : A)(f : (A) => (=> T) => (A \/ B)) : (=> T) => B =
-            ((t) => {
+            (t) => Functor[G].map(fa)((a) => f(a)(t))
+          def tailrecM[A, B](a : A)(f : (A) => (=> T) => A \/ B) : (=> T) => B =
+            (t) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t) match {
                   case \/- (b) =>
@@ -62,7 +61,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
     }
   
@@ -74,30 +73,30 @@ package scalaz {
          with Comonad[Function0]
          with Distributive[Function0] {
           def point[A](a : => A) =
-            (() => a)
+            () => a
           def copoint[A](p : () => A) =
             p()
           def cobind[A, B](fa : Function0[A])(f : (Function0[A]) => B) =
-            (() => f(fa))
+            () => f(fa)
           override def cojoin[A](a : Function0[A]) : Function0[Function0[A]] =
-            (() => a)
+            () => a
           def bind[A, B](fa : () => A)(f : (A) => () => B) =
-            (() => f(fa())())
+            () => f(fa())()
           override def map[A, B](fa : () => A)(f : (A) => B) =
-            (() => f(fa()))
+            () => f(fa())
           def traverseImpl[ G[_]: Applicative
           , A
           , B ](fa : () => A)(f : (A) => G[B]) =
-            Applicative[G].map(f(fa()))(((b : B) => (() => b)))
+            Applicative[G].map(f(fa()))((b : B) => () => b)
           override def foldRight[A, B](fa : () => A, z : => B)( f : ( A
           , => B ) => B ) =
             f(fa(), z)
           def distributeImpl[ G[_]
           , A
           , B ]( fa : G[ A ] )( f : ( A ) => (  ) => B )( implicit G : Functor[ G ] ) : (  ) => G[ B ] =
-            (() => G.map(fa)(((a) => f(a)())))
-          def tailrecM[A, B](a : A)(f : (A) => () => (A \/ B)) : () => B =
-            (() => {
+            () => G.map(fa)((a) => f(a)())
+          def tailrecM[A, B](a : A)(f : (A) => () => A \/ B) : () => B =
+            () => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)() match {
                   case \/- (b) =>
@@ -107,7 +106,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function0Equal[R: Equal] : Equal[() => R] =
         new Equal[() => R] {
@@ -123,13 +122,13 @@ package scalaz {
           def arr[A, B](f : (A) => B) =
             f
           def first[A, B, C](a : (A) => B) =
-            ((ac : (A, C)) => (a(ac._1), ac._2))
+            (ac : (A, C)) => (a(ac._1), ac._2)
           def compose[A, B, C](f : (B) => C, g : (A) => B) =
-            ((f) compose g)
+            f compose g
           def id[A] : (A) => A =
-            ((a) => a)
+            (a) => a
           def choice[A, B, C]( f : => (A) => C
-          , g : => (B) => C ) : ((A \/ B)) => C =
+          , g : => (B) => C ) : (A \/ B) => C =
             {
               case -\/ (a) =>
                 f(a)
@@ -150,19 +149,19 @@ package scalaz {
          with Unzip[(T) => *]
          with Distributive[(T) => *] {
           def point[A](a : => A) =
-            ((_) => a)
+            (_) => a
           def bind[A, B](fa : (T) => A)(f : (A) => (T) => B) =
-            ((t) => f(fa(t))(t))
+            (t) => f(fa(t))(t)
           def zip[A, B](a : => (T) => A, b : => (T) => B) =
-            ((t) => (a(t), b(t)))
+            (t) => (a(t), b(t))
           def unzip[A, B](a : (T) => (A, B)) =
             (a(_)._1, a(_)._2)
           def distributeImpl[ G[_]: Functor
           , A
           , B ](fa : G[A])(f : (A) => (T) => B) : (T) => G[B] =
-            ((t) => Functor[G].map(fa)(((a) => f(a)(t))))
-          def tailrecM[A, B](a : A)(f : (A) => (T) => (A \/ B)) : (T) => B =
-            ((t) => {
+            (t) => Functor[G].map(fa)((a) => f(a)(t))
+          def tailrecM[A, B](a : A)(f : (A) => (T) => A \/ B) : (T) => B =
+            (t) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t) match {
                   case \/- (b) =>
@@ -172,25 +171,25 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function1Contravariant[R] : Contravariant[(*) => R] =
         new Contravariant[(*) => R] {
           def contramap[A, B](r : (A) => R)(f : (B) => A) =
-            ((r) compose f)
-          override def narrow[A, B](f : (A) => R)(implicit ev : (B <~< A)) =
+            r compose f
+          override def narrow[A, B](f : (A) => R)(implicit ev : B <~< A) =
             Liskov.contra[( {type l[- a] = Function1[a, R]})#l, B, A](ev)(f)
         }
       implicit def function2Instance[T1, T2] : Monad[ ( T1
       , T2 ) => * ] with BindRec[(T1, T2) => *] =
         new Monad[(T1, T2) => *] with BindRec[(T1, T2) => *] {
           def point[A](a : => A) =
-            ((_, _) => a)
+            (_, _) => a
           def bind[A, B](fa : (T1, T2) => A)(f : (A) => (T1, T2) => B) =
-            ((t1, t2) => f(fa(t1, t2))(t1, t2))
-          def tailrecM[A, B](a : A)(f : (A) => (T1, T2) => (A \/ B)) : ( T1
+            (t1, t2) => f(fa(t1, t2))(t1, t2)
+          def tailrecM[A, B](a : A)(f : (A) => (T1, T2) => A \/ B) : ( T1
           , T2 ) => B =
-            ((t1, t2) => {
+            (t1, t2) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2) match {
                   case \/- (b) =>
@@ -200,20 +199,20 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function3Instance[T1, T2, T3] : Monad[ ( T1
       , T2
       , T3 ) => * ] with BindRec[(T1, T2, T3) => *] =
         new Monad[(T1, T2, T3) => *] with BindRec[(T1, T2, T3) => *] {
           def point[A](a : => A) =
-            ((_, _, _) => a)
+            (_, _, _) => a
           def bind[A, B](fa : (T1, T2, T3) => A)(f : (A) => (T1, T2, T3) => B) =
-            ((t1, t2, t3) => f(fa(t1, t2, t3))(t1, t2, t3))
-          def tailrecM[A, B](a : A)(f : (A) => (T1, T2, T3) => (A \/ B)) : ( T1
+            (t1, t2, t3) => f(fa(t1, t2, t3))(t1, t2, t3)
+          def tailrecM[A, B](a : A)(f : (A) => (T1, T2, T3) => A \/ B) : ( T1
           , T2
           , T3 ) => B =
-            ((t1, t2, t3) => {
+            (t1, t2, t3) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3) match {
                   case \/- (b) =>
@@ -223,7 +222,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function4Instance[T1, T2, T3, T4] : Monad[ ( T1
       , T2
@@ -231,17 +230,17 @@ package scalaz {
       , T4 ) => * ] with BindRec[(T1, T2, T3, T4) => *] =
         new Monad[(T1, T2, T3, T4) => *] with BindRec[(T1, T2, T3, T4) => *] {
           def point[A](a : => A) =
-            ((_, _, _, _) => a)
+            (_, _, _, _) => a
           def bind[A, B](fa : (T1, T2, T3, T4) => A)( f : (A) => ( T1
           , T2
           , T3
           , T4 ) => B ) =
-            ((t1, t2, t3, t4) => f(fa(t1, t2, t3, t4))(t1, t2, t3, t4))
+            (t1, t2, t3, t4) => f(fa(t1, t2, t3, t4))(t1, t2, t3, t4)
           def tailrecM[A, B](a : A)( f : (A) => ( T1
           , T2
           , T3
-          , T4 ) => (A \/ B) ) : (T1, T2, T3, T4) => B =
-            ((t1, t2, t3, t4) => {
+          , T4 ) => A \/ B ) : (T1, T2, T3, T4) => B =
+            (t1, t2, t3, t4) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3, t4) match {
                   case \/- (b) =>
@@ -251,7 +250,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function5Instance[T1, T2, T3, T4, T5] : Monad[ ( T1
       , T2
@@ -261,23 +260,23 @@ package scalaz {
         new Monad[(T1, T2, T3, T4, T5) => *]
          with BindRec[(T1, T2, T3, T4, T5) => *] {
           def point[A](a : => A) =
-            ((_, _, _, _, _) => a)
+            (_, _, _, _, _) => a
           def bind[A, B](fa : (T1, T2, T3, T4, T5) => A)( f : (A) => ( T1
           , T2
           , T3
           , T4
           , T5 ) => B ) =
-            ((t1, t2, t3, t4, t5) => f(fa(t1, t2, t3, t4, t5))( t1
+            (t1, t2, t3, t4, t5) => f(fa(t1, t2, t3, t4, t5))( t1
             , t2
             , t3
             , t4
-            , t5 ))
+            , t5 )
           def tailrecM[A, B](a : A)( f : (A) => ( T1
           , T2
           , T3
           , T4
-          , T5 ) => (A \/ B) ) : (T1, T2, T3, T4, T5) => B =
-            ((t1, t2, t3, t4, t5) => {
+          , T5 ) => A \/ B ) : (T1, T2, T3, T4, T5) => B =
+            (t1, t2, t3, t4, t5) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3, t4, t5) match {
                   case \/- (b) =>
@@ -287,7 +286,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function6Instance[T1, T2, T3, T4, T5, T6] : Monad[ ( T1
       , T2
@@ -298,26 +297,26 @@ package scalaz {
         new Monad[(T1, T2, T3, T4, T5, T6) => *]
          with BindRec[(T1, T2, T3, T4, T5, T6) => *] {
           def point[A](a : => A) =
-            ((_, _, _, _, _, _) => a)
+            (_, _, _, _, _, _) => a
           def bind[A, B](fa : (T1, T2, T3, T4, T5, T6) => A)( f : (A) => ( T1
           , T2
           , T3
           , T4
           , T5
           , T6 ) => B ) =
-            ((t1, t2, t3, t4, t5, t6) => f(fa(t1, t2, t3, t4, t5, t6))( t1
+            (t1, t2, t3, t4, t5, t6) => f(fa(t1, t2, t3, t4, t5, t6))( t1
             , t2
             , t3
             , t4
             , t5
-            , t6 ))
+            , t6 )
           def tailrecM[A, B](a : A)( f : (A) => ( T1
           , T2
           , T3
           , T4
           , T5
-          , T6 ) => (A \/ B) ) : (T1, T2, T3, T4, T5, T6) => B =
-            ((t1, t2, t3, t4, t5, t6) => {
+          , T6 ) => A \/ B ) : (T1, T2, T3, T4, T5, T6) => B =
+            (t1, t2, t3, t4, t5, t6) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3, t4, t5, t6) match {
                   case \/- (b) =>
@@ -327,7 +326,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function7Instance[T1, T2, T3, T4, T5, T6, T7] : Monad[ ( T1
       , T2
@@ -339,7 +338,7 @@ package scalaz {
         new Monad[(T1, T2, T3, T4, T5, T6, T7) => *]
          with BindRec[(T1, T2, T3, T4, T5, T6, T7) => *] {
           def point[A](a : => A) =
-            ((_, _, _, _, _, _, _) => a)
+            (_, _, _, _, _, _, _) => a
           def bind[A, B]( fa : ( T1
           , T2
           , T3
@@ -347,21 +346,21 @@ package scalaz {
           , T5
           , T6
           , T7 ) => A )(f : (A) => (T1, T2, T3, T4, T5, T6, T7) => B) =
-            ((t1, t2, t3, t4, t5, t6, t7) => f( fa( t1
+            (t1, t2, t3, t4, t5, t6, t7) => f( fa( t1
             , t2
             , t3
             , t4
             , t5
             , t6
-            , t7 ) )(t1, t2, t3, t4, t5, t6, t7))
+            , t7 ) )(t1, t2, t3, t4, t5, t6, t7)
           def tailrecM[A, B](a : A)( f : (A) => ( T1
           , T2
           , T3
           , T4
           , T5
           , T6
-          , T7 ) => (A \/ B) ) : (T1, T2, T3, T4, T5, T6, T7) => B =
-            ((t1, t2, t3, t4, t5, t6, t7) => {
+          , T7 ) => A \/ B ) : (T1, T2, T3, T4, T5, T6, T7) => B =
+            (t1, t2, t3, t4, t5, t6, t7) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3, t4, t5, t6, t7) match {
                   case \/- (b) =>
@@ -371,7 +370,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
       implicit def function8Instance[ T1
       , T2
@@ -391,7 +390,7 @@ package scalaz {
         new Monad[(T1, T2, T3, T4, T5, T6, T7, T8) => *]
          with BindRec[(T1, T2, T3, T4, T5, T6, T7, T8) => *] {
           def point[A](a : => A) =
-            ((_, _, _, _, _, _, _, _) => a)
+            (_, _, _, _, _, _, _, _) => a
           def bind[A, B]( fa : ( T1
           , T2
           , T3
@@ -400,14 +399,14 @@ package scalaz {
           , T6
           , T7
           , T8 ) => A )(f : (A) => (T1, T2, T3, T4, T5, T6, T7, T8) => B) =
-            ((t1, t2, t3, t4, t5, t6, t7, t8) => f( fa( t1
+            (t1, t2, t3, t4, t5, t6, t7, t8) => f( fa( t1
             , t2
             , t3
             , t4
             , t5
             , t6
             , t7
-            , t8 ) )(t1, t2, t3, t4, t5, t6, t7, t8))
+            , t8 ) )(t1, t2, t3, t4, t5, t6, t7, t8)
           def tailrecM[A, B](a : A)( f : (A) => ( T1
           , T2
           , T3
@@ -415,8 +414,8 @@ package scalaz {
           , T5
           , T6
           , T7
-          , T8 ) => (A \/ B) ) : (T1, T2, T3, T4, T5, T6, T7, T8) => B =
-            ((t1, t2, t3, t4, t5, t6, t7, t8) => {
+          , T8 ) => A \/ B ) : (T1, T2, T3, T4, T5, T6, T7, T8) => B =
+            (t1, t2, t3, t4, t5, t6, t7, t8) => {
               @scala.annotation.tailrec def go(a0 : A) : B =
                 f(a0)(t1, t2, t3, t4, t5, t6, t7, t8) match {
                   case \/- (b) =>
@@ -426,7 +425,7 @@ package scalaz {
                 }
             
               go(a)
-            })
+            }
         }
     }
   
@@ -446,24 +445,24 @@ package scalaz {
     private trait Function1Semigroup[A, R]  extends Semigroup[(A) => R] {
       implicit def R: Semigroup[R]
       def append(f1 : (A) => R, f2 : => (A) => R) =
-        ((a) => R.append(f1(a), f2(a)))
+        (a) => R.append(f1(a), f2(a))
     }
   
     private trait Function1Monoid[A, R]  extends Monoid[(A) => R]
      with Function1Semigroup[A, R] {
       implicit def R: Monoid[R]
       def zero =
-        ((a) => R.zero)
+        (a) => R.zero
     }
   
     private trait Function1Cobind[M, R]  extends Cobind[(M) => *] {
       implicit def M: Semigroup[M]
       override def cojoin[A](a : (M) => A) =
-        ((m1 : M) => ((m2 : M) => a(M.append(m1, m2))))
+        (m1 : M) => (m2 : M) => a(M.append(m1, m2))
       def cobind[A, B](fa : (M) => A)(f : ((M) => A) => B) =
-        ((m1 : M) => f(((m2 : M) => fa(M.append(m1, m2)))))
+        (m1 : M) => f((m2 : M) => fa(M.append(m1, m2)))
       override def map[A, B](fa : (M) => A)(f : (A) => B) =
-        ((fa) andThen f)
+        fa andThen f
     }
   
     private trait Function1Comonad[M, R]  extends Comonad[(M) => *]

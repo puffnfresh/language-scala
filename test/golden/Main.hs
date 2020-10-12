@@ -9,7 +9,7 @@ import Data.Text.Prettyprint.Doc.Render.Text (renderLazy)
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import Data.Text.Prettyprint.Doc.Internal (layoutPretty)
 import Data.Text.Prettyprint.Doc (defaultLayoutOptions)
-import System.FilePath ((</>))
+import System.FilePath (dropExtension, takeBaseName, (</>))
 
 main :: IO ()
 main =
@@ -17,7 +17,7 @@ main =
 
 prettyTest :: FilePath -> TestTree
 prettyTest f =
-  goldenVsStringDiff f (\ref new -> ["diff", "-u", ref, new]) (f ++ ".golden.scala") $ do
+  goldenVsStringDiff (dropExtension (takeBaseName f)) (\ref new -> ["diff", "-u", ref, new]) (f ++ ".golden.scala") $ do
     parsed <- eitherDecodeFileStrict f :: IO (Either String Source)
     either error (pure . encodeUtf8 . renderLazy . layoutPretty defaultLayoutOptions . pretty) parsed
 

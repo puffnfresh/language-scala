@@ -1,7 +1,7 @@
 package scalaz {
   import Liskov.{<~<}
 
-  final case class EitherT[A, F[_], B] (run : F[(A \/ B)]) {
+  final case class EitherT[A, F[_], B] (run : F[A \/ B]) {
     import OptionT.{_}
     final class Switching_\/[X] (r : => X) {
       def <<?:(left : X)(implicit F : Functor[F]) : F[X] =
@@ -25,12 +25,12 @@ package scalaz {
     def unary_~(implicit F : Functor[F]) : EitherT[B, F, A] =
       swap
     def swapped[ AA
-    , BB ](k : ((B \/ A)) => (BB \/ AA))(implicit F : Functor[F]) : EitherT[ AA
+    , BB ](k : (B \/ A) => BB \/ AA)(implicit F : Functor[F]) : EitherT[ AA
     , F
     , BB ] =
-      EitherT(F.map(run)(((_) swapped k)))
+      EitherT(F.map(run)(_ swapped k))
     def ~[ AA
-    , BB ](k : ((B \/ A)) => (BB \/ AA))(implicit F : Functor[F]) : EitherT[ AA
+    , BB ](k : (B \/ A) => BB \/ AA)(implicit F : Functor[F]) : EitherT[ AA
     , F
     , BB ] =
       swapped(k)
@@ -43,35 +43,35 @@ package scalaz {
     , g : (B) => G[D] )( implicit F : Traverse[F]
     , G : Applicative[G] ) : G[EitherT[C, F, D]] =
       Applicative[G].map( F.traverse(run)( Bitraverse[\/].bitraverseF( f
-      , g ) ) )(EitherT(((_) : F[(C \/ D)])))
+      , g ) ) )(EitherT(_ : F[C \/ D]))
     def map[C](f : (B) => C)(implicit F : Functor[F]) : EitherT[A, F, C] =
       EitherT(F.map(run)(_.map(f)))
     def mapF[C](f : (B) => F[C])(implicit M : Monad[F]) : EitherT[A, F, C] =
       flatMapF( {
-        ((f) andThen ((mb) => M.map(mb)(((b) => \/-(b)))))
+        f andThen ((mb) => M.map(mb)((b) => \/-(b)))
       } )
-    def mapT[G[_], C, D](f : (F[(A \/ B)]) => G[(C \/ D)]) : EitherT[C, G, D] =
+    def mapT[G[_], C, D](f : (F[A \/ B]) => G[C \/ D]) : EitherT[C, G, D] =
       EitherT(f(run))
     def traverse[G[_], C](f : (B) => G[C])( implicit F : Traverse[F]
     , G : Applicative[G] ) : G[EitherT[A, F, C]] =
-      G.map( F.traverse(run)( ((o) => Traverse[ \/[ A
-      , * ] ].traverse(o)(f)) ) )(EitherT(_))
+      G.map( F.traverse(run)( (o) => Traverse[ \/[ A
+      , * ] ].traverse(o)(f) ) )(EitherT(_))
     def app[C]( f : => EitherT[ A
     , F
     , (B) => C ] )(implicit F : Apply[F]) : EitherT[A, F, C] =
-      EitherT(F.apply2(f.run, run)(((a, b) => ((b) ap a))))
+      EitherT(F.apply2(f.run, run)((a, b) => b ap a))
     def flatMap[C]( f : (B) => EitherT[ A
     , F
     , C ] )(implicit F : Monad[F]) : EitherT[A, F, C] =
-      EitherT( F.bind(run)( _.fold( ((a) => F.point(((-\/(a)) : (A \/ C))))
-      , ((b) => f(b).run) ) ) )
-    def flatMapF[C](f : (B) => F[(A \/ C)])(implicit F : Monad[F]) : EitherT[ A
+      EitherT( F.bind(run)( _.fold( (a) => F.point(-\/(a) : A \/ C)
+      , (b) => f(b).run ) ) )
+    def flatMapF[C](f : (B) => F[A \/ C])(implicit F : Monad[F]) : EitherT[ A
     , F
     , C ] =
-      EitherT(F.bind(run)(_.fold(((a) => F.point(((-\/(a)) : (A \/ C)))), f)))
+      EitherT(F.bind(run)(_.fold((a) => F.point(-\/(a) : A \/ C), f)))
     def foldRight[Z](z : => Z)( f : ( B
     , => Z ) => Z )(implicit F : Foldable[F]) : Z =
-      F.foldRight[(A \/ B), Z](run, z)(((a, b) => a.foldRight(b)(f)))
+      F.foldRight[A \/ B, Z](run, z)((a, b) => a.foldRight(b)(f))
     def filter(p : (B) => Boolean)( implicit M : Monoid[A]
     , F : Monad[F] ) : EitherT[A, F, B] =
       MonadPlus[EitherT[A, F, *]].filter(this)(p)
@@ -79,27 +79,27 @@ package scalaz {
     , F : Monad[F] ) : EitherT[A, F, B] =
       filter(p)(M, F)
     def exists(f : (B) => Boolean)(implicit F : Functor[F]) : F[Boolean] =
-      F.map(run)(((_) exists f))
+      F.map(run)(_ exists f)
     def forall(f : (B) => Boolean)(implicit F : Functor[F]) : F[Boolean] =
-      F.map(run)(((_) forall f))
+      F.map(run)(_ forall f)
     def toList(implicit F : Functor[F]) : F[List[B]] =
-      F.map(run)(_.fold(((_) => Nil), ((_) :: Nil)))
+      F.map(run)(_.fold((_) => Nil, _ :: Nil))
     def toThese(implicit F : Functor[F]) : TheseT[F, A, B] =
       TheseT(F.map(run)(_.toThese))
     def toLazyList(implicit F : Functor[F]) : F[LazyList[B]] =
-      F.map(run)(((_) : (A \/ B)).fold(((_) => LazyList()), LazyList(_)))
+      F.map(run)((_ : A \/ B).fold((_) => LazyList(), LazyList(_)))
     def toOption(implicit F : Functor[F]) : OptionT[F, B] =
-      optionT[F](F.map(run)(((_) : (A \/ B)).toOption))
+      optionT[F](F.map(run)((_ : A \/ B).toOption))
     def toMaybe(implicit F : Functor[F]) : MaybeT[F, B] =
-      MaybeT(F.map(run)(((_) : (A \/ B)).toMaybe))
+      MaybeT(F.map(run)((_ : A \/ B).toMaybe))
     def toEither(implicit F : Functor[F]) : F[Either[A, B]] =
       F.map(run)(_.toEither)
     def getOrElse(default : => B)(implicit F : Functor[F]) : F[B] =
-      F.map(run)(((_) getOrElse default))
+      F.map(run)(_ getOrElse default)
     def |(default : => B)(implicit F : Functor[F]) : F[B] =
       getOrElse(default)
     def valueOr(x : (A) => B)(implicit F : Functor[F]) : F[B] =
-      F.map(run)(((_) valueOr x))
+      F.map(run)(_ valueOr x)
     def orElse(x : => EitherT[A, F, B])(implicit F : Monad[F]) : EitherT[ A
     , F
     , B ] =
@@ -119,7 +119,7 @@ package scalaz {
     def +++(x : => EitherT[A, F, B])( implicit M1 : Semigroup[B]
     , M2 : Semigroup[A]
     , F : Apply[F] ) : EitherT[A, F, B] =
-      EitherT(F.apply2(run, x.run)(((_) +++ _)))
+      EitherT(F.apply2(run, x.run)(_ +++ (_)))
     def ensure( onLeft : => A )( f : ( B ) => Boolean )( implicit F : Functor[ F ] ) : EitherT[ A
     , F
     , B ] =
@@ -127,30 +127,35 @@ package scalaz {
     def ===(x : EitherT[A, F, B])( implicit EA : Equal[A]
     , EB : Equal[B]
     , F : Apply[F] ) : F[Boolean] =
-      F.apply2(run, x.run)(((_) === _))
+      F.apply2(run, x.run)(_ === (_))
     def compare(x : EitherT[A, F, B])( implicit EA : Order[A]
     , EB : Order[B]
     , F : Apply[F] ) : F[Ordering] =
-      F.apply2(run, x.run)(((_) compare _))
+      F.apply2(run, x.run)(_ compare (_))
     def show(implicit SA : Show[A], SB : Show[B], F : Functor[F]) : F[Cord] =
       F.map(run)(_.show[A, B])
-    def cozip(implicit Z : Cozip[F]) : (F[A] \/ F[B]) =
+    def cozip(implicit Z : Cozip[F]) : F[A] \/ F[B] =
       Z.cozip(run)
     def toValidation(implicit F : Functor[F]) : F[Validation[A, B]] =
       F.map(run)(_.toValidation)
     def validationed[AA, BB]( k : (Validation[A, B]) => Validation[ AA
     , BB ] )(implicit F : Functor[F]) : EitherT[AA, F, BB] =
-      EitherT(F.map(run)(((_) validationed k)))
-    def merge[AA >: A](implicit F : Functor[F], ev : (B <~< AA)) : F[AA] =
+      EitherT(F.map(run)(_ validationed k))
+    def merge[AA >: A](implicit F : Functor[F], ev : B <~< AA) : F[AA] =
       {
-        F.map(run)({   case -\/ (a) =>   a   case \/- (b) =>   ev(b) })
+        F.map(run)( {
+          case -\/ (a) =>
+            a
+          case \/- (b) =>
+            ev(b)
+        } )
       }
   }
 
   object EitherT extends EitherTInstances {
-    def eitherT[A, F[_], B](a : F[(A \/ B)]) : EitherT[A, F, B] =
+    def eitherT[A, F[_], B](a : F[A \/ B]) : EitherT[A, F, B] =
       apply(a)
-    def either[A, F[_]: Applicative, B](d : (A \/ B)) : EitherT[A, F, B] =
+    def either[A, F[_]: Applicative, B](d : A \/ B) : EitherT[A, F, B] =
       apply(Applicative[F].point(d))
     def leftT[A, F[_]: Functor, B](fa : F[A]) : EitherT[A, F, B] =
       apply(Functor[F].map(fa)(-\/(_)))
@@ -165,7 +170,7 @@ package scalaz {
     def fromDisjunction[F[_]] : FromDisjunctionAux[F] =
       new FromDisjunctionAux
     final class FromDisjunctionAux[F[_]]private[EitherT]  {
-      def apply[A, B](a : (A \/ B))(implicit F : Applicative[F]) : EitherT[ A
+      def apply[A, B](a : A \/ B)(implicit F : Applicative[F]) : EitherT[ A
       , F
       , B ] =
         eitherT(F.point(a))
@@ -174,7 +179,7 @@ package scalaz {
     , FAB ] {type A = AB}
     , @deprecated("scala/bug#5075", "") u2 : Unapply2[ Bifunctor
     , AB ] {type A = A0;type B = B0}
-    , l : (AB === (A0 \/ B0)) ) : EitherT[A0, u1.M, B0] =
+    , l : AB === (A0 \/ B0) ) : EitherT[A0, u1.M, B0] =
       eitherT(l.subst[u1.M](u1(fab)))
     def monadTell[F[_], W, A]( implicit MT0 : MonadTell[ F
     , W ] ) : EitherTMonadTell[F, W, A] =
@@ -212,7 +217,7 @@ package scalaz {
     , B ]( ifNone : => A )( fo : F[ Option[ B ] ] )( implicit F : Functor[ F ] ) : EitherT[ A
     , F
     , B ] =
-      apply(F.map(fo)(((o) => \/.fromOption(ifNone)(o))))
+      apply(F.map(fo)((o) => \/.fromOption(ifNone)(o)))
   }
 
   sealed abstract class EitherTInstances5  {
@@ -332,11 +337,11 @@ package scalaz {
       }
     implicit def eitherTEqual[ F[_]
     , A
-    , B ](implicit F0 : Equal[F[(A \/ B)]]) : Equal[EitherT[A, F, B]] =
-      F0.contramap(((_) : EitherT[A, F, B]).run)
+    , B ](implicit F0 : Equal[F[A \/ B]]) : Equal[EitherT[A, F, B]] =
+      F0.contramap((_ : EitherT[A, F, B]).run)
     implicit def eitherTShow[ F[_]
     , A
-    , B ](implicit F0 : Show[F[(A \/ B)]]) : Show[EitherT[A, F, B]] =
+    , B ](implicit F0 : Show[F[A \/ B]]) : Show[EitherT[A, F, B]] =
       Contravariant[Show].contramap(F0)(_.run)
   }
 
@@ -345,7 +350,7 @@ package scalaz {
     override def map[A, B](fa : EitherT[E, F, A])(f : (A) => B) : EitherT[ E
     , F
     , B ] =
-      ((fa) map f)
+      fa map f
   }
 
   private trait EitherTBind[F[_], E]  extends Bind[EitherT[E, F, *]]
@@ -354,7 +359,7 @@ package scalaz {
     final def bind[A, B](fa : EitherT[E, F, A])( f : (A) => EitherT[ E
     , F
     , B ] ) : EitherT[E, F, B] =
-      ((fa) flatMap f)
+      fa flatMap f
   }
 
   private trait EitherTBindRec[F[_], E]  extends BindRec[EitherT[E, F, *]]
@@ -363,10 +368,10 @@ package scalaz {
     implicit def B: BindRec[F]
     final def tailrecM[A, B](a : A)( f : (A) => EitherT[ E
     , F
-    , (A \/ B) ] ) : EitherT[E, F, B] =
-      EitherT( B.tailrecM[A, (E \/ B)](a)( ((a) => F.map(f(a).run)( {
-        _.fold(((e) => \/-(-\/(e))), _.fold(\/.left, ((b) => \/-(\/-(b)))))
-      } )) ) )
+    , A \/ B ] ) : EitherT[E, F, B] =
+      EitherT( B.tailrecM[A, E \/ B](a)( (a) => F.map(f(a).run)( {
+        _.fold((e) => \/-(-\/(e)), _.fold(\/.left, (b) => \/-(\/-(b))))
+      } ) ) )
   }
 
   private trait EitherTMonad[F[_], E]  extends Monad[EitherT[E, F, *]]
@@ -418,7 +423,7 @@ package scalaz {
     def traverseImpl[G[_]: Applicative, A, B]( fa : EitherT[ E
     , F
     , A ] )(f : (A) => G[B]) : G[EitherT[E, F, B]] =
-      ((fa) traverse f)
+      fa traverse f
   }
 
   private trait EitherTBifunctor[F[_]]  extends Bifunctor[EitherT[*, F, *]] {
@@ -451,7 +456,7 @@ package scalaz {
   private trait EitherTHoist[A]  extends Hoist[ ( {type l[α[_], β] = EitherT[ A
   , α
   , β ]})#l ] {
-    def hoist[M[_], N[_]](f : (M ~> N))(implicit M : Monad[M]) =
+    def hoist[M[_], N[_]](f : M ~> N)(implicit M : Monad[M]) =
       new ~>[EitherT[A, M, *], EitherT[A, N, *]] {
         def apply[B](mb : EitherT[A, M, B]) : EitherT[A, N, B] =
           mb.mapT(f.apply)
@@ -486,7 +491,7 @@ package scalaz {
     def listen[B](ma : EitherT[A, F, B]) : EitherT[A, F, (B, W)] =
       {
         val tmp =
-          MT.bind[((A \/ B), W), (A \/ (B, W))](MT.listen(ma.run))( {
+          MT.bind[(A \/ B, W), A \/ (B, W)](MT.listen(ma.run))( {
             case (a @ -\/ (_), _) =>
               MT.point(a.coerceRight)
             case (\/- (b), w) =>
@@ -521,7 +526,7 @@ package scalaz {
     , tail : IList[EitherT[E, F, A]] ) : EitherT[ E
     , F
     , (A, IList[EitherT[E, F, A]]) ] =
-      EitherT( F.map(F.chooseAny(head.run, ((tail) map _.run)))( {
+      EitherT( F.map(F.chooseAny(head.run, tail map (_.run)))( {
         case (a, residuals) =>
           a.map((_, residuals.map(new EitherT(_))))
       } ) )
@@ -536,6 +541,6 @@ package scalaz {
     def ask : EitherT[E, F, R] =
       EitherT.rightT(F.ask)
     def local[A](f : (R) => R)(fa : EitherT[E, F, A]) : EitherT[E, F, A] =
-      fa.mapT(((e) => F.local(f)(e)))
+      fa.mapT((e) => F.local(f)(e))
   }
 }

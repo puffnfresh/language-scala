@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RankNTypes #-}
 
 -- |
 -- Module: Language.Scala
@@ -56,6 +57,7 @@ import Data.Aeson.Types
   )
 import Data.Foldable (asum)
 import Data.Int (Int16, Int32, Int64, Int8)
+import Data.Ord (comparing)
 import Data.Scientific (Scientific)
 import Data.Text (Text)
 import qualified Data.Text as T
@@ -64,6 +66,7 @@ import Data.Text.Prettyprint.Doc
     Pretty (..),
     brackets,
     comma,
+    concatWith,
     encloseSep,
     hardline,
     hsep,
@@ -77,6 +80,7 @@ import Data.Text.Prettyprint.Doc
     rparen,
     semi,
     space,
+    surround,
     tupled,
     vsep,
     (<+>),
@@ -349,29 +353,48 @@ data Pat
     PatTyped Pat Type
   deriving (Eq, Ord, Read, Show)
 
+prettyPat :: Pat -> ScalaDoc PatGroup
+prettyPat (PatLit lit) =
+  ScalaDoc PatGroupLiteral (pretty lit)
+prettyPat (PatTermName name) =
+  ScalaDoc PatGroupPath (pretty name)
+prettyPat (PatTermSelect qual name) =
+  ScalaDoc PatGroupPath (pretty qual <> "." <> pretty name)
+prettyPat (PatVar name) =
+  ScalaDoc PatGroupSimplePattern (pretty name)
+prettyPat PatWildcard =
+  ScalaDoc PatGroupSimplePattern "_"
+prettyPat (PatBind lhs rhs) =
+  ScalaDoc
+    PatGroupPattern2
+    ( hsep
+        [ parensLeft PatGroupSimplePattern (prettyPat lhs),
+          "@",
+          parensLeft PatGroupAnyPattern3 (prettyPat rhs)
+        ]
+    )
+prettyPat (PatAlternative lhs rhs) =
+  ScalaDoc
+    PatGroupPattern
+    ( hsep
+        [ parensLeft PatGroupPattern (prettyPat lhs),
+          "|",
+          parensLeft PatGroupPattern (prettyPat rhs)
+        ]
+    )
+prettyPat (PatTuple args) =
+  ScalaDoc PatGroupSimplePattern (tupled (pretty <$> args))
+prettyPat (PatExtract fun args) =
+  ScalaDoc PatGroupSimplePattern (pretty fun <+> tupled (pretty <$> args))
+prettyPat (PatExtractInfix lhs op rhs) =
+  ScalaDoc (PatGroupPattern3 op) (pretty lhs <+> pretty op <+> tupled (pretty <$> rhs))
+prettyPat (PatTyped lhs rhs) =
+  -- parensLeft TypeGroupRefineTyp (prettyType rhs)
+  ScalaDoc PatGroupPattern1 (parensLeft PatGroupSimplePattern (prettyPat lhs) <> ":" <+> pretty rhs)
+
 instance Pretty Pat where
-  pretty (PatLit lit) =
-    pretty lit
-  pretty (PatTermName name) =
-    pretty name
-  pretty (PatTermSelect qual name) =
-    pretty qual <> "." <> pretty name
-  pretty (PatVar name) =
-    pretty name
-  pretty PatWildcard =
-    "_"
-  pretty (PatBind lhs rhs) =
-    pretty lhs <+> "@" <+> pretty rhs
-  pretty (PatAlternative lhs rhs) =
-    pretty lhs <+> "|" <+> pretty rhs
-  pretty (PatTuple args) =
-    tupled (pretty <$> args)
-  pretty (PatExtract fun args) =
-    pretty fun <+> tupled (pretty <$> args)
-  pretty (PatExtractInfix lhs op rhs) =
-    pretty lhs <+> pretty op <+> tupled (pretty <$> rhs)
-  pretty (PatTyped lhs rhs) =
-    pretty lhs <> ":" <+> pretty rhs
+  pretty =
+    pretty . prettyPat
 
 parsePat :: Text -> Object -> MaybeT Parser Pat
 parsePat t o =
@@ -553,29 +576,53 @@ data Type
   --- | TypeParam' TypeParam
   deriving (Eq, Ord, Read, Show)
 
+prettyType :: Type -> ScalaDoc TypeGroup
+prettyType (TypeRef typeRef) =
+  prettyTypeRef typeRef
+prettyType (TypeApply tpe args) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (pretty tpe <> prettyList args)
+prettyType (TypeApplyInfix lhs op rhs) =
+  ScalaDoc
+    (TypeGroupInfixType op)
+    (parensLeft (TypeGroupInfixType op) (prettyType lhs) <+> pretty op <+> parensRight (TypeGroupInfixType op) (prettyType rhs))
+prettyType (TypeFunction params res) =
+  ScalaDoc
+    TypeGroupType
+    (tupled (parensLeft TypeGroupParamType . prettyType <$> params) <+> "=>" <+> parensLeft TypeGroupType (prettyType res))
+prettyType (TypeTuple args) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (tupled (pretty <$> args))
+prettyType (TypeWith lhs rhs) =
+  ScalaDoc
+    TypeGroupWithType
+    (pretty lhs <+> "with" <+> pretty rhs)
+prettyType (TypeRefine tpe stats) =
+  ScalaDoc
+    TypeGroupRefineType
+    (pretty tpe <+> encloseSep lbrace rbrace semi (pretty <$> stats))
+prettyType (TypeAnnotate tpe annots) =
+  ScalaDoc
+    TypeGroupAnnotType
+    (pretty tpe <+> hsep (("@" <>) . pretty <$> annots))
+prettyType (TypePlaceholder bounds) =
+  ScalaDoc
+    TypeGroupSimpleType
+    ("_" <> pretty bounds)
+prettyType (TypeByName tpe) =
+  ScalaDoc
+    TypeGroupParamType
+    ("=>" <+> pretty tpe)
+prettyType (TypeRepeated tpe) =
+  ScalaDoc
+    TypeGroupParamType
+    (pretty tpe <> "*")
+
 instance Pretty Type where
-  pretty (TypeRef typeRef) =
-    pretty typeRef
-  pretty (TypeApply tpe args) =
-    pretty tpe <> prettyList args
-  pretty (TypeApplyInfix lhs op rhs) =
-    parens (pretty lhs <+> pretty op <+> pretty rhs)
-  pretty (TypeFunction params res) =
-    tupled (pretty <$> params) <+> "=>" <+> pretty res
-  pretty (TypeTuple args) =
-    tupled (pretty <$> args)
-  pretty (TypeWith lhs rhs) =
-    pretty lhs <+> "with" <+> pretty rhs
-  pretty (TypeRefine tpe stats) =
-    pretty tpe <+> encloseSep lbrace rbrace semi (pretty <$> stats)
-  pretty (TypeAnnotate tpe annots) =
-    pretty tpe <+> hsep (("@" <>) . pretty <$> annots)
-  pretty (TypePlaceholder bounds) =
-    "_" <> pretty bounds
-  pretty (TypeByName tpe) =
-    "=>" <+> pretty tpe
-  pretty (TypeRepeated tpe) =
-    pretty tpe <> "*"
+  pretty =
+    pretty . prettyType
 
 parseType :: Text -> Object -> MaybeT Parser Type
 parseType t o =
@@ -711,87 +758,153 @@ data Term
   | TermRepeated Term
   deriving (Eq, Ord, Read, Show)
 
-instance Pretty Term where
-  pretty (TermRef termRef) =
-    pretty termRef
-  pretty (TermInterpolate prefix parts args) =
-    pretty prefix <> "\"" <> go parts args <> "\""
-    where
-      go (LitString p : ps) (a : as) =
-        pretty p <> "${" <> pretty a <> "}" <> go ps as
-      go (LitString p : _) _ =
-        pretty p
-      go _ _ =
-        mempty
-  pretty (TermApplyType fun targs) =
-    pretty fun <> targs'
-    where
-      targs' =
-        if null targs
-          then mempty
-          else list (pretty <$> targs)
-  pretty (TermApplyInfix lhs op targs args) =
-    parens (parens (pretty lhs) <+> pretty op <> targs' <+> args')
-    where
-      targs' =
-        if null targs
-          then mempty
-          else list (pretty <$> targs)
-      args' =
-        case args of
-          [arg] ->
-            pretty arg
-          _ ->
-            tupled (pretty <$> args)
-  pretty (TermApply fun args) =
-    pretty fun <> tupled (pretty <$> args)
-  pretty (TermApplyUnary op arg) =
-    pretty op <> pretty arg
-  pretty (TermAssign lhs rhs) =
-    pretty lhs <+> "=" <+> pretty rhs
-  pretty (TermLit lit) =
-    pretty lit
-  pretty (TermThrow expr) =
-    "throw" <+> pretty expr
-  pretty (TermAscribe expr tpe) =
-    parens (parens (pretty expr) <+> ":" <+> pretty tpe)
-  pretty (TermAnnotate expr annots) =
-    parens (pretty expr <> ":" <+> hsep (("@" <>) . pretty <$> annots))
-  pretty (TermTuple args) =
-    tupled (pretty <$> args)
-  pretty (TermBlock stats) =
-    encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> stats)
-  pretty (TermIf cond thenp elsep) =
-    vsep
-      [ "if (" <> pretty cond <> ")",
-        indent 2 (pretty thenp),
-        "else",
-        indent 2 (pretty elsep)
-      ]
-  pretty (TermMatch expr cases) =
-    pretty expr <+> "match" <+> lbrace <> line <> vsep (indent 2 . pretty <$> cases) <> line <> rbrace
-  pretty (TermTry expr catchp _finallyp) =
-    "try" <+> pretty expr <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp)
-  pretty (TermFunction params body) =
-    parens (tupled (pretty <$> params) <+> "=>" <+> pretty body)
-  pretty (TermPartialFunction cases) =
-    vsep
-      ( [lbrace]
-          <> (indent 2 . pretty <$> cases)
-          <> [rbrace]
-      )
-  pretty (TermForYield enums body) =
-    "for" <+> encloseSep mempty mempty hardline (["{"] <> (indent 2 . pretty <$> enums) <> ["}"]) <+> "yield" <+> pretty body
-  pretty (TermNew init') =
-    "new" <+> pretty init'
-  pretty (TermNewAnonymous templ) =
-    "new" <+> pretty templ
-  pretty TermPlaceholder =
+prettyTerm :: Term -> ScalaDoc TermGroup
+prettyTerm (TermRef termRef) =
+  prettyTermRef termRef
+prettyTerm (TermInterpolate prefix parts args) =
+  ScalaDoc
+    TermGroupSimpleExpr1
+    (pretty prefix <> "\"" <> go parts args <> "\"")
+  where
+    go (LitString p : ps) (a : as) =
+      pretty p <> "${" <> pretty a <> "}" <> go ps as
+    go (LitString p : _) _ =
+      pretty p
+    go _ _ =
+      mempty
+prettyTerm (TermApplyType fun targs) =
+  ScalaDoc
+    TermGroupSimpleExpr1
+    (parensLeft TermGroupSimpleExpr (prettyTerm fun) <> targs')
+  where
+    targs' =
+      if null targs
+        then mempty
+        else list (pretty <$> targs)
+prettyTerm (TermApplyInfix lhs op targs args) =
+  ScalaDoc
+    (TermGroupInfixExpr op)
+    (parensLeft (TermGroupInfixExpr op) (prettyTerm lhs) <+> pretty op <> targs' <+> args')
+  where
+    targs' =
+      if null targs
+        then mempty
+        else list (pretty <$> targs)
+    lhsIsPlaceHolder TermPlaceholder =
+      True
+    lhsIsPlaceHolder (TermRef (TermRefSelect lhs' _)) =
+      lhsIsPlaceHolder lhs'
+    lhsIsPlaceHolder (TermApply lhs' _) =
+      lhsIsPlaceHolder lhs'
+    lhsIsPlaceHolder (TermApplyInfix lhs' _ _ _) =
+      lhsIsPlaceHolder lhs'
+    lhsIsPlaceHolder _ =
+      False
+    args' =
+      case args of
+        [arg] ->
+          if lhsIsPlaceHolder arg
+            then parens (pretty arg)
+            else parensRight (TermGroupInfixExpr op) (prettyTerm arg)
+        _ ->
+          tupled (pretty <$> args)
+prettyTerm (TermApply fun args) =
+  ScalaDoc
+    TermGroupSimpleExpr1
+    (parensLeft TermGroupSimpleExpr1 (prettyTerm fun) <> tupled (pretty <$> args))
+prettyTerm (TermApplyUnary op arg) =
+  ScalaDoc
+    TermGroupPrefixExpr
+    (pretty op <> parensLeft TermGroupSimpleExpr (prettyTerm arg))
+prettyTerm (TermAssign lhs rhs) =
+  ScalaDoc
+    TermGroupExpr1
+    (parensLeft TermGroupSimpleExpr1 (prettyTerm lhs) <+> "=" <+> parensLeft TermGroupExpr (prettyTerm rhs))
+prettyTerm (TermLit lit) =
+  ScalaDoc
+    TermGroupLiteral
+    (pretty lit)
+prettyTerm (TermThrow expr) =
+  ScalaDoc
+    TermGroupExpr1
+    ("throw" <+> parensLeft TermGroupExpr (prettyTerm expr))
+prettyTerm (TermAscribe expr tpe) =
+  ScalaDoc
+    TermGroupExpr1
+    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> ":" <+> pretty tpe)
+prettyTerm (TermAnnotate expr annots) =
+  ScalaDoc
+    TermGroupExpr1
+    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <> ":" <+> hsep (("@" <>) . pretty <$> annots))
+prettyTerm (TermTuple args) =
+  ScalaDoc
+    TermGroupSimpleExpr1
+    (tupled (pretty <$> args))
+prettyTerm (TermBlock stats) =
+  ScalaDoc
+    TermGroupSimpleExpr
+    (encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> stats))
+prettyTerm (TermIf cond thenp elsep) =
+  ScalaDoc
+    TermGroupExpr1
+    ( concatWith
+        (surround hardline)
+        [ "if" <+> parens (pretty cond),
+          indent 2 (parensLeft TermGroupExpr (prettyTerm thenp)),
+          "else",
+          indent 2 (parensLeft TermGroupExpr (prettyTerm elsep))
+        ]
+    )
+prettyTerm (TermMatch expr cases) =
+  ScalaDoc
+    TermGroupExpr1
+    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> "match" <+> lbrace <> line <> concatWith (surround hardline) (indent 2 . pretty <$> cases) <> line <> rbrace)
+prettyTerm (TermTry expr catchp _finallyp) =
+  ScalaDoc
+    TermGroupExpr1
+    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp))
+prettyTerm (TermFunction params body) =
+  ScalaDoc
+    TermGroupExpr
+    (tupled (pretty <$> params) <+> "=>" <+> parensLeft TermGroupExpr (prettyTerm body))
+prettyTerm (TermPartialFunction cases) =
+  ScalaDoc
+    TermGroupSimpleExpr
+    ( concatWith
+        (surround hardline)
+        ( [lbrace]
+            <> (indent 2 . pretty <$> cases)
+            <> [rbrace]
+        )
+    )
+prettyTerm (TermForYield enums body) =
+  ScalaDoc
+    TermGroupExpr1
+    ("for" <+> encloseSep mempty mempty hardline (["{"] <> (indent 2 . pretty <$> enums) <> ["}"]) <+> "yield" <+> pretty body)
+prettyTerm (TermNew init') =
+  ScalaDoc
+    TermGroupSimpleExpr
+    ("new" <+> pretty init')
+prettyTerm (TermNewAnonymous templ) =
+  ScalaDoc
+    TermGroupSimpleExpr
+    ("new" <+> pretty templ)
+prettyTerm TermPlaceholder =
+  ScalaDoc
+    TermGroupSimpleExpr1
     "_"
-  pretty (TermEta expr) =
-    pretty expr <+> "_"
-  pretty (TermRepeated expr) =
-    pretty expr <+> ":" <+> "_*"
+prettyTerm (TermEta expr) =
+  ScalaDoc
+    TermGroupPostfixExpr
+    (parensLeft TermGroupSimpleExpr1 (prettyTerm expr) <+> "_")
+prettyTerm (TermRepeated expr) =
+  ScalaDoc
+    TermGroupPostfixExpr
+    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> ":" <+> "_*")
+
+instance Pretty Term where
+  pretty =
+    pretty . prettyTerm
 
 parseTerm :: Text -> Object -> MaybeT Parser Term
 parseTerm t o =
@@ -1023,26 +1136,39 @@ data TermRef
   | TermRefSelect Term Text
   deriving (Eq, Ord, Read, Show)
 
+prettyTermRef :: TermRef -> ScalaDoc TermGroup
+prettyTermRef (TermRefThis qual) =
+  ScalaDoc
+    TermGroupPath
+    ( if T.null qual
+        then "this"
+        else pretty qual <> ".this"
+    )
+prettyTermRef (TermRefSuper thisp superp) =
+  ScalaDoc
+    TermGroupPath
+    (thisp' <> "super" <> superp')
+  where
+    thisp' =
+      if T.null thisp
+        then mempty
+        else pretty thisp <> "."
+    superp' =
+      if T.null superp
+        then mempty
+        else brackets (pretty superp)
+prettyTermRef (TermRefName name) =
+  ScalaDoc
+    TermGroupPath
+    (pretty name)
+prettyTermRef (TermRefSelect qual name) =
+  ScalaDoc
+    TermGroupPath
+    (parensLeft TermGroupSimpleExpr (prettyTerm qual) <> "." <> pretty name)
+
 instance Pretty TermRef where
-  pretty (TermRefThis qual) =
-    if T.null qual
-      then "this"
-      else pretty qual <> ".this"
-  pretty (TermRefSuper thisp superp) =
-    thisp' <> "super" <> superp'
-    where
-      thisp' =
-        if T.null thisp
-          then mempty
-          else pretty thisp <> "."
-      superp' =
-        if T.null superp
-          then mempty
-          else brackets (pretty superp)
-  pretty (TermRefName name) =
-    pretty name
-  pretty (TermRefSelect qual name) =
-    pretty qual <> "." <> pretty name
+  pretty =
+    pretty . prettyTermRef
 
 parseTermRef :: Text -> Object -> MaybeT Parser TermRef
 parseTermRef t o =
@@ -1131,15 +1257,27 @@ data TypeRef
   | TypeRefSingleton TermRef
   deriving (Eq, Ord, Read, Show)
 
+prettyTypeRef :: TypeRef -> ScalaDoc TypeGroup
+prettyTypeRef (TypeRefName value) =
+  ScalaDoc
+    TypeGroupPath
+    (pretty value)
+prettyTypeRef (TypeRefSelect ref name) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (pretty ref <> "." <> pretty name)
+prettyTypeRef (TypeRefProject qual name) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (parens (pretty qual) <> "#" <> pretty name)
+prettyTypeRef (TypeRefSingleton ref) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (pretty ref <> ".type")
+
 instance Pretty TypeRef where
-  pretty (TypeRefName value) =
-    pretty value
-  pretty (TypeRefSelect ref name) =
-    pretty ref <> "." <> pretty name
-  pretty (TypeRefProject qual name) =
-    parens (pretty qual) <> "#" <> pretty name
-  pretty (TypeRefSingleton ref) =
-    pretty ref <> ".type"
+  pretty =
+    pretty . prettyTypeRef
 
 parseTypeRef :: Text -> Object -> MaybeT Parser TypeRef
 parseTypeRef t o =
@@ -1265,7 +1403,7 @@ data Init
 
 instance Pretty Init where
   pretty (Init tpe argss) =
-    pretty tpe <> foldMap (encloseSep lparen rparen (comma <> space) . fmap pretty) argss
+    parensLeft TypeGroupAnnotType (prettyType tpe) <> foldMap (encloseSep lparen rparen (comma <> space) . fmap pretty) argss
 
 instance FromJSON Init where
   parseJSON =
@@ -1408,6 +1546,157 @@ parseMod t o =
 instance FromJSON Mod where
   parseJSON =
     withTypeObject "Mod" parseMod
+
+data TypeGroup
+  = TypeGroupParamType
+  | TypeGroupType
+  | TypeGroupAnyInfixType
+  | TypeGroupInfixType Text
+  | TypeGroupRefineType
+  | TypeGroupWithType
+  | TypeGroupAnnotType
+  | TypeGroupSimpleType
+  | TypeGroupPath
+  deriving (Eq, Ord, Read, Show)
+
+data TermGroup
+  = TermGroupExpr
+  | TermGroupExpr1
+  | TermGroupPostfixExpr
+  | TermGroupInfixExpr Text
+  | TermGroupPrefixExpr
+  | TermGroupSimpleExpr
+  | TermGroupSimpleExpr1
+  | TermGroupLiteral
+  | TermGroupPath
+  deriving (Eq, Ord, Read, Show)
+
+data PatGroup
+  = PatGroupPattern
+  | PatGroupPattern1
+  | PatGroupPattern2
+  | PatGroupAnyPattern3
+  | PatGroupPattern3 Text
+  | PatGroupSimplePattern
+  | PatGroupLiteral
+  | PatGroupPath
+  deriving (Read, Show)
+
+instance Eq PatGroup where
+  x == y =
+    compare x y == EQ
+
+instance Ord PatGroup where
+  compare =
+    comparing f
+    where
+      f :: PatGroup -> Word
+      f PatGroupPattern =
+        0
+      f PatGroupPattern1 =
+        1
+      f PatGroupPattern2 =
+        2
+      f PatGroupAnyPattern3 =
+        3
+      f (PatGroupPattern3 _) =
+        4
+      f PatGroupSimplePattern =
+        5
+      f PatGroupLiteral =
+        5
+      f PatGroupPath =
+        5
+
+data ScalaDoc group
+  = ScalaDoc group (forall ann. Doc ann)
+
+instance Pretty (ScalaDoc group) where
+  pretty (ScalaDoc _ doc) =
+    doc
+
+class HasOp group where
+  hasOp :: group -> Maybe Text
+
+instance HasOp PatGroup where
+  hasOp (PatGroupPattern3 op) =
+    Just op
+  hasOp _ =
+    Nothing
+
+instance HasOp TypeGroup where
+  hasOp (TypeGroupInfixType op) =
+    Just op
+  hasOp _ =
+    Nothing
+
+instance HasOp TermGroup where
+  hasOp (TermGroupInfixExpr op) =
+    Just op
+  hasOp _ =
+    Nothing
+
+opNeedsParens :: Bool -> Text -> Text -> Bool
+opNeedsParens isRhs oo io =
+  case compare (namePrecedence oo) (namePrecedence io) of
+    EQ ->
+      isRhs
+    _ ->
+      namePrecedence oo > namePrecedence io
+
+parensLeft :: (HasOp g, Ord g) => g -> ScalaDoc g -> Doc ann
+parensLeft =
+  parens' False
+
+parensRight :: (HasOp g, Ord g) => g -> ScalaDoc g -> Doc ann
+parensRight =
+  parens' True
+
+parens' :: (HasOp g, Ord g) => Bool -> g -> ScalaDoc g -> Doc ann
+parens' isRhs og (ScalaDoc ig doc) =
+  if ( case (hasOp og, hasOp ig) of
+         (Just oo, Just io) ->
+           opNeedsParens isRhs oo io
+         _ ->
+           og > ig
+     )
+    then parens doc
+    else doc
+
+namePrecedence :: Text -> Word
+namePrecedence t =
+  case T.uncons t of
+    Just (c, _) -> f c
+    Nothing -> 0
+  where
+    f '|' =
+      2
+    f '^' =
+      3
+    f '&' =
+      4
+    f '=' =
+      5
+    f '!' =
+      5
+    f '<' =
+      6
+    f '>' =
+      6
+    f ':' =
+      7
+    f '+' =
+      8
+    f '-' =
+      8
+    f '*' =
+      9
+    f '/' =
+      9
+    f '%' =
+      9
+    f _ =
+      1
 
 prettyDecltpe :: Maybe Type -> Doc ann
 prettyDecltpe =

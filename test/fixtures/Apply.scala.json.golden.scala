@@ -8,7 +8,7 @@ package scalaz {
     , B ](value : G[A])(f : (A) => F[B])(implicit G : Traverse1[G]) : F[G[B]] =
       G.traverse1(value)(f)(this)
     def sequence1[A, G[_]: Traverse1](as : G[F[A]]) : F[G[A]] =
-      traverse1(as)(((a) => a))
+      traverse1(as)((a) => a)
     def forever[A, B](fa : F[A]) : F[B] =
       discardLeft(fa, forever(fa))
     def unfoldrOpt[S, A, B](seed : S)( f : (S) => Maybe[ ( F[A]
@@ -22,10 +22,10 @@ package scalaz {
               acc
           }
       
-        ((f(seed)) map {
+        f(seed) map {
           case (fa, s) =>
             go(map(fa)(R.unit), s)
-        })
+        }
       }
     def compose[G[_]](implicit G0 : Apply[G]) : Apply[λ[(α) => F[G[α]]]] =
       new CompositionApply[F, G] {
@@ -48,7 +48,7 @@ package scalaz {
       override def map[A, B](fa : F[A])(f : (A) => B) : F[B] =
         self.map(fa)(f)
       def ap[A, B](fa : => F[A])(f : => F[(A) => B]) : F[B] =
-        self.ap(f)(self.map(fa)(((a) => ((f : (A) => B) => f(a)))))
+        self.ap(f)(self.map(fa)((a) => (f : (A) => B) => f(a)))
       override def flip : self.type =
         self
     }
@@ -340,14 +340,14 @@ package scalaz {
     , F[L] ) => F[R] =
       apply12(_, _, _, _, _, _, _, _, _, _, _, _)(f)
     def discardLeft[A, B](fa : => F[A], fb : => F[B]) : F[B] =
-      apply2(fa, fb)(((_, b) => b))
+      apply2(fa, fb)((_, b) => b)
     def discardRight[A, B](fa : => F[A], fb : => F[B]) : F[A] =
-      apply2(fa, fb)(((a, _) => a))
-    def applyApplicative : Applicative[λ[(α) => (F[α] \/ α)]] =
-      new Applicative[λ[(α) => (F[α] \/ α)]] {
+      apply2(fa, fb)((a, _) => a)
+    def applyApplicative : Applicative[λ[(α) => F[α] \/ α]] =
+      new Applicative[λ[(α) => F[α] \/ α]] {
         def point[A](a : => A) =
           \/-(a)
-        def ap[A, B](a : => (F[A] \/ A))(f : => (F[(A) => B] \/ (A) => B)) =
+        def ap[A, B](a : => F[A] \/ A)(f : => F[(A) => B] \/ ((A) => B)) =
           (f, a) match {
             case (\/- (f), \/- (a)) =>
               \/-(f(a))
@@ -378,7 +378,7 @@ package scalaz {
       , fab : F[(A) => B]
       , fa : F[A] )(implicit FC : Equal[F[C]]) : Boolean =
         FC.equal( ap(ap(fa)(fab))(fbc)
-        , ap( fa )( ap( fab )( map( fbc )( (( bc : ( B ) => C ) => (( ab : ( A ) => B ) => ((bc) compose ab))) ) ) ) )
+        , ap( fa )( ap( fab )( map( fbc )( ( bc : ( B ) => C ) => ( ab : ( A ) => B ) => bc compose ab ) ) ) )
     }
     def applyLaw : ApplyLaw =
       new ApplyLaw {
@@ -394,14 +394,14 @@ package scalaz {
     @inline def apply[F[_]](implicit F : Apply[F]) : Apply[F] =
       F
     import Isomorphism.{_}
-    def fromIso[F[_], G[_]](D : (F <~> G))(implicit E : Apply[G]) : Apply[F] =
+    def fromIso[F[_], G[_]](D : F <~> G)(implicit E : Apply[G]) : Apply[F] =
       new IsomorphismApply[F, G] {
         override def G : Apply[G] =
           E
-        override def iso : (F <~> G) =
+        override def iso : F <~> G =
           D
       }
-    type Par[F[_]] = Apply[λ[(α) => (F[α] @@ Tags.Parallel)]]
+    type Par[F[_]] = Apply[λ[(α) => F[α] @@ Tags.Parallel]]
   }
 
   trait IsomorphismApply[F[_], G[_]]  extends Apply[F]

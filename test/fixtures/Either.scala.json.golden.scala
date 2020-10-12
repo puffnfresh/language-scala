@@ -26,9 +26,9 @@ package scalaz {
           , B ] )(f : (A) => G[C], g : (B) => G[D]) =
             fab match {
               case Left (a) =>
-                Applicative[G].map(f(a))(((b) => Left(b)))
+                Applicative[G].map(f(a))((b) => Left(b))
               case Right (b) =>
-                Applicative[G].map(g(b))(((d) => Right(d)))
+                Applicative[G].map(g(b))((d) => Right(d))
             }
         }
       implicit def eitherMonad[L] : Traverse[ Either[ L
@@ -92,7 +92,7 @@ package scalaz {
               case Right (a) =>
                 f(a, z)
             }
-          def cozip[A, B](a : Either[L, (A \/ B)]) =
+          def cozip[A, B](a : Either[L, A \/ B]) =
             a match {
               case Left (l) =>
                 -\/(Left(l))
@@ -105,7 +105,7 @@ package scalaz {
                 }
             }
           @scala.annotation.tailrec def tailrecM[ A
-          , B ](a : A)(f : (A) => Either[L, (A \/ B)]) : Either[L, B] =
+          , B ](a : A)(f : (A) => Either[L, A \/ B]) : Either[L, B] =
             f(a) match {
               case Left (l) =>
                 Left(l)
@@ -127,12 +127,12 @@ package scalaz {
         new Associative[Either] {
           override def reassociateLeft[A, B, C]( f : Either[ A
           , Either[B, C] ] ) : Either[Either[A, B], C] =
-            f.fold( ((a) => Left(Left(a)))
-            , _.fold(((b) => Left(Right(b))), Right(_)) )
+            f.fold( (a) => Left(Left(a))
+            , _.fold((b) => Left(Right(b)), Right(_)) )
           override def reassociateRight[A, B, C]( f : Either[ Either[A, B]
           , C ] ) : Either[A, Either[B, C]] =
-            f.fold( _.fold(Left(_), ((b) => Right(Left(b))))
-            , ((c) => Right(Right(c))) )
+            f.fold( _.fold(Left(_), (b) => Right(Left(b)))
+            , (c) => Right(Right(c)) )
         }
       implicit def eitherShow[A, B]( implicit SA : Show[A]
       , SB : Show[B] ) : Show[Either[A, B]] =
@@ -164,7 +164,7 @@ package scalaz {
             false
         }
       override val equalIsNatural : Boolean =
-        ((A.equalIsNatural) && B.equalIsNatural)
+        A.equalIsNatural && B.equalIsNatural
     }
   
     private trait EitherOrder[A, B]  extends Order[Either[A, B]]
