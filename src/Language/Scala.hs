@@ -559,19 +559,15 @@ data Type
   | TypeApply Type [Type]
   | TypeApplyInfix Type Text Type
   | TypeFunction [Type] Type
-  | --- | TypeImplicitFunction [Type] Type
-    TypeTuple [Type]
+  | TypeTuple [Type]
   | TypeWith Type Type
-  | --- | TypeAnd Type Type
-    --- | TypeOr Type Type
-    TypeRefine (Maybe Type) [Stat]
+  | TypeRefine (Maybe Type) [Stat]
   | --- | TypeExistential Type [Stat]
     TypeAnnotate Type [Init]
   | TypePlaceholder Bounds
   | TypeByName Type
   | TypeRepeated Type
   --- | TypeVar Text
-  --- | TypeParam' TypeParam
   deriving (Eq, Ord, Read, Show)
 
 prettyType :: Type -> ScalaDoc TypeGroup
