@@ -567,9 +567,7 @@ data Type
     TypeRefine (Maybe Type) [Stat]
   | --- | TypeExistential Type [Stat]
     TypeAnnotate Type [Init]
-  | --- | TypeLambda [TypeParam] Type
-    --- | TypeMethod [[TypeParam]] Type
-    TypePlaceholder Bounds
+  | TypePlaceholder Bounds
   | TypeByName Type
   | TypeRepeated Type
   --- | TypeVar Text
