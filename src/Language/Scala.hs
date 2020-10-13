@@ -55,7 +55,7 @@ import Data.Aeson.Types
     listParser,
     typeMismatch,
   )
-import Data.Char (ord, chr, isAlphaNum)
+import Data.Char (chr, isAlphaNum, ord)
 import Data.Foldable (asum)
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Ord (comparing)
@@ -504,7 +504,7 @@ data Lit
   | LitBoolean Bool
   | LitUnit
   | LitString Text
-  --- | LitSymbol Text
+  | LitSymbol Text
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Lit where
@@ -532,6 +532,8 @@ instance Pretty Lit where
     "()"
   pretty (LitString syntax) =
     "\"" <> pretty syntax <> "\""
+  pretty (LitSymbol value) =
+    "'" <> pretty value
 
 parseLit :: Text -> Object -> MaybeT Parser Lit
 parseLit t o =
@@ -584,6 +586,11 @@ parseLit t o =
       lift
         ( LitString
             <$> nameParser (Object o)
+        )
+    "Lit.Symbol" ->
+      lift
+        ( LitSymbol
+            <$> o .: "value"
         )
     _ ->
       empty
