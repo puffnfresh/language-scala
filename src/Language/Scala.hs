@@ -55,7 +55,7 @@ import Data.Aeson.Types
     listParser,
     typeMismatch,
   )
-import Data.Char (isAlphaNum)
+import Data.Char (ord, chr, isAlphaNum)
 import Data.Foldable (asum)
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Ord (comparing)
@@ -85,6 +85,7 @@ import Data.Text.Prettyprint.Doc
     tupled,
     (<+>),
   )
+import Data.Word (Word16)
 
 data Source
   = Source [Stat]
@@ -498,8 +499,8 @@ data Lit
   | LitFloat Scientific
   | LitByte Int8
   | LitShort Int16
-  | --- | LitChar Word16
-    LitLong Int64
+  | LitChar Word16
+  | LitLong Int64
   | LitBoolean Bool
   | LitUnit
   | LitString Text
@@ -519,6 +520,8 @@ instance Pretty Lit where
     pretty value
   pretty (LitShort value) =
     pretty value
+  pretty (LitChar value) =
+    pretty (show (chr (fromIntegral value)))
   pretty (LitLong value) =
     pretty value <> "L"
   pretty (LitBoolean value) =
@@ -558,6 +561,11 @@ parseLit t o =
     "Lit.Short" ->
       lift
         ( LitShort
+            <$> o .: "value"
+        )
+    "Lit.Char" ->
+      lift
+        ( LitChar . fromIntegral . ord
             <$> o .: "value"
         )
     "Lit.Long" ->
