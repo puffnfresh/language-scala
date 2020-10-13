@@ -1,0 +1,5065 @@
+{
+  "type": "Source",
+  "stats": [
+    {
+      "type": "Pkg",
+      "ref": {
+        "type": "Term.Name",
+        "value": "scalaz"
+      },
+      "stats": [
+        {
+          "type": "Pkg",
+          "ref": {
+            "type": "Term.Name",
+            "value": "effect"
+          },
+          "stats": [
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Name",
+                    "value": "reflect"
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Name",
+                      "name": {
+                        "type": "Name.Indeterminate",
+                        "value": "ClassTag"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Name",
+                    "value": "STRef"
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Wildcard"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Name",
+                    "value": "STArray"
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Wildcard"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Name",
+                    "value": "ST"
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Wildcard"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Select",
+                    "qual": {
+                      "type": "Term.Name",
+                      "value": "std"
+                    },
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "function"
+                    }
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Wildcard"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Import",
+              "importers": [
+                {
+                  "type": "Importer",
+                  "ref": {
+                    "type": "Term.Name",
+                    "value": "Id"
+                  },
+                  "importees": [
+                    {
+                      "type": "Importee.Wildcard"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "STRef"
+              },
+              "tparams": [
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "S"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                },
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "A"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                }
+              ],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Decl.Var",
+                    "mods": [
+                      {
+                        "type": "Mod.Protected",
+                        "within": {
+                          "type": "Name.Anonymous",
+                          "value": ""
+                        }
+                      }
+                    ],
+                    "pats": [
+                      {
+                        "type": "Pat.Var",
+                        "name": {
+                          "type": "Term.Name",
+                          "value": "value"
+                        }
+                      }
+                    ],
+                    "decltpe": {
+                      "type": "Type.Name",
+                      "value": "A"
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "read"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "returnST"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Name",
+                          "value": "value"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "mod"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STRef"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Block",
+                            "stats": [
+                              {
+                                "type": "Term.Assign",
+                                "lhs": {
+                                  "type": "Term.Name",
+                                  "value": "value"
+                                },
+                                "rhs": {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.Name",
+                                    "value": "f"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "value"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "Term.This",
+                                "qual": {
+                                  "type": "Name.Anonymous",
+                                  "value": ""
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "write"
+                    },
+                    "tparams": [],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.ByName",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STRef"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Block",
+                            "stats": [
+                              {
+                                "type": "Term.Assign",
+                                "lhs": {
+                                  "type": "Term.Name",
+                                  "value": "value"
+                                },
+                                "rhs": {
+                                  "type": "Term.Name",
+                                  "value": "a"
+                                }
+                              },
+                              {
+                                "type": "Term.This",
+                                "qual": {
+                                  "type": "Name.Anonymous",
+                                  "value": ""
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "|="
+                    },
+                    "tparams": [],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.ByName",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STRef"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "write"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Name",
+                          "value": "a"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "swap"
+                    },
+                    "tparams": [],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "that"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "STRef"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "Unit"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.ForYield",
+                      "enums": [
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Var",
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "v1"
+                            }
+                          },
+                          "rhs": {
+                            "type": "Term.Select",
+                            "qual": {
+                              "type": "Term.This",
+                              "qual": {
+                                "type": "Name.Anonymous",
+                                "value": ""
+                              }
+                            },
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "read"
+                            }
+                          }
+                        },
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Var",
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "v2"
+                            }
+                          },
+                          "rhs": {
+                            "type": "Term.Select",
+                            "qual": {
+                              "type": "Term.Name",
+                              "value": "that"
+                            },
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "read"
+                            }
+                          }
+                        },
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Wildcard"
+                          },
+                          "rhs": {
+                            "type": "Term.ApplyInfix",
+                            "lhs": {
+                              "type": "Term.This",
+                              "qual": {
+                                "type": "Name.Anonymous",
+                                "value": ""
+                              }
+                            },
+                            "op": {
+                              "type": "Term.Name",
+                              "value": "write"
+                            },
+                            "targs": [],
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "v2"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Wildcard"
+                          },
+                          "rhs": {
+                            "type": "Term.ApplyInfix",
+                            "lhs": {
+                              "type": "Term.Name",
+                              "value": "that"
+                            },
+                            "op": {
+                              "type": "Term.Name",
+                              "value": "write"
+                            },
+                            "targs": [],
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "v1"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "body": {
+                        "type": "Lit.Unit",
+                        "syntax": "()"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Object",
+              "mods": [],
+              "name": {
+                "type": "Term.Name",
+                "value": "STRef"
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [
+                  {
+                    "type": "Init",
+                    "tpe": {
+                      "type": "Type.Name",
+                      "value": "STRefInstances"
+                    },
+                    "name": {
+                      "type": "Name.Anonymous",
+                      "value": ""
+                    },
+                    "argss": []
+                  }
+                ],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "apply"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.ApplyInfix",
+                      "lhs": {
+                        "type": "Type.Name",
+                        "value": "Id"
+                      },
+                      "op": {
+                        "type": "Type.Name",
+                        "value": "~>"
+                      },
+                      "rhs": {
+                        "type": "Type.Apply",
+                        "tpe": {
+                          "type": "Type.Name",
+                          "value": "STRef"
+                        },
+                        "args": [
+                          {
+                            "type": "Type.Name",
+                            "value": "S"
+                          },
+                          {
+                            "type": "Type.Name",
+                            "value": "*"
+                          }
+                        ]
+                      }
+                    },
+                    "body": {
+                      "type": "Term.ApplyType",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "stRef"
+                      },
+                      "targs": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "stRef"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.ApplyInfix",
+                      "lhs": {
+                        "type": "Type.Name",
+                        "value": "Id"
+                      },
+                      "op": {
+                        "type": "Type.Name",
+                        "value": "~>"
+                      },
+                      "rhs": {
+                        "type": "Type.Apply",
+                        "tpe": {
+                          "type": "Type.Name",
+                          "value": "STRef"
+                        },
+                        "args": [
+                          {
+                            "type": "Type.Name",
+                            "value": "S"
+                          },
+                          {
+                            "type": "Type.Name",
+                            "value": "*"
+                          }
+                        ]
+                      }
+                    },
+                    "body": {
+                      "type": "Term.NewAnonymous",
+                      "templ": {
+                        "type": "Template",
+                        "early": [],
+                        "inits": [
+                          {
+                            "type": "Init",
+                            "tpe": {
+                              "type": "Type.ApplyInfix",
+                              "lhs": {
+                                "type": "Type.Name",
+                                "value": "Id"
+                              },
+                              "op": {
+                                "type": "Type.Name",
+                                "value": "~>"
+                              },
+                              "rhs": {
+                                "type": "Type.Apply",
+                                "tpe": {
+                                  "type": "Type.Name",
+                                  "value": "STRef"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "S"
+                                  },
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "*"
+                                  }
+                                ]
+                              }
+                            },
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "argss": []
+                          }
+                        ],
+                        "self": {
+                          "type": "Self",
+                          "name": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        },
+                        "stats": [
+                          {
+                            "type": "Defn.Def",
+                            "mods": [],
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "apply"
+                            },
+                            "tparams": [
+                              {
+                                "type": "Type.Param",
+                                "mods": [],
+                                "name": {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                },
+                                "tparams": [],
+                                "tbounds": {
+                                  "type": "Type.Bounds"
+                                },
+                                "vbounds": [],
+                                "cbounds": []
+                              }
+                            ],
+                            "paramss": [
+                              [
+                                {
+                                  "type": "Term.Param",
+                                  "mods": [],
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "a"
+                                  },
+                                  "decltpe": {
+                                    "type": "Type.Name",
+                                    "value": "A"
+                                  }
+                                }
+                              ]
+                            ],
+                            "body": {
+                              "type": "Term.NewAnonymous",
+                              "templ": {
+                                "type": "Template",
+                                "early": [],
+                                "inits": [
+                                  {
+                                    "type": "Init",
+                                    "tpe": {
+                                      "type": "Type.Apply",
+                                      "tpe": {
+                                        "type": "Type.Name",
+                                        "value": "STRef"
+                                      },
+                                      "args": [
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "S"
+                                        },
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "A"
+                                        }
+                                      ]
+                                    },
+                                    "name": {
+                                      "type": "Name.Anonymous",
+                                      "value": ""
+                                    },
+                                    "argss": []
+                                  }
+                                ],
+                                "self": {
+                                  "type": "Self",
+                                  "name": {
+                                    "type": "Name.Anonymous",
+                                    "value": ""
+                                  }
+                                },
+                                "stats": [
+                                  {
+                                    "type": "Defn.Var",
+                                    "mods": [],
+                                    "pats": [
+                                      {
+                                        "type": "Pat.Var",
+                                        "name": {
+                                          "type": "Term.Name",
+                                          "value": "value"
+                                        }
+                                      }
+                                    ],
+                                    "rhs": {
+                                      "type": "Term.Name",
+                                      "value": "a"
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "STRefInstances"
+              },
+              "tparams": [],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Implicit"
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "STRefEqual"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "Equal"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STRef"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Select",
+                      "qual": {
+                        "type": "Term.Name",
+                        "value": "Equal"
+                      },
+                      "name": {
+                        "type": "Term.Name",
+                        "value": "equalA"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "STArray"
+              },
+              "tparams": [
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "S"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                },
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "A"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                }
+              ],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Decl.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "size"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Name",
+                      "value": "Int"
+                    }
+                  },
+                  {
+                    "type": "Decl.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "z"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Name",
+                      "value": "A"
+                    }
+                  },
+                  {
+                    "type": "Decl.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Implicit"
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "tag"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ClassTag"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Val",
+                    "mods": [
+                      {
+                        "type": "Mod.Private",
+                        "within": {
+                          "type": "Term.This",
+                          "qual": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        }
+                      }
+                    ],
+                    "pats": [
+                      {
+                        "type": "Pat.Var",
+                        "name": {
+                          "type": "Term.Name",
+                          "value": "arr"
+                        }
+                      }
+                    ],
+                    "rhs": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "Need"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Apply",
+                          "fun": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Select",
+                              "qual": {
+                                "type": "Term.Name",
+                                "value": "Array"
+                              },
+                              "name": {
+                                "type": "Term.Name",
+                                "value": "fill"
+                              }
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "size"
+                              }
+                            ]
+                          },
+                          "args": [
+                            {
+                              "type": "Term.Name",
+                              "value": "z"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Private",
+                        "within": {
+                          "type": "Name.Anonymous",
+                          "value": ""
+                        }
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "value"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "Array"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Select",
+                      "qual": {
+                        "type": "Term.Name",
+                        "value": "arr"
+                      },
+                      "name": {
+                        "type": "Term.Name",
+                        "value": "value"
+                      }
+                    }
+                  },
+                  {
+                    "type": "Import",
+                    "importers": [
+                      {
+                        "type": "Importer",
+                        "ref": {
+                          "type": "Term.Name",
+                          "value": "ST"
+                        },
+                        "importees": [
+                          {
+                            "type": "Importee.Wildcard"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "read"
+                    },
+                    "tparams": [],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "i"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "returnST"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Apply",
+                          "fun": {
+                            "type": "Term.Name",
+                            "value": "value"
+                          },
+                          "args": [
+                            {
+                              "type": "Term.Name",
+                              "value": "i"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "write"
+                    },
+                    "tparams": [],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "i"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STArray"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Block",
+                            "stats": [
+                              {
+                                "type": "Term.Assign",
+                                "lhs": {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.Name",
+                                    "value": "value"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "i"
+                                    }
+                                  ]
+                                },
+                                "rhs": {
+                                  "type": "Term.Name",
+                                  "value": "a"
+                                }
+                              },
+                              {
+                                "type": "Term.This",
+                                "qual": {
+                                  "type": "Name.Anonymous",
+                                  "value": ""
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "freeze"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "ImmutableArray"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Select",
+                              "qual": {
+                                "type": "Term.Name",
+                                "value": "ImmutableArray"
+                              },
+                              "name": {
+                                "type": "Term.Name",
+                                "value": "fromArray"
+                              }
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "value"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "fill"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "B"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "xs"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "Iterable"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Tuple",
+                                "args": [
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "Int"
+                                  },
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "B"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "Unit"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Match",
+                      "expr": {
+                        "type": "Term.Select",
+                        "qual": {
+                          "type": "Term.Name",
+                          "value": "xs"
+                        },
+                        "name": {
+                          "type": "Term.Name",
+                          "value": "toList"
+                        }
+                      },
+                      "cases": [
+                        {
+                          "type": "Case",
+                          "pat": {
+                            "type": "Term.Name",
+                            "value": "Nil"
+                          },
+                          "body": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Name",
+                              "value": "returnST"
+                            },
+                            "args": [
+                              {
+                                "type": "Lit.Unit",
+                                "syntax": "()"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "Case",
+                          "pat": {
+                            "type": "Pat.ExtractInfix",
+                            "lhs": {
+                              "type": "Pat.Tuple",
+                              "args": [
+                                {
+                                  "type": "Pat.Var",
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "i"
+                                  }
+                                },
+                                {
+                                  "type": "Pat.Var",
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "v"
+                                  }
+                                }
+                              ]
+                            },
+                            "op": {
+                              "type": "Term.Name",
+                              "value": "::"
+                            },
+                            "rhs": [
+                              {
+                                "type": "Pat.Var",
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "ivs"
+                                }
+                              }
+                            ]
+                          },
+                          "body": {
+                            "type": "Term.ForYield",
+                            "enums": [
+                              {
+                                "type": "Enumerator.Generator",
+                                "pat": {
+                                  "type": "Pat.Wildcard"
+                                },
+                                "rhs": {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.Name",
+                                    "value": "update"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "f"
+                                    },
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "i"
+                                    },
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "v"
+                                    }
+                                  ]
+                                }
+                              },
+                              {
+                                "type": "Enumerator.Generator",
+                                "pat": {
+                                  "type": "Pat.Wildcard"
+                                },
+                                "rhs": {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.Name",
+                                    "value": "fill"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "f"
+                                    },
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "ivs"
+                                    }
+                                  ]
+                                }
+                              }
+                            ],
+                            "body": {
+                              "type": "Lit.Unit",
+                              "syntax": "()"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "update"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "B"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "i"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "v"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "B"
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "Unit"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.ForYield",
+                      "enums": [
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Var",
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "x"
+                            }
+                          },
+                          "rhs": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Name",
+                              "value": "read"
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "i"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "Enumerator.Generator",
+                          "pat": {
+                            "type": "Pat.Wildcard"
+                          },
+                          "rhs": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Name",
+                              "value": "write"
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "i"
+                              },
+                              {
+                                "type": "Term.Apply",
+                                "fun": {
+                                  "type": "Term.Name",
+                                  "value": "f"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Term.Name",
+                                    "value": "x"
+                                  },
+                                  {
+                                    "type": "Term.Name",
+                                    "value": "v"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "body": {
+                        "type": "Lit.Unit",
+                        "syntax": "()"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Object",
+              "mods": [],
+              "name": {
+                "type": "Term.Name",
+                "value": "STArray"
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "apply"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": [
+                          {
+                            "type": "Type.Name",
+                            "value": "ClassTag"
+                          }
+                        ]
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "s"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "STArray"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "stArray"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Name",
+                          "value": "s"
+                        },
+                        {
+                          "type": "Term.Name",
+                          "value": "a"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "stArray"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "s"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        }
+                      ],
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [
+                            {
+                              "type": "Mod.Implicit"
+                            }
+                          ],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "t"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "ClassTag"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "STArray"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.NewAnonymous",
+                      "templ": {
+                        "type": "Template",
+                        "early": [],
+                        "inits": [
+                          {
+                            "type": "Init",
+                            "tpe": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "STArray"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "argss": []
+                          }
+                        ],
+                        "self": {
+                          "type": "Self",
+                          "name": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        },
+                        "stats": [
+                          {
+                            "type": "Defn.Val",
+                            "mods": [],
+                            "pats": [
+                              {
+                                "type": "Pat.Var",
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "size"
+                                }
+                              }
+                            ],
+                            "rhs": {
+                              "type": "Term.Name",
+                              "value": "s"
+                            }
+                          },
+                          {
+                            "type": "Defn.Val",
+                            "mods": [],
+                            "pats": [
+                              {
+                                "type": "Pat.Var",
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "z"
+                                }
+                              }
+                            ],
+                            "rhs": {
+                              "type": "Term.Name",
+                              "value": "a"
+                            }
+                          },
+                          {
+                            "type": "Defn.Val",
+                            "mods": [
+                              {
+                                "type": "Mod.Implicit"
+                              }
+                            ],
+                            "pats": [
+                              {
+                                "type": "Pat.Var",
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "tag"
+                                }
+                              }
+                            ],
+                            "rhs": {
+                              "type": "Term.Name",
+                              "value": "t"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "ST"
+              },
+              "tparams": [
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "S"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                },
+                {
+                  "type": "Type.Param",
+                  "mods": [],
+                  "name": {
+                    "type": "Type.Name",
+                    "value": "A"
+                  },
+                  "tparams": [],
+                  "tbounds": {
+                    "type": "Type.Bounds"
+                  },
+                  "vbounds": [],
+                  "cbounds": []
+                }
+              ],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Decl.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Private",
+                        "within": {
+                          "type": "Name.Indeterminate",
+                          "value": "effect"
+                        }
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "run"
+                    },
+                    "tparams": [],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Name",
+                      "value": "A"
+                    }
+                  },
+                  {
+                    "type": "Import",
+                    "importers": [
+                      {
+                        "type": "Importer",
+                        "ref": {
+                          "type": "Term.Name",
+                          "value": "ST"
+                        },
+                        "importees": [
+                          {
+                            "type": "Importee.Wildcard"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "flatMap"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "g"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "B"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "B"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Select",
+                            "qual": {
+                              "type": "Term.Apply",
+                              "fun": {
+                                "type": "Term.Name",
+                                "value": "g"
+                              },
+                              "args": [
+                                {
+                                  "type": "Term.Name",
+                                  "value": "run"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "run"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "map"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "g"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "B"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "B"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Name",
+                              "value": "g"
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Name",
+                                "value": "run"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Object",
+              "mods": [],
+              "name": {
+                "type": "Term.Name",
+                "value": "ST"
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [
+                  {
+                    "type": "Init",
+                    "tpe": {
+                      "type": "Type.Name",
+                      "value": "STInstances"
+                    },
+                    "name": {
+                      "type": "Name.Anonymous",
+                      "value": ""
+                    },
+                    "argss": []
+                  }
+                ],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "apply"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.ByName",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "returnST"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Name",
+                          "value": "a"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "st"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.NewAnonymous",
+                      "templ": {
+                        "type": "Template",
+                        "early": [],
+                        "inits": [
+                          {
+                            "type": "Init",
+                            "tpe": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "argss": []
+                          }
+                        ],
+                        "self": {
+                          "type": "Self",
+                          "name": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        },
+                        "stats": [
+                          {
+                            "type": "Defn.Def",
+                            "mods": [
+                              {
+                                "type": "Mod.Private",
+                                "within": {
+                                  "type": "Name.Indeterminate",
+                                  "value": "effect"
+                                }
+                              }
+                            ],
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "run"
+                            },
+                            "tparams": [],
+                            "paramss": [],
+                            "body": {
+                              "type": "Term.Apply",
+                              "fun": {
+                                "type": "Term.Name",
+                                "value": "f"
+                              },
+                              "args": []
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "STToIO"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "st"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "ST"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "IvoryTower"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "IO"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Select",
+                        "qual": {
+                          "type": "Term.Name",
+                          "value": "IO"
+                        },
+                        "name": {
+                          "type": "Term.Name",
+                          "value": "io"
+                        }
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [
+                            {
+                              "type": "Term.Param",
+                              "mods": [],
+                              "name": {
+                                "type": "Term.Name",
+                                "value": "rw"
+                              }
+                            }
+                          ],
+                          "body": {
+                            "type": "Term.Apply",
+                            "fun": {
+                              "type": "Term.Select",
+                              "qual": {
+                                "type": "Term.Name",
+                                "value": "Free"
+                              },
+                              "name": {
+                                "type": "Term.Name",
+                                "value": "return_"
+                              }
+                            },
+                            "args": [
+                              {
+                                "type": "Term.Tuple",
+                                "args": [
+                                  {
+                                    "type": "Term.Name",
+                                    "value": "rw"
+                                  },
+                                  {
+                                    "type": "Term.Select",
+                                    "qual": {
+                                      "type": "Term.Name",
+                                      "value": "st"
+                                    },
+                                    "name": {
+                                      "type": "Term.Name",
+                                      "value": "run"
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "returnST"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          },
+                          "decltpe": {
+                            "type": "Type.ByName",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "st"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Function",
+                          "params": [],
+                          "body": {
+                            "type": "Term.Name",
+                            "value": "a"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "runST"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "Forall"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Apply",
+                                "tpe": {
+                                  "type": "Type.Name",
+                                  "value": "ST"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "*"
+                                  },
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "A"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Name",
+                      "value": "A"
+                    },
+                    "body": {
+                      "type": "Term.Select",
+                      "qual": {
+                        "type": "Term.Select",
+                        "qual": {
+                          "type": "Term.Name",
+                          "value": "f"
+                        },
+                        "name": {
+                          "type": "Term.Name",
+                          "value": "apply"
+                        }
+                      },
+                      "name": {
+                        "type": "Term.Name",
+                        "value": "run"
+                      }
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "newVar"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.ApplyInfix",
+                      "lhs": {
+                        "type": "Type.Name",
+                        "value": "Id"
+                      },
+                      "op": {
+                        "type": "Type.Name",
+                        "value": "~>"
+                      },
+                      "rhs": {
+                        "type": "Type.Apply",
+                        "tpe": {
+                          "type": "Type.Name",
+                          "value": "λ"
+                        },
+                        "args": [
+                          {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "α"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Apply",
+                                  "tpe": {
+                                    "type": "Type.Name",
+                                    "value": "STRef"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Type.Name",
+                                      "value": "S"
+                                    },
+                                    {
+                                      "type": "Type.Name",
+                                      "value": "α"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    "body": {
+                      "type": "Term.NewAnonymous",
+                      "templ": {
+                        "type": "Template",
+                        "early": [],
+                        "inits": [
+                          {
+                            "type": "Init",
+                            "tpe": {
+                              "type": "Type.ApplyInfix",
+                              "lhs": {
+                                "type": "Type.Name",
+                                "value": "Id"
+                              },
+                              "op": {
+                                "type": "Type.Name",
+                                "value": "~>"
+                              },
+                              "rhs": {
+                                "type": "Type.Apply",
+                                "tpe": {
+                                  "type": "Type.Name",
+                                  "value": "λ"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Type.Function",
+                                    "params": [
+                                      {
+                                        "type": "Type.Name",
+                                        "value": "α"
+                                      }
+                                    ],
+                                    "res": {
+                                      "type": "Type.Apply",
+                                      "tpe": {
+                                        "type": "Type.Name",
+                                        "value": "ST"
+                                      },
+                                      "args": [
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "S"
+                                        },
+                                        {
+                                          "type": "Type.Apply",
+                                          "tpe": {
+                                            "type": "Type.Name",
+                                            "value": "STRef"
+                                          },
+                                          "args": [
+                                            {
+                                              "type": "Type.Name",
+                                              "value": "S"
+                                            },
+                                            {
+                                              "type": "Type.Name",
+                                              "value": "α"
+                                            }
+                                          ]
+                                        }
+                                      ]
+                                    }
+                                  }
+                                ]
+                              }
+                            },
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "argss": []
+                          }
+                        ],
+                        "self": {
+                          "type": "Self",
+                          "name": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        },
+                        "stats": [
+                          {
+                            "type": "Defn.Def",
+                            "mods": [],
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "apply"
+                            },
+                            "tparams": [
+                              {
+                                "type": "Type.Param",
+                                "mods": [],
+                                "name": {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                },
+                                "tparams": [],
+                                "tbounds": {
+                                  "type": "Type.Bounds"
+                                },
+                                "vbounds": [],
+                                "cbounds": []
+                              }
+                            ],
+                            "paramss": [
+                              [
+                                {
+                                  "type": "Term.Param",
+                                  "mods": [],
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "a"
+                                  },
+                                  "decltpe": {
+                                    "type": "Type.Name",
+                                    "value": "A"
+                                  }
+                                }
+                              ]
+                            ],
+                            "body": {
+                              "type": "Term.Apply",
+                              "fun": {
+                                "type": "Term.Name",
+                                "value": "returnST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.ApplyType",
+                                    "fun": {
+                                      "type": "Term.Name",
+                                      "value": "stRef"
+                                    },
+                                    "targs": [
+                                      {
+                                        "type": "Type.Name",
+                                        "value": "S"
+                                      }
+                                    ]
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "a"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "newArr"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": [
+                          {
+                            "type": "Type.Name",
+                            "value": "ClassTag"
+                          }
+                        ]
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "size"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "z"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "STArray"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "returnST"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Apply",
+                          "fun": {
+                            "type": "Term.ApplyType",
+                            "fun": {
+                              "type": "Term.Name",
+                              "value": "stArray"
+                            },
+                            "targs": [
+                              {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          },
+                          "args": [
+                            {
+                              "type": "Term.Name",
+                              "value": "size"
+                            },
+                            {
+                              "type": "Term.Name",
+                              "value": "z"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "fixST"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "k"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.ByName",
+                                "tpe": {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                }
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                }
+                              ]
+                            }
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.Name",
+                        "value": "ST"
+                      },
+                      "args": [
+                        {
+                          "type": "Term.Block",
+                          "stats": [
+                            {
+                              "type": "Defn.Val",
+                              "mods": [
+                                {
+                                  "type": "Mod.Lazy"
+                                }
+                              ],
+                              "pats": [
+                                {
+                                  "type": "Pat.Var",
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "ans"
+                                  }
+                                }
+                              ],
+                              "decltpe": {
+                                "type": "Type.Name",
+                                "value": "A"
+                              },
+                              "rhs": {
+                                "type": "Term.Select",
+                                "qual": {
+                                  "type": "Term.Apply",
+                                  "fun": {
+                                    "type": "Term.Name",
+                                    "value": "k"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Term.Name",
+                                      "value": "r"
+                                    }
+                                  ]
+                                },
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "run"
+                                }
+                              }
+                            },
+                            {
+                              "type": "Defn.Val",
+                              "mods": [
+                                {
+                                  "type": "Mod.Lazy"
+                                }
+                              ],
+                              "pats": [
+                                {
+                                  "type": "Pat.Var",
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "r"
+                                  }
+                                }
+                              ],
+                              "rhs": {
+                                "type": "Term.Name",
+                                "value": "ans"
+                              }
+                            },
+                            {
+                              "type": "Term.Name",
+                              "value": "ans"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "accumArray"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "F"
+                        },
+                        "tparams": [
+                          {
+                            "type": "Type.Param",
+                            "mods": [],
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "tparams": [],
+                            "tbounds": {
+                              "type": "Type.Bounds"
+                            },
+                            "vbounds": [],
+                            "cbounds": []
+                          }
+                        ],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": [
+                          {
+                            "type": "Type.Name",
+                            "value": "ClassTag"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "B"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "size"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "Int"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "f"
+                          },
+                          "decltpe": {
+                            "type": "Type.Function",
+                            "params": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "B"
+                              }
+                            ],
+                            "res": {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "z"
+                          },
+                          "decltpe": {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        },
+                        {
+                          "type": "Term.Param",
+                          "mods": [],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "ivs"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "F"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Tuple",
+                                "args": [
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "Int"
+                                  },
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "B"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [
+                            {
+                              "type": "Mod.Implicit"
+                            }
+                          ],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "F"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "Foldable"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "F"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "ImmutableArray"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Name",
+                          "value": "A"
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Block",
+                      "stats": [
+                        {
+                          "type": "Import",
+                          "importers": [
+                            {
+                              "type": "Importer",
+                              "ref": {
+                                "type": "Term.Select",
+                                "qual": {
+                                  "type": "Term.Name",
+                                  "value": "std"
+                                },
+                                "name": {
+                                  "type": "Term.Name",
+                                  "value": "anyVal"
+                                }
+                              },
+                              "importees": [
+                                {
+                                  "type": "Importee.Name",
+                                  "name": {
+                                    "type": "Name.Indeterminate",
+                                    "value": "unitInstance"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Defn.Type",
+                          "mods": [],
+                          "name": {
+                            "type": "Type.Name",
+                            "value": "STA"
+                          },
+                          "tparams": [
+                            {
+                              "type": "Type.Param",
+                              "mods": [],
+                              "name": {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              "tparams": [],
+                              "tbounds": {
+                                "type": "Type.Bounds"
+                              },
+                              "vbounds": [],
+                              "cbounds": []
+                            }
+                          ],
+                          "body": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "ST"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              {
+                                "type": "Type.Apply",
+                                "tpe": {
+                                  "type": "Type.Name",
+                                  "value": "ImmutableArray"
+                                },
+                                "args": [
+                                  {
+                                    "type": "Type.Name",
+                                    "value": "A"
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "type": "Term.Apply",
+                          "fun": {
+                            "type": "Term.Name",
+                            "value": "runST"
+                          },
+                          "args": [
+                            {
+                              "type": "Term.NewAnonymous",
+                              "templ": {
+                                "type": "Template",
+                                "early": [],
+                                "inits": [
+                                  {
+                                    "type": "Init",
+                                    "tpe": {
+                                      "type": "Type.Apply",
+                                      "tpe": {
+                                        "type": "Type.Name",
+                                        "value": "Forall"
+                                      },
+                                      "args": [
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "STA"
+                                        }
+                                      ]
+                                    },
+                                    "name": {
+                                      "type": "Name.Anonymous",
+                                      "value": ""
+                                    },
+                                    "argss": []
+                                  }
+                                ],
+                                "self": {
+                                  "type": "Self",
+                                  "name": {
+                                    "type": "Name.Anonymous",
+                                    "value": ""
+                                  }
+                                },
+                                "stats": [
+                                  {
+                                    "type": "Defn.Def",
+                                    "mods": [],
+                                    "name": {
+                                      "type": "Term.Name",
+                                      "value": "apply"
+                                    },
+                                    "tparams": [
+                                      {
+                                        "type": "Type.Param",
+                                        "mods": [],
+                                        "name": {
+                                          "type": "Type.Name",
+                                          "value": "S"
+                                        },
+                                        "tparams": [],
+                                        "tbounds": {
+                                          "type": "Type.Bounds"
+                                        },
+                                        "vbounds": [],
+                                        "cbounds": []
+                                      }
+                                    ],
+                                    "paramss": [],
+                                    "body": {
+                                      "type": "Term.ForYield",
+                                      "enums": [
+                                        {
+                                          "type": "Enumerator.Generator",
+                                          "pat": {
+                                            "type": "Pat.Var",
+                                            "name": {
+                                              "type": "Term.Name",
+                                              "value": "a"
+                                            }
+                                          },
+                                          "rhs": {
+                                            "type": "Term.Apply",
+                                            "fun": {
+                                              "type": "Term.Name",
+                                              "value": "newArr"
+                                            },
+                                            "args": [
+                                              {
+                                                "type": "Term.Name",
+                                                "value": "size"
+                                              },
+                                              {
+                                                "type": "Term.Name",
+                                                "value": "z"
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        {
+                                          "type": "Enumerator.Generator",
+                                          "pat": {
+                                            "type": "Pat.Wildcard"
+                                          },
+                                          "rhs": {
+                                            "type": "Term.Block",
+                                            "stats": [
+                                              {
+                                                "type": "Term.Apply",
+                                                "fun": {
+                                                  "type": "Term.Apply",
+                                                  "fun": {
+                                                    "type": "Term.Apply",
+                                                    "fun": {
+                                                      "type": "Term.Select",
+                                                      "qual": {
+                                                        "type": "Term.Name",
+                                                        "value": "F"
+                                                      },
+                                                      "name": {
+                                                        "type": "Term.Name",
+                                                        "value": "foldMap"
+                                                      }
+                                                    },
+                                                    "args": [
+                                                      {
+                                                        "type": "Term.Name",
+                                                        "value": "ivs"
+                                                      }
+                                                    ]
+                                                  },
+                                                  "args": [
+                                                    {
+                                                      "type": "Term.Function",
+                                                      "params": [
+                                                        {
+                                                          "type": "Term.Param",
+                                                          "mods": [],
+                                                          "name": {
+                                                            "type": "Term.Name",
+                                                            "value": "x"
+                                                          },
+                                                          "decltpe": {
+                                                            "type": "Type.Tuple",
+                                                            "args": [
+                                                              {
+                                                                "type": "Type.Name",
+                                                                "value": "Int"
+                                                              },
+                                                              {
+                                                                "type": "Type.Name",
+                                                                "value": "B"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      ],
+                                                      "body": {
+                                                        "type": "Term.Apply",
+                                                        "fun": {
+                                                          "type": "Term.Select",
+                                                          "qual": {
+                                                            "type": "Term.Name",
+                                                            "value": "a"
+                                                          },
+                                                          "name": {
+                                                            "type": "Term.Name",
+                                                            "value": "update"
+                                                          }
+                                                        },
+                                                        "args": [
+                                                          {
+                                                            "type": "Term.Name",
+                                                            "value": "f"
+                                                          },
+                                                          {
+                                                            "type": "Term.Select",
+                                                            "qual": {
+                                                              "type": "Term.Name",
+                                                              "value": "x"
+                                                            },
+                                                            "name": {
+                                                              "type": "Term.Name",
+                                                              "value": "_1"
+                                                            }
+                                                          },
+                                                          {
+                                                            "type": "Term.Select",
+                                                            "qual": {
+                                                              "type": "Term.Name",
+                                                              "value": "x"
+                                                            },
+                                                            "name": {
+                                                              "type": "Term.Name",
+                                                              "value": "_2"
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  ]
+                                                },
+                                                "args": [
+                                                  {
+                                                    "type": "Term.ApplyType",
+                                                    "fun": {
+                                                      "type": "Term.Name",
+                                                      "value": "stMonoid"
+                                                    },
+                                                    "targs": [
+                                                      {
+                                                        "type": "Type.Name",
+                                                        "value": "S"
+                                                      },
+                                                      {
+                                                        "type": "Type.Name",
+                                                        "value": "Unit"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              }
+                                            ]
+                                          }
+                                        },
+                                        {
+                                          "type": "Enumerator.Generator",
+                                          "pat": {
+                                            "type": "Pat.Var",
+                                            "name": {
+                                              "type": "Term.Name",
+                                              "value": "frozen"
+                                            }
+                                          },
+                                          "rhs": {
+                                            "type": "Term.Select",
+                                            "qual": {
+                                              "type": "Term.Name",
+                                              "value": "a"
+                                            },
+                                            "name": {
+                                              "type": "Term.Name",
+                                              "value": "freeze"
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "body": {
+                                        "type": "Term.Name",
+                                        "value": "frozen"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "STInstance0"
+              },
+              "tparams": [],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Implicit"
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "stSemigroup"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [
+                            {
+                              "type": "Mod.Implicit"
+                            }
+                          ],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "A"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "Semigroup"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "Semigroup"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "ST"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.ApplyType",
+                        "fun": {
+                          "type": "Term.Select",
+                          "qual": {
+                            "type": "Term.Name",
+                            "value": "Semigroup"
+                          },
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "liftSemigroup"
+                          }
+                        },
+                        "targs": [
+                          {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "ST"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "*"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        ]
+                      },
+                      "args": [
+                        {
+                          "type": "Term.ApplyType",
+                          "fun": {
+                            "type": "Term.Select",
+                            "qual": {
+                              "type": "Term.Name",
+                              "value": "ST"
+                            },
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "stMonad"
+                            }
+                          },
+                          "targs": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Term.Name",
+                          "value": "A"
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Defn.Class",
+              "mods": [
+                {
+                  "type": "Mod.Sealed"
+                },
+                {
+                  "type": "Mod.Abstract"
+                }
+              ],
+              "name": {
+                "type": "Type.Name",
+                "value": "STInstances"
+              },
+              "tparams": [],
+              "ctor": {
+                "type": "Ctor.Primary",
+                "mods": [],
+                "name": {
+                  "type": "Name.Anonymous",
+                  "value": ""
+                },
+                "paramss": []
+              },
+              "templ": {
+                "type": "Template",
+                "early": [],
+                "inits": [
+                  {
+                    "type": "Init",
+                    "tpe": {
+                      "type": "Type.Name",
+                      "value": "STInstance0"
+                    },
+                    "name": {
+                      "type": "Name.Anonymous",
+                      "value": ""
+                    },
+                    "argss": []
+                  }
+                ],
+                "self": {
+                  "type": "Self",
+                  "name": {
+                    "type": "Name.Anonymous",
+                    "value": ""
+                  }
+                },
+                "stats": [
+                  {
+                    "type": "Defn.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Implicit"
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "stMonoid"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      },
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "A"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [
+                      [
+                        {
+                          "type": "Term.Param",
+                          "mods": [
+                            {
+                              "type": "Mod.Implicit"
+                            }
+                          ],
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "A"
+                          },
+                          "decltpe": {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "Monoid"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "A"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    ],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "Monoid"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "ST"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "A"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.Apply",
+                      "fun": {
+                        "type": "Term.ApplyType",
+                        "fun": {
+                          "type": "Term.Select",
+                          "qual": {
+                            "type": "Term.Name",
+                            "value": "Monoid"
+                          },
+                          "name": {
+                            "type": "Term.Name",
+                            "value": "liftMonoid"
+                          }
+                        },
+                        "targs": [
+                          {
+                            "type": "Type.Apply",
+                            "tpe": {
+                              "type": "Type.Name",
+                              "value": "ST"
+                            },
+                            "args": [
+                              {
+                                "type": "Type.Name",
+                                "value": "S"
+                              },
+                              {
+                                "type": "Type.Name",
+                                "value": "*"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "Type.Name",
+                            "value": "A"
+                          }
+                        ]
+                      },
+                      "args": [
+                        {
+                          "type": "Term.ApplyType",
+                          "fun": {
+                            "type": "Term.Name",
+                            "value": "stMonad"
+                          },
+                          "targs": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Term.Name",
+                          "value": "A"
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "type": "Defn.Def",
+                    "mods": [
+                      {
+                        "type": "Mod.Implicit"
+                      }
+                    ],
+                    "name": {
+                      "type": "Term.Name",
+                      "value": "stMonad"
+                    },
+                    "tparams": [
+                      {
+                        "type": "Type.Param",
+                        "mods": [],
+                        "name": {
+                          "type": "Type.Name",
+                          "value": "S"
+                        },
+                        "tparams": [],
+                        "tbounds": {
+                          "type": "Type.Bounds"
+                        },
+                        "vbounds": [],
+                        "cbounds": []
+                      }
+                    ],
+                    "paramss": [],
+                    "decltpe": {
+                      "type": "Type.Apply",
+                      "tpe": {
+                        "type": "Type.Name",
+                        "value": "Monad"
+                      },
+                      "args": [
+                        {
+                          "type": "Type.Apply",
+                          "tpe": {
+                            "type": "Type.Name",
+                            "value": "ST"
+                          },
+                          "args": [
+                            {
+                              "type": "Type.Name",
+                              "value": "S"
+                            },
+                            {
+                              "type": "Type.Name",
+                              "value": "*"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    "body": {
+                      "type": "Term.NewAnonymous",
+                      "templ": {
+                        "type": "Template",
+                        "early": [],
+                        "inits": [
+                          {
+                            "type": "Init",
+                            "tpe": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "Monad"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Apply",
+                                  "tpe": {
+                                    "type": "Type.Name",
+                                    "value": "ST"
+                                  },
+                                  "args": [
+                                    {
+                                      "type": "Type.Name",
+                                      "value": "S"
+                                    },
+                                    {
+                                      "type": "Type.Name",
+                                      "value": "*"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            "name": {
+                              "type": "Name.Anonymous",
+                              "value": ""
+                            },
+                            "argss": []
+                          }
+                        ],
+                        "self": {
+                          "type": "Self",
+                          "name": {
+                            "type": "Name.Anonymous",
+                            "value": ""
+                          }
+                        },
+                        "stats": [
+                          {
+                            "type": "Defn.Def",
+                            "mods": [],
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "point"
+                            },
+                            "tparams": [
+                              {
+                                "type": "Type.Param",
+                                "mods": [],
+                                "name": {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                },
+                                "tparams": [],
+                                "tbounds": {
+                                  "type": "Type.Bounds"
+                                },
+                                "vbounds": [],
+                                "cbounds": []
+                              }
+                            ],
+                            "paramss": [
+                              [
+                                {
+                                  "type": "Term.Param",
+                                  "mods": [],
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "a"
+                                  },
+                                  "decltpe": {
+                                    "type": "Type.ByName",
+                                    "tpe": {
+                                      "type": "Type.Name",
+                                      "value": "A"
+                                    }
+                                  }
+                                }
+                              ]
+                            ],
+                            "decltpe": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                }
+                              ]
+                            },
+                            "body": {
+                              "type": "Term.Apply",
+                              "fun": {
+                                "type": "Term.Name",
+                                "value": "returnST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Term.Name",
+                                  "value": "a"
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "type": "Defn.Def",
+                            "mods": [],
+                            "name": {
+                              "type": "Term.Name",
+                              "value": "bind"
+                            },
+                            "tparams": [
+                              {
+                                "type": "Type.Param",
+                                "mods": [],
+                                "name": {
+                                  "type": "Type.Name",
+                                  "value": "A"
+                                },
+                                "tparams": [],
+                                "tbounds": {
+                                  "type": "Type.Bounds"
+                                },
+                                "vbounds": [],
+                                "cbounds": []
+                              },
+                              {
+                                "type": "Type.Param",
+                                "mods": [],
+                                "name": {
+                                  "type": "Type.Name",
+                                  "value": "B"
+                                },
+                                "tparams": [],
+                                "tbounds": {
+                                  "type": "Type.Bounds"
+                                },
+                                "vbounds": [],
+                                "cbounds": []
+                              }
+                            ],
+                            "paramss": [
+                              [
+                                {
+                                  "type": "Term.Param",
+                                  "mods": [],
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "fa"
+                                  },
+                                  "decltpe": {
+                                    "type": "Type.Apply",
+                                    "tpe": {
+                                      "type": "Type.Name",
+                                      "value": "ST"
+                                    },
+                                    "args": [
+                                      {
+                                        "type": "Type.Name",
+                                        "value": "S"
+                                      },
+                                      {
+                                        "type": "Type.Name",
+                                        "value": "A"
+                                      }
+                                    ]
+                                  }
+                                }
+                              ],
+                              [
+                                {
+                                  "type": "Term.Param",
+                                  "mods": [],
+                                  "name": {
+                                    "type": "Term.Name",
+                                    "value": "f"
+                                  },
+                                  "decltpe": {
+                                    "type": "Type.Function",
+                                    "params": [
+                                      {
+                                        "type": "Type.Name",
+                                        "value": "A"
+                                      }
+                                    ],
+                                    "res": {
+                                      "type": "Type.Apply",
+                                      "tpe": {
+                                        "type": "Type.Name",
+                                        "value": "ST"
+                                      },
+                                      "args": [
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "S"
+                                        },
+                                        {
+                                          "type": "Type.Name",
+                                          "value": "B"
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              ]
+                            ],
+                            "decltpe": {
+                              "type": "Type.Apply",
+                              "tpe": {
+                                "type": "Type.Name",
+                                "value": "ST"
+                              },
+                              "args": [
+                                {
+                                  "type": "Type.Name",
+                                  "value": "S"
+                                },
+                                {
+                                  "type": "Type.Name",
+                                  "value": "B"
+                                }
+                              ]
+                            },
+                            "body": {
+                              "type": "Term.ApplyInfix",
+                              "lhs": {
+                                "type": "Term.Name",
+                                "value": "fa"
+                              },
+                              "op": {
+                                "type": "Term.Name",
+                                "value": "flatMap"
+                              },
+                              "targs": [],
+                              "args": [
+                                {
+                                  "type": "Term.Name",
+                                  "value": "f"
+                                }
+                              ]
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

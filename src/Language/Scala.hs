@@ -181,14 +181,20 @@ instance FromJSON Stat where
 
 data Decl
   = DeclVal [Mod] [Pat] Type
-  | -- | DeclVar [Mod] [Pat] Type
-    DeclDef [Mod] Text [TypeParam] [[TermParam]] Type
+  | DeclVar [Mod] [Pat] Type
+  | DeclDef [Mod] Text [TypeParam] [[TermParam]] Type
   --- | DeclType [Mod] Text [TypeParam] Bounds
   deriving (Eq, Ord, Read, Show)
 
+prettyDeclValVar :: [Mod] -> [Pat] -> Type -> Doc ann -> Doc ann
+prettyDeclValVar mods pats decltpe n =
+  hsep ((pretty <$> mods) ++ [n, concatWith (surround (comma <> space)) (pretty <$> pats) <> ":", pretty decltpe])
+
 instance Pretty Decl where
   pretty (DeclVal mods pats decltpe) =
-    hsep ((pretty <$> mods) ++ ["val", concatWith (surround (comma <> space)) (pretty <$> pats) <> ":", pretty decltpe])
+    prettyDeclValVar mods pats decltpe "val"
+  pretty (DeclVar mods pats decltpe) =
+    prettyDeclValVar mods pats decltpe "var"
   pretty (DeclDef mods name tparams paramss decltpe) =
     hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe'])
     where
@@ -220,6 +226,13 @@ parseDecl t o =
             <*> o .: "pats"
             <*> o .: "decltpe"
         )
+    "Decl.Var" ->
+      lift
+        ( DeclVar
+            <$> o .: "mods"
+            <*> o .: "pats"
+            <*> o .: "decltpe"
+        )
     _ ->
       empty
 
@@ -229,8 +242,8 @@ instance FromJSON Decl where
 
 data Defn
   = DefnVal [Mod] [Pat] (Maybe Type) Term
-  | --- | DefnVar [Mod] [Pat] (Maybe Type) (Maybe Term)
-    DefnDef [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
+  | DefnVar [Mod] [Pat] (Maybe Type) (Maybe Term)
+  | DefnDef [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
   | --- | DefnMacro [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
     DefnType [Mod] Text [TypeParam] Type
   | DefnClass [Mod] Text [TypeParam] CtorPrimary Template
@@ -238,12 +251,18 @@ data Defn
   | DefnObject [Mod] Text Template
   deriving (Eq, Ord, Read, Show)
 
+prettyDefnValVar :: [Mod] -> [Pat] -> Maybe Type -> Maybe Term -> Doc ann -> Doc ann
+prettyDefnValVar mods pats decltpe body n =
+  hardlines
+    [ hsep ((pretty <$> mods) ++ [n, concatWith (surround (comma <> space)) (pretty <$> pats) <> prettyDecltpe decltpe, "="]),
+      indent 2 (pretty body)
+    ]
+
 instance Pretty Defn where
   pretty (DefnVal mods pats decltpe body) =
-    hardlines
-      [ hsep ((pretty <$> mods) ++ ["val", concatWith (surround (comma <> space)) (pretty <$> pats) <> prettyDecltpe decltpe, "="]),
-        indent 2 (pretty body)
-      ]
+    prettyDefnValVar mods pats decltpe (Just body) "val"
+  pretty (DefnVar mods pats decltpe body) =
+    prettyDefnValVar mods pats decltpe body "var"
   pretty (DefnDef mods name tparams paramss decltpe body) =
     hardlines
       [ hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe', "="]),
@@ -298,6 +317,14 @@ parseDefn t o =
             <*> o .: "pats"
             <*> o .:? "decltpe"
             <*> o .: "rhs"
+        )
+    "Defn.Var" ->
+      lift
+        ( DefnVar
+            <$> o .: "mods"
+            <*> o .: "pats"
+            <*> o .:? "decltpe"
+            <*> o .:? "rhs"
         )
     "Defn.Def" ->
       lift
