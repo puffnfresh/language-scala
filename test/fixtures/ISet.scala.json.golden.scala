@@ -1,21 +1,18 @@
 package scalaz {
   import annotation.{tailrec}
-
   import Ordering.{_}
-
   import std.option.{_}
-
   sealed abstract class ISet[A]  {
     import ISet.{_}
     val size: Int
-    final def isEmpty : Boolean =
+    final def isEmpty: Boolean =
       this match {
         case Tip () =>
           true
         case Bin (_, _, _) =>
           false
       }
-    @tailrec final def member(x : A)(implicit o : Order[A]) : Boolean =
+    @tailrec final def member(x: A)(implicit o: Order[A]): Boolean =
       this match {
         case Tip () =>
           false
@@ -29,13 +26,13 @@ package scalaz {
               true
           }
       }
-    final def contains(x : A)(implicit o : Order[A]) : Boolean =
+    final def contains(x: A)(implicit o: Order[A]): Boolean =
       member(x)
-    final def notMember(x : A)(implicit o : Order[A]) : Boolean =
+    final def notMember(x: A)(implicit o: Order[A]): Boolean =
       !member(x)
-    @tailrec final def lookupLT(x : A)(implicit o : Order[A]) : Option[A] =
+    @tailrec final def lookupLT(x: A)(implicit o: Order[A]): Option[A] =
       {
-        @tailrec def withBest(x : A, best : A, t : ISet[A]) : Option[A] =
+        @tailrec def withBest(x: A, best: A, t: ISet[A]): Option[A] =
           t match {
             case Tip () =>
               some(best)
@@ -45,7 +42,6 @@ package scalaz {
               else
                 withBest(x, y, r)
           }
-      
         this match {
           case Tip () =>
             none
@@ -56,9 +52,9 @@ package scalaz {
               withBest(x, y, r)
         }
       }
-    @tailrec final def lookupGT(x : A)(implicit o : Order[A]) : Option[A] =
+    @tailrec final def lookupGT(x: A)(implicit o: Order[A]): Option[A] =
       {
-        @tailrec def withBest(x : A, best : A, t : ISet[A]) : Option[A] =
+        @tailrec def withBest(x: A, best: A, t: ISet[A]): Option[A] =
           t match {
             case Tip () =>
               some(best)
@@ -68,7 +64,6 @@ package scalaz {
               else
                 withBest(x, best, r)
           }
-      
         this match {
           case Tip () =>
             none
@@ -79,9 +74,9 @@ package scalaz {
               r.lookupGT(x)
         }
       }
-    @tailrec final def lookupLE(x : A)(implicit o : Order[A]) : Option[A] =
+    @tailrec final def lookupLE(x: A)(implicit o: Order[A]): Option[A] =
       {
-        @tailrec def withBest(x : A, best : A, t : ISet[A]) : Option[A] =
+        @tailrec def withBest(x: A, best: A, t: ISet[A]): Option[A] =
           t match {
             case Tip () =>
               some(best)
@@ -95,7 +90,6 @@ package scalaz {
                   withBest(x, y, r)
               }
           }
-      
         this match {
           case Tip () =>
             none
@@ -110,9 +104,9 @@ package scalaz {
             }
         }
       }
-    @tailrec final def lookupGE(x : A)(implicit o : Order[A]) : Option[A] =
+    @tailrec final def lookupGE(x: A)(implicit o: Order[A]): Option[A] =
       {
-        @tailrec def withBest(x : A, best : A, t : ISet[A]) : Option[A] =
+        @tailrec def withBest(x: A, best: A, t: ISet[A]): Option[A] =
           t match {
             case Tip () =>
               some(best)
@@ -126,7 +120,6 @@ package scalaz {
                   withBest(x, best, r)
               }
           }
-      
         this match {
           case Tip () =>
             none
@@ -141,9 +134,9 @@ package scalaz {
             }
         }
       }
-    final def isSubsetOf(other : ISet[A])(implicit o : Order[A]) : Boolean =
+    final def isSubsetOf(other: ISet[A])(implicit o: Order[A]): Boolean =
       this.size <= other.size && this.isSubsetOfX(other)
-    private def isSubsetOfX(other : ISet[A])(implicit o : Order[A]) : Boolean =
+    private def isSubsetOfX(other: ISet[A])(implicit o: Order[A]): Boolean =
       (this, other) match {
         case (Tip (), _) =>
           true
@@ -153,13 +146,12 @@ package scalaz {
           {
             val (lt, found, gt) =
               t.splitMember(x)
-          
             found && l.isSubsetOfX(lt) && r.isSubsetOfX(gt)
           }
       }
-    final def isProperSubsetOf(other : ISet[A])(implicit o : Order[A]) : Boolean =
+    final def isProperSubsetOf(other: ISet[A])(implicit o: Order[A]): Boolean =
       this.size < other.size && this.isSubsetOf(other)
-    final def insert(x : A)(implicit o : Order[A]) : ISet[A] =
+    final def insert(x: A)(implicit o: Order[A]): ISet[A] =
       this match {
         case Tip () =>
           singleton(x)
@@ -169,7 +161,6 @@ package scalaz {
               {
                 val left =
                   l.insert(x)
-              
                 if (left eq l)
                   {
                     self
@@ -183,7 +174,6 @@ package scalaz {
               {
                 val right =
                   r.insert(x)
-              
                 if (right eq r)
                   {
                     self
@@ -197,7 +187,7 @@ package scalaz {
               self
           }
       }
-    final def delete(x : A)(implicit o : Order[A]) : ISet[A] =
+    final def delete(x: A)(implicit o: Order[A]): ISet[A] =
       this match {
         case Tip () =>
           this
@@ -207,7 +197,6 @@ package scalaz {
               {
                 val left =
                   l.delete(x)
-              
                 if (left eq l)
                   {
                     self
@@ -221,7 +210,6 @@ package scalaz {
               {
                 val right =
                   r.delete(x)
-              
                 if (right eq r)
                   {
                     self
@@ -235,9 +223,9 @@ package scalaz {
               glue(l, r)
           }
       }
-    final def union(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
+    final def union(other: ISet[A])(implicit o: Order[A]): ISet[A] =
       {
-        def hedgeUnion(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A])(implicit o : Order[A]) : ISet[A] =
+        def hedgeUnion(blo: Option[A], bhi: Option[A], t1: ISet[A], t2: ISet[A])(implicit o: Order[A]): ISet[A] =
           (t1, t2) match {
             case (t1, Tip ()) =>
               t1
@@ -249,11 +237,9 @@ package scalaz {
               {
                 val bmi =
                   some(x)
-              
                 join(x, hedgeUnion(blo, bmi, l, t2.trim(blo, bmi)), hedgeUnion(bmi, bhi, r, t2.trim(bmi, bhi)))
               }
           }
-      
         (this, other) match {
           case (Tip (), t2) =>
             t2
@@ -263,7 +249,7 @@ package scalaz {
             hedgeUnion(none, none, t1, t2)
         }
       }
-    private def insertR(x : A)(implicit o : Order[A]) : ISet[A] =
+    private def insertR(x: A)(implicit o: Order[A]): ISet[A] =
       this match {
         case Tip () =>
           singleton(x)
@@ -277,9 +263,9 @@ package scalaz {
               this
           }
       }
-    final def difference(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
+    final def difference(other: ISet[A])(implicit o: Order[A]): ISet[A] =
       {
-        def hedgeDiff(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A]) : ISet[A] =
+        def hedgeDiff(blo: Option[A], bhi: Option[A], t1: ISet[A], t2: ISet[A]): ISet[A] =
           (t1, t2) match {
             case (Tip (), _) =>
               Tip()
@@ -289,11 +275,9 @@ package scalaz {
               {
                 val bmi =
                   some(x)
-              
                 hedgeDiff(blo, bmi, t.trim(blo, bmi), l) merge hedgeDiff(bmi, bhi, t.trim(bmi, bhi), r)
               }
           }
-      
         (this, other) match {
           case (Tip (), _) =>
             Tip()
@@ -303,11 +287,11 @@ package scalaz {
             hedgeDiff(none, none, t1, t2)
         }
       }
-    final def \\(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
+    final def \\(other: ISet[A])(implicit o: Order[A]): ISet[A] =
       difference(other)
-    final def intersection(other : ISet[A])(implicit o : Order[A]) : ISet[A] =
+    final def intersection(other: ISet[A])(implicit o: Order[A]): ISet[A] =
       {
-        def hedgeInt(blo : Option[A], bhi : Option[A], t1 : ISet[A], t2 : ISet[A]) : ISet[A] =
+        def hedgeInt(blo: Option[A], bhi: Option[A], t1: ISet[A], t2: ISet[A]): ISet[A] =
           (t1, t2) match {
             case (_, Tip ()) =>
               t2
@@ -317,20 +301,16 @@ package scalaz {
               {
                 val bmi =
                   some(x)
-              
                 val l2 =
                   hedgeInt(blo, bmi, l, t2.trim(blo, bmi))
-              
                 val r2 =
                   hedgeInt(bmi, bhi, r, t2.trim(bmi, bhi))
-              
                 if (t2.member(x))
                   join(x, l2, r2)
                 else
                   l2 merge r2
               }
           }
-      
         (this, other) match {
           case (Tip (), _) =>
             this
@@ -340,7 +320,7 @@ package scalaz {
             hedgeInt(None, None, t1, t2)
         }
       }
-    final def filter(p : (A) => Boolean) : ISet[A] =
+    final def filter(p: A => Boolean): ISet[A] =
       this match {
         case Tip () =>
           this
@@ -349,10 +329,8 @@ package scalaz {
             {
               val left =
                 l.filter(p)
-            
               val right =
                 r.filter(p)
-            
               if ((left eq l) && (right eq r))
                 {
                   this
@@ -367,7 +345,7 @@ package scalaz {
               l.filter(p) merge r.filter(p)
             }
       }
-    final def partition(p : (A) => Boolean) : (ISet[A], ISet[A]) =
+    final def partition(p: A => Boolean): (ISet[A], ISet[A]) =
       this match {
         case Tip () =>
           (this, this)
@@ -375,17 +353,15 @@ package scalaz {
           {
             val (l1, l2) =
               l.partition(p)
-          
             val (r1, r2) =
               r.partition(p)
-          
             if (p(x))
               (join(x, l1, r1), l2 merge r2)
             else
               (l1 merge r1, join(x, l2, r2))
           }
       }
-    final def split(x : A)(implicit o : Order[A]) : (ISet[A], ISet[A]) =
+    final def split(x: A)(implicit o: Order[A]): (ISet[A], ISet[A]) =
       this match {
         case Tip () =>
           (this, this)
@@ -395,21 +371,19 @@ package scalaz {
               {
                 val (lt, gt) =
                   l.split(x)
-              
                 (lt, join(y, gt, r))
               }
             case GT =>
               {
                 val (lt, gt) =
                   r.split(x)
-              
                 (join(y, l, lt), gt)
               }
             case EQ =>
               (l, r)
           }
       }
-    final def splitMember(x : A)(implicit o : Order[A]) : (ISet[A], Boolean, ISet[A]) =
+    final def splitMember(x: A)(implicit o: Order[A]): (ISet[A], Boolean, ISet[A]) =
       this match {
         case Tip () =>
           (this, false, this)
@@ -419,32 +393,30 @@ package scalaz {
               {
                 val (lt, found, gt) =
                   l.splitMember(x)
-              
                 (lt, found, join(y, gt, r))
               }
             case GT =>
               {
                 val (lt, found, gt) =
                   r.splitMember(x)
-              
                 (join(y, l, lt), found, gt)
               }
             case EQ =>
               (l, true, r)
           }
       }
-    final def splitRoot : IList[ISet[A]] =
+    final def splitRoot: IList[ISet[A]] =
       this match {
         case Tip () =>
           IList.empty[ISet[A]]
         case Bin (x, l, r) =>
           IList(l, singleton(x), r)
       }
-    final def elemAt(i : Int) : Option[A] =
+    final def elemAt(i: Int): Option[A] =
       Foldable[ISet].index(this, i)
-    final def lookupIndex(x : A)(implicit o : Order[A]) : Option[Int] =
+    final def lookupIndex(x: A)(implicit o: Order[A]): Option[Int] =
       {
-        @tailrec def loop(s : ISet[A], i : Int) : Option[Int] =
+        @tailrec def loop(s: ISet[A], i: Int): Option[Int] =
           s match {
             case Tip () =>
               none
@@ -452,7 +424,6 @@ package scalaz {
               {
                 val sizeL =
                   l.size
-              
                 o.order(y, x) match {
                   case LT =>
                     loop(r, i + sizeL + 1)
@@ -463,20 +434,17 @@ package scalaz {
                 }
               }
           }
-      
         loop(this, 0)
       }
-    final def deleteAt(i : Int) : ISet[A] =
+    final def deleteAt(i: Int): ISet[A] =
       this match {
         case Tip () =>
           Tip()
         case Bin (x, l, r) =>
           {
             import std.anyVal.{_}
-          
             val sizeL =
               l.size
-          
             Order[Int].order(i, sizeL) match {
               case LT =>
                 balanceR(x, l.deleteAt(i), r)
@@ -487,27 +455,27 @@ package scalaz {
             }
           }
       }
-    def map[B: Order](f : (A) => B) : ISet[B] =
+    def map[B: Order](f: A => B): ISet[B] =
       fromList(toList.map(f))
-    final def foldRight[B](z : B)(f : (A, B) => B) : B =
+    final def foldRight[B](z: B)(f: (A, B) => B): B =
       this match {
         case Tip () =>
           z
         case Bin (x, l, r) =>
           l.foldRight(f(x, r.foldRight(z)(f)))(f)
       }
-    final def foldr[B](z : B)(f : (A, B) => B) : B =
+    final def foldr[B](z: B)(f: (A, B) => B): B =
       foldRight(z)(f)
-    final def foldLeft[B](z : B)(f : (B, A) => B) : B =
+    final def foldLeft[B](z: B)(f: (B, A) => B): B =
       this match {
         case Tip () =>
           z
         case Bin (x, l, r) =>
           r.foldLeft(f(l.foldLeft(z)(f), x))(f)
       }
-    final def foldl[B](z : B)(f : (B, A) => B) : B =
+    final def foldl[B](z: B)(f: (B, A) => B): B =
       foldLeft(z)(f)
-    @tailrec final def findMin : Option[A] =
+    @tailrec final def findMin: Option[A] =
       this match {
         case Tip () =>
           none
@@ -516,7 +484,7 @@ package scalaz {
         case Bin (_, l, _) =>
           l.findMin
       }
-    @tailrec final def findMax : Option[A] =
+    @tailrec final def findMax: Option[A] =
       this match {
         case Tip () =>
           none
@@ -525,7 +493,7 @@ package scalaz {
         case Bin (_, _, r) =>
           r.findMax
       }
-    final def deleteMin : ISet[A] =
+    final def deleteMin: ISet[A] =
       this match {
         case Bin (_, Tip (), r) =>
           r
@@ -534,7 +502,7 @@ package scalaz {
         case Tip () =>
           Tip()
       }
-    final def deleteMax : ISet[A] =
+    final def deleteMax: ISet[A] =
       this match {
         case Bin (_, l, Tip ()) =>
           l
@@ -543,7 +511,7 @@ package scalaz {
         case Tip () =>
           Tip()
       }
-    final def deleteFindMin : (A, ISet[A]) =
+    final def deleteFindMin: (A, ISet[A]) =
       this match {
         case Bin (x, Tip (), r) =>
           (x, r)
@@ -551,13 +519,12 @@ package scalaz {
           {
             val (xm, l2) =
               l.deleteFindMin
-          
             (xm, balanceR(x, l2, r))
           }
         case Tip () =>
           sys.error("deleteFindMin on empty ISet")
       }
-    final def deleteFindMax : (A, ISet[A]) =
+    final def deleteFindMax: (A, ISet[A]) =
       this match {
         case Bin (x, l, Tip ()) =>
           (x, l)
@@ -565,41 +532,40 @@ package scalaz {
           {
             val (xm, r2) =
               r.deleteFindMax
-          
             (xm, balanceL(x, l, r2))
           }
         case Tip () =>
           sys.error("deleteFindMax on empty ISet")
       }
-    final def minView : Option[(A, ISet[A])] =
+    final def minView: Option[(A, ISet[A])] =
       this match {
         case Tip () =>
           none
         case x =>
           some(x.deleteFindMin)
       }
-    final def maxView : Option[(A, ISet[A])] =
+    final def maxView: Option[(A, ISet[A])] =
       this match {
         case Tip () =>
           none
         case x =>
           some(x.deleteFindMax)
       }
-    final def elems : IList[A] =
+    final def elems: IList[A] =
       toAscIList
-    final def toList : List[A] =
+    final def toList: List[A] =
       toAscList
-    final def toIList : IList[A] =
+    final def toIList: IList[A] =
       toAscIList
-    final def toAscList : List[A] =
+    final def toAscList: List[A] =
       foldRight(List.empty[A])(_ :: (_))
-    final def toAscIList : IList[A] =
+    final def toAscIList: IList[A] =
       foldRight(IList.empty[A])(_ :: (_))
-    final def toDescList : List[A] =
+    final def toDescList: List[A] =
       foldLeft(List.empty[A])((a, b) => b :: a)
-    final def toDescIList : IList[A] =
+    final def toDescIList: IList[A] =
       foldLeft(IList.empty[A])((a, b) => b :: a)
-    private def glue[A](l : ISet[A], r : ISet[A]) : ISet[A] =
+    private def glue[A](l: ISet[A], r: ISet[A]): ISet[A] =
       (l, r) match {
         case (Tip (), r) =>
           r
@@ -610,18 +576,16 @@ package scalaz {
             {
               val (m, l2) =
                 l.deleteFindMax
-            
               balanceR(m, l2, r)
             }
           else
             {
               val (m, r2) =
                 r.deleteFindMin
-            
               balanceL(m, l, r2)
             }
       }
-    private def join[A](x : A, l : ISet[A], r : ISet[A]) : ISet[A] =
+    private def join[A](x: A, l: ISet[A], r: ISet[A]): ISet[A] =
       (l, r) match {
         case (Tip (), r) =>
           r.insertMin(x)
@@ -636,21 +600,21 @@ package scalaz {
             else
               Bin(x, l, r)
       }
-    private def insertMax(x : A) : ISet[A] =
+    private def insertMax(x: A): ISet[A] =
       this match {
         case Tip () =>
           singleton(x)
         case Bin (y, l, r) =>
           balanceR(y, l, r.insertMax(x))
       }
-    private def insertMin(x : A) : ISet[A] =
+    private def insertMin(x: A): ISet[A] =
       this match {
         case Tip () =>
           singleton(x)
         case Bin (y, l, r) =>
           balanceL(y, l.insertMin(x), r)
       }
-    protected def merge(other : ISet[A]) : ISet[A] =
+    protected def merge(other: ISet[A]): ISet[A] =
       (this, other) match {
         case (Tip (), r) =>
           r
@@ -665,13 +629,13 @@ package scalaz {
             else
               glue(l, r)
       }
-    final def trim(a : Option[A], b : Option[A])(implicit o : Order[A]) : ISet[A] =
+    final def trim(a: Option[A], b: Option[A])(implicit o: Order[A]): ISet[A] =
       (a, b) match {
         case (None, None) =>
           this
         case (Some (lx), None) =>
           {
-            def greater(lo : A, t : ISet[A]) : ISet[A] =
+            def greater(lo: A, t: ISet[A]): ISet[A] =
               t match {
                 case Bin (x, _, r) =>
                   if (o.lessThanOrEqual(x, lo))
@@ -681,12 +645,11 @@ package scalaz {
                 case _ =>
                   t
               }
-          
             greater(lx, this)
           }
         case (None, Some (hx)) =>
           {
-            def lesser(hi : A, t : ISet[A]) : ISet[A] =
+            def lesser(hi: A, t: ISet[A]): ISet[A] =
               t match {
                 case Bin (x, l, _) =>
                   if (o.greaterThanOrEqual(x, hi))
@@ -696,12 +659,11 @@ package scalaz {
                 case _ =>
                   t
               }
-          
             lesser(hx, this)
           }
         case (Some (lx), Some (rx)) =>
           {
-            def middle(lo : A, hi : A, t : ISet[A]) : ISet[A] =
+            def middle(lo: A, hi: A, t: ISet[A]): ISet[A] =
               t match {
                 case Bin (x, l, r) =>
                   if (o.lessThanOrEqual(x, lo))
@@ -714,11 +676,10 @@ package scalaz {
                 case _ =>
                   t
               }
-          
             middle(lx, rx, this)
           }
       }
-    final def filterGt(a : Option[A])(implicit o : Order[A]) : ISet[A] =
+    final def filterGt(a: Option[A])(implicit o: Order[A]): ISet[A] =
       cata(a)( (s) => this match {
         case Tip () =>
           ISet.empty
@@ -733,7 +694,7 @@ package scalaz {
           }
       }
       , this )
-    final def filterLt(a : Option[A])(implicit o : Order[A]) : ISet[A] =
+    final def filterLt(a: Option[A])(implicit o: Order[A]): ISet[A] =
       cata(a)( (s) => this match {
         case Tip () =>
           ISet.empty
@@ -748,52 +709,49 @@ package scalaz {
           }
       }
       , this )
-    override final def equals(other : Any) : Boolean =
+    override final def equals(other: Any): Boolean =
       other match {
         case that: ISet[A] =>
           ISet.setEqual[A](Equal.equalA).equal(this, that)
         case _ =>
           false
       }
-    override final def hashCode : Int =
+    override final def hashCode: Int =
       toAscList.hashCode
   }
-
   sealed abstract class ISetInstances  {
     import ISet.{_}
-    implicit def setEqual[A: Equal] : Equal[ISet[A]] =
+    implicit def setEqual[A: Equal]: Equal[ISet[A]] =
       new ISetEqual[A] {
         def A =
           implicitly
       }
-    implicit def setOrder[A: Order] : Order[ISet[A]] =
+    implicit def setOrder[A: Order]: Order[ISet[A]] =
       new Order[ISet[A]] with ISetEqual[A] {
         def A =
           implicitly
-        def order(x : ISet[A], y : ISet[A]) =
+        def order(x: ISet[A], y: ISet[A]) =
           Order[IList[A]].order(x.toAscIList, y.toAscIList)
       }
-    implicit def setShow[A](implicit A : Show[A]) : Show[ISet[A]] =
+    implicit def setShow[A](implicit A: Show[A]): Show[ISet[A]] =
       Show.show( {
         (as) => {
           import scalaz.syntax.show.{_}
-        
           val content =
             IList.instances.intercalate(as.toIList.map(A.show), Cord(","))
-        
           cord"ISet(${content})"
         }
       } )
-    implicit def setMonoid[A: Order] : Monoid[ISet[A]] with SemiLattice[ISet[A]] =
+    implicit def setMonoid[A: Order]: Monoid[ISet[A]] with SemiLattice[ISet[A]] =
       new Monoid[ISet[A]] with SemiLattice[ISet[A]] {
-        def zero : ISet[A] =
+        def zero: ISet[A] =
           empty[A]
-        def append(a : ISet[A], b : => ISet[A]) : ISet[A] =
+        def append(a: ISet[A], b: => ISet[A]): ISet[A] =
           a union b
       }
-    implicit val setFoldable : Foldable[ISet] =
+    implicit val setFoldable: Foldable[ISet] =
       new Foldable[ISet] {
-        override def findLeft[A](fa : ISet[A])(f : (A) => Boolean) =
+        override def findLeft[A](fa: ISet[A])(f: A => Boolean) =
           fa match {
             case Bin (x, l, r) =>
               findLeft(l)(f) match {
@@ -808,7 +766,7 @@ package scalaz {
             case Tip () =>
               None
           }
-        override def findRight[A](fa : ISet[A])(f : (A) => Boolean) =
+        override def findRight[A](fa: ISet[A])(f: A => Boolean) =
           fa match {
             case Bin (x, l, r) =>
               findRight(r)(f) match {
@@ -823,22 +781,21 @@ package scalaz {
             case Tip () =>
               None
           }
-        def foldMap[A, B](fa : ISet[A])(f : (A) => B)(implicit F : Monoid[B]) : B =
+        def foldMap[A, B](fa: ISet[A])(f: A => B)(implicit F: Monoid[B]): B =
           fa match {
             case Tip () =>
               F.zero
             case Bin (x, l, r) =>
               F.append(F.append(foldMap(l)(f), f(x)), foldMap(r)(f))
           }
-        def foldRight[A, B](fa : ISet[A], z : => B)(f : (A, => B) => B) : B =
+        def foldRight[A, B](fa: ISet[A], z: => B)(f: (A, => B) => B): B =
           fa.foldRight(z)((a, b) => f(a, b))
-        override def foldLeft[A, B](fa : ISet[A], z : B)(f : (B, A) => B) =
+        override def foldLeft[A, B](fa: ISet[A], z: B)(f: (B, A) => B) =
           fa.foldLeft(z)(f)
-        override def index[A](fa : ISet[A], i : Int) : Option[A] =
+        override def index[A](fa: ISet[A], i: Int): Option[A] =
           {
             import std.anyVal.{_}
-          
-            @tailrec def loop(a : ISet[A], b : Int) : Option[A] =
+            @tailrec def loop(a: ISet[A], b: Int): Option[A] =
               a match {
                 case Bin (x, l, r) =>
                   Order[Int].order(b, l.size) match {
@@ -852,32 +809,31 @@ package scalaz {
                 case Tip () =>
                   None
               }
-          
             if (i < 0 || fa.size <= i)
               None
             else
               loop(fa, i)
           }
-        override def toIList[A](fa : ISet[A]) =
+        override def toIList[A](fa: ISet[A]) =
           fa.foldRight(IList.empty[A])(_ :: (_))
-        override def toList[A](fa : ISet[A]) =
+        override def toList[A](fa: ISet[A]) =
           fa.toList
-        override def length[A](fa : ISet[A]) =
+        override def length[A](fa: ISet[A]) =
           fa.size
-        override def maximum[A: Order](fa : ISet[A]) =
+        override def maximum[A: Order](fa: ISet[A]) =
           fa.findMax
-        override def minimum[A: Order](fa : ISet[A]) =
+        override def minimum[A: Order](fa: ISet[A]) =
           fa.findMin
-        override def empty[A](fa : ISet[A]) =
+        override def empty[A](fa: ISet[A]) =
           fa.isEmpty
-        override def any[A](fa : ISet[A])(f : (A) => Boolean) =
+        override def any[A](fa: ISet[A])(f: A => Boolean) =
           fa match {
             case Tip () =>
               false
             case Bin (x, l, r) =>
               any(l)(f) || f(x) || any(r)(f)
           }
-        override def all[A](fa : ISet[A])(f : (A) => Boolean) =
+        override def all[A](fa: ISet[A])(f: A => Boolean) =
           fa match {
             case Tip () =>
               true
@@ -886,27 +842,26 @@ package scalaz {
           }
       }
   }
-
   object ISet extends ISetInstances {
-    final def empty[A] : ISet[A] =
+    final def empty[A]: ISet[A] =
       Tip()
-    final def singleton[A](x : A) : ISet[A] =
+    final def singleton[A](x: A): ISet[A] =
       Bin(x, Tip(), Tip())
-    final def fromList[A](xs : List[A])(implicit o : Order[A]) : ISet[A] =
+    final def fromList[A](xs: List[A])(implicit o: Order[A]): ISet[A] =
       xs.foldLeft(empty[A])((a, b) => a insert b)
-    final def fromIList[A](xs : IList[A])(implicit o : Order[A]) : ISet[A] =
+    final def fromIList[A](xs: IList[A])(implicit o: Order[A]): ISet[A] =
       xs.foldLeft(empty[A])((a, b) => a insert b)
-    final def fromFoldable[F[_], A](xs : F[A])(implicit F : Foldable[F], o : Order[A]) : ISet[A] =
+    final def fromFoldable[F[_], A](xs: F[A])(implicit F: Foldable[F], o: Order[A]): ISet[A] =
       F.foldLeft(xs, empty[A])((a, b) => a insert b)
-    final def unions[A](xs : List[ISet[A]])(implicit o : Order[A]) : ISet[A] =
+    final def unions[A](xs: List[ISet[A]])(implicit o: Order[A]): ISet[A] =
       xs.foldLeft(ISet.empty[A])(_ union (_))
-    final def unions[A](xs : IList[ISet[A]])(implicit o : Order[A]) : ISet[A] =
+    final def unions[A](xs: IList[ISet[A]])(implicit o: Order[A]): ISet[A] =
       xs.foldLeft(ISet.empty[A])(_ union (_))
     private[scalaz] final val delta =
       3
     private[scalaz] final val ratio =
       2
-    private[scalaz] def balanceL[A](x : A, l : ISet[A], r : ISet[A]) : ISet[A] =
+    private[scalaz] def balanceL[A](x: A, l: ISet[A], r: ISet[A]): ISet[A] =
       r match {
         case Tip () =>
           l match {
@@ -945,7 +900,7 @@ package scalaz {
                 Bin(x, l, r)
           }
       }
-    private[scalaz] def balanceR[A](x : A, l : ISet[A], r : ISet[A]) : ISet[A] =
+    private[scalaz] def balanceR[A](x: A, l: ISet[A], r: ISet[A]): ISet[A] =
       l match {
         case Tip () =>
           r match {
@@ -989,21 +944,20 @@ package scalaz {
         0
     }
     private[scalaz] object Tip {
-      private[this] val value : Tip[Nothing] =
+      private[this] val value: Tip[Nothing] =
         new Tip[Nothing]
-      def apply[A]() : ISet[A] =
+      def apply[A](): ISet[A] =
         value.asInstanceOf[ISet[A]]
     }
-    private[scalaz] final case class Bin[A] (a : A, l : ISet[A], r : ISet[A]) extends ISet[A] {
+    private[scalaz] final case class Bin[A] (a: A, l: ISet[A], r: ISet[A]) extends ISet[A] {
       val size =
         l.size + r.size + 1
     }
   }
-
   private sealed trait ISetEqual[A]  extends Equal[ISet[A]] {
     import std.list.{_}
     implicit def A: Equal[A]
-    override final def equal(a1 : ISet[A], a2 : ISet[A]) =
+    override final def equal(a1: ISet[A], a2: ISet[A]) =
       a1.size == a2.size && Equal[List[A]].equal(a1.toAscList, a2.toAscList)
   }
 }

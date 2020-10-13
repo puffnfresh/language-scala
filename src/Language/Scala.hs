@@ -55,6 +55,7 @@ import Data.Aeson.Types
     listParser,
     typeMismatch,
   )
+import Data.Char (isAlphaNum)
 import Data.Foldable (asum)
 import Data.Int (Int16, Int32, Int64, Int8)
 import Data.Ord (comparing)
@@ -72,17 +73,16 @@ import Data.Text.Prettyprint.Doc
     hsep,
     indent,
     lbrace,
-    line,
     list,
     lparen,
     parens,
+    punctuate,
     rbrace,
     rparen,
     semi,
     space,
     surround,
     tupled,
-    vsep,
     (<+>),
   )
 
@@ -92,7 +92,7 @@ data Source
 
 instance Pretty Source where
   pretty (Source stats) =
-    vsep (pretty <$> stats)
+    hardlines (pretty <$> stats)
 
 instance FromJSON Source where
   parseJSON =
@@ -120,9 +120,9 @@ instance Pretty Stat where
   pretty (StatDefn defn) =
     pretty defn
   pretty (StatImport importers) =
-    "import" <+> encloseSep mempty mempty (comma <> space) (pretty <$> importers)
+    "import" <+> hsep (punctuate comma (pretty <$> importers))
   pretty (StatPkg ref stats) =
-    "package" <+> pretty ref <+> encloseSep (lbrace <> line) (line <> rbrace) line (indent 2 . pretty <$> stats)
+    "package" <+> pretty ref <+> hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace])
 
 parseStat :: Text -> Object -> MaybeT Parser Stat
 parseStat t o =
@@ -161,10 +161,12 @@ data Decl
 
 instance Pretty Decl where
   pretty (DeclVal mods pats decltpe) =
-    hsep ((pretty <$> mods) ++ ["val", encloseSep mempty mempty (comma <> space) (pretty <$> pats) <> ":", pretty decltpe])
+    hsep ((pretty <$> mods) ++ ["val", concatWith (surround (comma <> space)) (pretty <$> pats) <> ":", pretty decltpe])
   pretty (DeclDef mods name tparams paramss decltpe) =
-    hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> ": " <> pretty decltpe])
+    hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe'])
     where
+      decltpe' =
+        prettyDecltpeWithName tparams paramss name (Just decltpe)
       tparams' =
         if null tparams
           then mempty
@@ -211,16 +213,18 @@ data Defn
 
 instance Pretty Defn where
   pretty (DefnVal mods pats decltpe body) =
-    vsep
-      [ hsep ((pretty <$> mods) ++ ["val", encloseSep mempty mempty (comma <> space) (pretty <$> pats) <> prettyDecltpe decltpe, "="]),
+    hardlines
+      [ hsep ((pretty <$> mods) ++ ["val", concatWith (surround (comma <> space)) (pretty <$> pats) <> prettyDecltpe decltpe, "="]),
         indent 2 (pretty body)
       ]
   pretty (DefnDef mods name tparams paramss decltpe body) =
-    vsep
-      [ hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> prettyDecltpe decltpe, "="]),
+    hardlines
+      [ hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe', "="]),
         indent 2 (pretty body)
       ]
     where
+      decltpe' =
+        prettyDecltpeWithName tparams paramss name decltpe
       tparams' =
         if null tparams
           then mempty
@@ -231,8 +235,8 @@ instance Pretty Defn where
         p : (removeImplicit <$> ps)
       dropImplicits [] =
         []
-      removeImplicit (TermParam mods' name' decltpe' default') =
-        TermParam (filter (/= ModImplicit) mods') name' decltpe' default'
+      removeImplicit (TermParam mods' name' decltpe'' default') =
+        TermParam (filter (/= ModImplicit) mods') name' decltpe'' default'
   pretty (DefnObject mods name templ) =
     hsep ((pretty <$> mods) ++ ["object", pretty name, prettyTemplate templ])
   pretty (DefnTrait mods name tparams ctor templ) =
@@ -584,7 +588,19 @@ prettyType (TypeApplyInfix lhs op rhs) =
 prettyType (TypeFunction params res) =
   ScalaDoc
     TypeGroupType
-    (tupled (parensLeft TypeGroupParamType . prettyType <$> params) <+> "=>" <+> parensLeft TypeGroupType (prettyType res))
+    (params' <+> "=>" <+> parensLeft TypeGroupType (prettyType res))
+  where
+    params' =
+      case params of
+        [param]
+          | not (isTuple param) ->
+            parensLeft TypeGroupAnyInfixType (prettyType param)
+        _ ->
+          tupled (parensLeft TypeGroupParamType . prettyType <$> params)
+    isTuple (TypeTuple _) =
+      True
+    isTuple _ =
+      False
 prettyType (TypeTuple args) =
   ScalaDoc
     TypeGroupSimpleType
@@ -709,7 +725,7 @@ instance Pretty TypeParam where
       cbounds' =
         if null cbounds
           then mempty
-          else ":" <+> encloseSep mempty mempty ": " (pretty <$> cbounds)
+          else ":" <+> concatWith (surround ": ") (pretty <$> cbounds)
 
 instance FromJSON TypeParam where
   parseJSON =
@@ -837,12 +853,11 @@ prettyTerm (TermTuple args) =
 prettyTerm (TermBlock stats) =
   ScalaDoc
     TermGroupSimpleExpr
-    (encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> stats))
+    (hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace]))
 prettyTerm (TermIf cond thenp elsep) =
   ScalaDoc
     TermGroupExpr1
-    ( concatWith
-        (surround hardline)
+    ( hardlines
         [ "if" <+> parens (pretty cond),
           indent 2 (parensLeft TermGroupExpr (prettyTerm thenp)),
           "else",
@@ -852,7 +867,7 @@ prettyTerm (TermIf cond thenp elsep) =
 prettyTerm (TermMatch expr cases) =
   ScalaDoc
     TermGroupExpr1
-    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> "match" <+> lbrace <> line <> concatWith (surround hardline) (indent 2 . pretty <$> cases) <> line <> rbrace)
+    (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> "match" <+> lbrace <> hardline <> hardlines (indent 2 . pretty <$> cases) <> hardline <> rbrace)
 prettyTerm (TermTry expr catchp _finallyp) =
   ScalaDoc
     TermGroupExpr1
@@ -864,8 +879,7 @@ prettyTerm (TermFunction params body) =
 prettyTerm (TermPartialFunction cases) =
   ScalaDoc
     TermGroupSimpleExpr
-    ( concatWith
-        (surround hardline)
+    ( hardlines
         ( [lbrace]
             <> (indent 2 . pretty <$> cases)
             <> [rbrace]
@@ -874,7 +888,7 @@ prettyTerm (TermPartialFunction cases) =
 prettyTerm (TermForYield enums body) =
   ScalaDoc
     TermGroupExpr1
-    ("for" <+> encloseSep mempty mempty hardline (["{"] <> (indent 2 . pretty <$> enums) <> ["}"]) <+> "yield" <+> pretty body)
+    ("for" <+> hardlines ([lbrace] <> (indent 2 . pretty <$> enums) <> [rbrace]) <+> "yield" <+> pretty body)
 prettyTerm (TermNew init') =
   ScalaDoc
     TermGroupSimpleExpr
@@ -1080,7 +1094,7 @@ data Case
 
 instance Pretty Case where
   pretty (Case pat cond body) =
-    vsep
+    hardlines
       [ hsep (["case", pretty pat] <> maybe [] (\c -> ["if", pretty c]) cond <> ["=>"]),
         indent 2 (pretty body)
       ]
@@ -1415,7 +1429,7 @@ data Template
 
 instance Pretty Template where
   pretty (Template _early inits self stats) =
-    vsep
+    hardlines
       ( [inits' <> "{" <> pretty self]
           <> (indent 2 . pretty <$> stats)
           <> ["}"]
@@ -1424,7 +1438,7 @@ instance Pretty Template where
       inits' =
         if null inits
           then mempty
-          else encloseSep mempty mempty " with " (pretty <$> inits) <> space
+          else concatWith (surround " with ") (pretty <$> inits) <> space
 
 instance FromJSON Template where
   parseJSON =
@@ -1692,15 +1706,27 @@ namePrecedence t =
     f _ =
       1
 
+prettyDecltpeWithName :: [TypeParam] -> [[TermParam]] -> Text -> Maybe Type -> Doc ann
+prettyDecltpeWithName tparams paramss name decltpe =
+  ( if null tparams && null paramss
+      then foldMap (\(_, c) -> if not (isAlphaNum c) then space else mempty) (T.unsnoc name)
+      else mempty
+  )
+    <> prettyDecltpe decltpe
+
 prettyDecltpe :: Maybe Type -> Doc ann
 prettyDecltpe =
-  foldMap ((" :" <+>) . pretty)
+  foldMap ((":" <+>) . pretty)
 
 prettyTemplate :: Template -> Doc ann
 prettyTemplate templ@(Template _ inits _ _) =
   if null inits
     then pretty templ
     else "extends" <+> pretty templ
+
+hardlines :: [Doc ann] -> Doc ann
+hardlines =
+  concatWith (surround hardline)
 
 nameParser :: Value -> Parser Text
 nameParser =
