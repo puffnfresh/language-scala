@@ -109,7 +109,7 @@ data Stat
   | StatImport [Importer]
   | StatPkg TermRef [Stat]
   | StatPkgObject [Mod] Text Template
-  --- | StatCtorSecondary [Mod] Text [[TermParam]] Init [Stat]
+  | StatCtorSecondary [Mod] [[TermParam]] Init [Stat]
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Stat where
@@ -125,6 +125,15 @@ instance Pretty Stat where
     "package" <+> pretty ref <+> hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace])
   pretty (StatPkgObject mods name templ) =
     "package" <+> hsep (pretty <$> mods) <+> "object" <+> pretty name <+> pretty templ
+  pretty (StatCtorSecondary mods paramss init' stats) =
+    hsep (pretty <$> mods) <+> "def this" <> paramss' <+> "=" <+> stats'
+    where
+      paramss' =
+        foldMap (\p -> tupled (pretty <$> p)) paramss
+      stats' =
+        if null stats
+          then pretty init'
+          else hardlines ([lbrace, pretty init'] <> (pretty <$> stats) <> [rbrace])
 
 parseStat :: Text -> Object -> MaybeT Parser Stat
 parseStat t o =
@@ -146,6 +155,14 @@ parseStat t o =
             <$> o .: "mods"
             <*> explicitParseField nameParser o "name"
             <*> o .: "templ"
+        )
+    "Ctor.Secondary" ->
+      lift
+        ( StatCtorSecondary
+            <$> o .: "mods"
+            <*> o .: "paramss"
+            <*> o .: "init"
+            <*> o .: "stats"
         )
     _ ->
       asum
@@ -1420,7 +1437,14 @@ data Init
 
 instance Pretty Init where
   pretty (Init tpe argss) =
-    parensLeft TypeGroupAnnotType (prettyType tpe) <> foldMap (encloseSep lparen rparen (comma <> space) . fmap pretty) argss
+    tpe' <> foldMap (encloseSep lparen rparen (comma <> space) . fmap pretty) argss
+    where
+      tpe' =
+        case tpe of
+          TypeRef (TypeRefSingleton _) ->
+            "this"
+          _ ->
+            parensLeft TypeGroupAnnotType (prettyType tpe)
 
 instance FromJSON Init where
   parseJSON =
