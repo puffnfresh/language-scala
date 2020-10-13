@@ -108,7 +108,7 @@ data Stat
   | StatDefn Defn
   | StatImport [Importer]
   | StatPkg TermRef [Stat]
-  --- | StatPkgObject [Mod] Text Template
+  | StatPkgObject [Mod] Text Template
   --- | StatCtorSecondary [Mod] Text [[TermParam]] Init [Stat]
   deriving (Eq, Ord, Read, Show)
 
@@ -123,6 +123,8 @@ instance Pretty Stat where
     "import" <+> hsep (punctuate comma (pretty <$> importers))
   pretty (StatPkg ref stats) =
     "package" <+> pretty ref <+> hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace])
+  pretty (StatPkgObject mods name templ) =
+    "package" <+> hsep (pretty <$> mods) <+> "object" <+> pretty name <+> pretty templ
 
 parseStat :: Text -> Object -> MaybeT Parser Stat
 parseStat t o =
@@ -137,6 +139,13 @@ parseStat t o =
         ( StatPkg
             <$> o .: "ref"
             <*> o .: "stats"
+        )
+    "Pkg.Object" ->
+      lift
+        ( StatPkgObject
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "templ"
         )
     _ ->
       asum
