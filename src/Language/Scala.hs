@@ -190,12 +190,12 @@ data Decl
   = DeclVal [Mod] [Pat] Type
   | DeclVar [Mod] [Pat] Type
   | DeclDef [Mod] Text [TypeParam] [[TermParam]] Type
-  --- | DeclType [Mod] Text [TypeParam] Bounds
+  | DeclType [Mod] Text [TypeParam] Bounds
   deriving (Eq, Ord, Read, Show)
 
 prettyDeclValVar :: [Mod] -> [Pat] -> Type -> Doc ann -> Doc ann
 prettyDeclValVar mods pats decltpe n =
-  hsep ((pretty <$> mods) ++ [n, concatWith (surround (comma <> space)) (pretty <$> pats) <> ":", pretty decltpe])
+  hsep ((pretty <$> mods) <> [n, concatWith (surround (comma <> space)) (pretty <$> pats) <> ":", pretty decltpe])
 
 instance Pretty Decl where
   pretty (DeclVal mods pats decltpe) =
@@ -203,7 +203,7 @@ instance Pretty Decl where
   pretty (DeclVar mods pats decltpe) =
     prettyDeclValVar mods pats decltpe "var"
   pretty (DeclDef mods name tparams paramss decltpe) =
-    hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe'])
+    hsep ((pretty <$> mods) <> ["def", pretty name <> tparams' <> paramss' <> decltpe'])
     where
       decltpe' =
         prettyDecltpeWithName tparams paramss name (Just decltpe)
@@ -213,6 +213,13 @@ instance Pretty Decl where
           else list (pretty <$> tparams)
       paramss' =
         foldMap (\p -> tupled (pretty <$> p)) paramss
+  pretty (DeclType mods name tparams bounds) =
+    hsep ((pretty <$> mods) <> ["type", pretty name <> tparams', pretty bounds])
+    where
+      tparams' =
+        if null tparams
+          then mempty
+          else list (pretty <$> tparams)
 
 parseDecl :: Text -> Object -> MaybeT Parser Decl
 parseDecl t o =
@@ -239,6 +246,14 @@ parseDecl t o =
             <$> o .: "mods"
             <*> o .: "pats"
             <*> o .: "decltpe"
+        )
+    "Decl.Type" ->
+      lift
+        ( DeclType
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "bounds"
         )
     _ ->
       empty
@@ -662,12 +677,12 @@ data Type
   | TypeTuple [Type]
   | TypeWith Type Type
   | TypeRefine (Maybe Type) [Stat]
-  | --- | TypeExistential Type [Stat]
-    TypeAnnotate Type [Init]
+  | TypeExistential Type [Stat]
+  | TypeAnnotate Type [Init]
   | TypePlaceholder Bounds
   | TypeByName Type
   | TypeRepeated Type
-  --- | TypeVar Text
+  | TypeVar Text
   deriving (Eq, Ord, Read, Show)
 
 prettyType :: Type -> ScalaDoc TypeGroup
@@ -709,6 +724,10 @@ prettyType (TypeRefine tpe stats) =
   ScalaDoc
     TypeGroupRefineType
     (pretty tpe <+> encloseSep lbrace rbrace semi (pretty <$> stats))
+prettyType (TypeExistential tpe stats) =
+  ScalaDoc
+    TypeGroupType
+    (parensLeft TypeGroupAnyInfixType (prettyType tpe) <+> "forSome" <+> encloseSep lbrace rbrace (semi <> space) (pretty <$> stats))
 prettyType (TypeAnnotate tpe annots) =
   ScalaDoc
     TypeGroupAnnotType
@@ -725,6 +744,10 @@ prettyType (TypeRepeated tpe) =
   ScalaDoc
     TypeGroupParamType
     (pretty tpe <> "*")
+prettyType (TypeVar name) =
+  ScalaDoc
+    TypeGroupSimpleType
+    (pretty name)
 
 instance Pretty Type where
   pretty =
@@ -769,6 +792,12 @@ parseType t o =
             <$> o .:? "tpe"
             <*> o .: "stats"
         )
+    "Type.Existential" ->
+      lift
+        ( TypeExistential
+            <$> o .: "tpe"
+            <*> o .: "stats"
+        )
     "Type.Annotate" ->
       lift
         ( TypeAnnotate
@@ -789,6 +818,11 @@ parseType t o =
       lift
         ( TypeRepeated
             <$> o .: "tpe"
+        )
+    "Type.Var" ->
+      lift
+        ( TypeVar
+            <$> explicitParseField nameParser o "name"
         )
     _ ->
       TypeRef
@@ -850,8 +884,8 @@ data Term
   | TermIf Term Term Term
   | TermMatch Term [Case]
   | TermTry Term [Case] (Maybe Term)
-  | --- | TermTryWithHandler Term Term (Maybe Term)
-    TermFunction [TermParam] Term
+  | TermTryWithHandler Term Term (Maybe Term)
+  | TermFunction [TermParam] Term
   | TermPartialFunction [Case]
   | TermWhile Term Term
   | TermDo Term Term
@@ -972,6 +1006,10 @@ prettyTerm (TermTry expr catchp _finallyp) =
   ScalaDoc
     TermGroupExpr1
     ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp))
+prettyTerm (TermTryWithHandler expr catchp _finallyp) =
+  ScalaDoc
+    TermGroupExpr1
+    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> pretty catchp)
 prettyTerm (TermFunction params body) =
   ScalaDoc
     TermGroupExpr
@@ -1116,6 +1154,13 @@ parseTerm t o =
     "Term.Try" ->
       lift
         ( TermTry
+            <$> o .: "expr"
+            <*> o .: "catchp"
+            <*> o .:? "finallyp"
+        )
+    "Term.TryWithHandler" ->
+      lift
+        ( TermTryWithHandler
             <$> o .: "expr"
             <*> o .: "catchp"
             <*> o .:? "finallyp"
