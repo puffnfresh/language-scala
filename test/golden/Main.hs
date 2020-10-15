@@ -15,7 +15,7 @@ main =
 
 prettyTest :: FilePath -> TestTree
 prettyTest f =
-  goldenVsStringDiff (dropExtension (takeBaseName f)) (\ref new -> ["diff", "-uw", ref, new]) (f ++ ".golden.scala") $ do
+  goldenVsStringDiff (dropExtension (takeBaseName f)) (\ref new -> ["diff", "-u", ref, new]) (f ++ ".golden.scala") $ do
     parsed <- eitherDecodeFileStrict f :: IO (Either String Source)
     either error (pure . encodeUtf8 . renderLazy . layoutSmart (LayoutOptions (AvailablePerLine 150 1.0)) . pretty) parsed
 

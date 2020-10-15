@@ -9,7 +9,7 @@ pkgs.runCommand "language-scala-shell" {
     pkgs.ghcid
     pkgs.cabal-install
     (pkgs.haskellPackages.ghcWithHoogle (p: [
-      p.prettyprinter
+      p.prettyprinter_1_7_0
       p.aeson
       p.tasty
       p.tasty-golden
