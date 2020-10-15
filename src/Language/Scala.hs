@@ -66,6 +66,7 @@ import qualified Data.Text as T
 import Data.Text.Prettyprint.Doc
   ( Doc,
     Pretty (..),
+    braces,
     brackets,
     comma,
     concatWith,
@@ -837,8 +838,8 @@ data TypeParam
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty TypeParam where
-  pretty (TypeParam mods name tparams tbounds _vbounds cbounds) =
-    mods' <> name' <> tparams' <> pretty tbounds <> cbounds'
+  pretty (TypeParam mods name tparams tbounds vbounds cbounds) =
+    mods' <> name' <> tparams' <> vbounds' <> pretty tbounds <> cbounds'
     where
       mods' =
         if null mods
@@ -852,6 +853,8 @@ instance Pretty TypeParam where
         if null tparams
           then mempty
           else list (pretty <$> tparams)
+      vbounds' =
+        foldMap ((" <%" <+>) . pretty) vbounds
       cbounds' =
         if null cbounds
           then mempty
@@ -1002,14 +1005,20 @@ prettyTerm (TermMatch expr cases) =
   ScalaDoc
     TermGroupExpr1
     (parensLeft TermGroupPostfixExpr (prettyTerm expr) <+> "match" <+> lbrace <> hardline <> hardlines (indent 2 . pretty <$> cases) <> hardline <> rbrace)
-prettyTerm (TermTry expr catchp _finallyp) =
+prettyTerm (TermTry expr catchp finallyp) =
   ScalaDoc
     TermGroupExpr1
-    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp))
-prettyTerm (TermTryWithHandler expr catchp _finallyp) =
+    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> encloseSep (lbrace <> hardline) (hardline <> rbrace) hardline (indent 2 . pretty <$> catchp) <> finallyp')
+  where
+    finallyp' =
+      foldMap (\p -> space <> "finally" <+> pretty p) finallyp
+prettyTerm (TermTryWithHandler expr catchp finallyp) =
   ScalaDoc
     TermGroupExpr1
-    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> pretty catchp)
+    ("try" <+> parensLeft TermGroupExpr (prettyTerm expr) <+> "catch" <+> pretty catchp <> finallyp')
+  where
+    finallyp' =
+      foldMap (\p -> space <> "finally" <+> pretty p) finallyp
 prettyTerm (TermFunction params body) =
   ScalaDoc
     TermGroupExpr
@@ -1631,11 +1640,15 @@ data Template
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Template where
-  pretty (Template _early inits self stats) =
+  pretty (Template early inits self stats) =
     hardlines
-      ( [inits' <> "{" <> pretty self, doubleHardlines (indent 2 . pretty <$> stats), "}"]
+      ( [early' <> inits' <> "{" <> pretty self, doubleHardlines (indent 2 . pretty <$> stats), "}"]
       )
     where
+      early' =
+        if null early
+          then mempty
+          else braces (concatWith (surround (semi <> space)) (pretty <$> early)) <> " with "
       inits' =
         if null inits
           then mempty
