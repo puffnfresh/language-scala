@@ -1192,14 +1192,16 @@ instance FromJSON Term where
 data Enumerator
   = EnumeratorGenerator Pat Term
   | EnumeratorVal Pat Term
-  --- | EnumeratorGuard Term
+  | EnumeratorGuard Term
   deriving (Eq, Ord, Read, Show)
 
 instance Pretty Enumerator where
   pretty (EnumeratorGenerator pat rhs) =
-    pretty pat <+> "<-" <+> pretty rhs
+    parensLeft PatGroupPattern1 (prettyPat pat) <+> "<-" <+> parensLeft TermGroupExpr (prettyTerm rhs)
   pretty (EnumeratorVal pat rhs) =
-    pretty pat <+> "=" <+> pretty rhs
+    parensLeft PatGroupPattern1 (prettyPat pat) <+> "=" <+> parensLeft TermGroupExpr (prettyTerm rhs)
+  pretty (EnumeratorGuard cond) =
+    "if" <+> parensLeft TermGroupPostfixExpr (prettyTerm cond)
 
 parseEnumerator :: Text -> Object -> MaybeT Parser Enumerator
 parseEnumerator t o =
@@ -1215,6 +1217,11 @@ parseEnumerator t o =
         ( EnumeratorVal
             <$> o .: "pat"
             <*> o .: "rhs"
+        )
+    "Enumerator.Guard" ->
+      lift
+        ( EnumeratorGuard
+            <$> o .: "cond"
         )
     _ ->
       empty
