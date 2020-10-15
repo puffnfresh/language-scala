@@ -41,6 +41,7 @@ where
 import Control.Applicative (Alternative (empty))
 import Control.Monad.Trans.Class (MonadTrans (lift))
 import Control.Monad.Trans.Maybe (MaybeT (runMaybeT))
+import Control.Monad.Writer (Writer, runWriter, tell)
 import Data.Aeson
   ( FromJSON (parseJSON),
     Object,
@@ -93,7 +94,13 @@ data Source
 
 instance Pretty Source where
   pretty (Source stats) =
-    hardlines (pretty <$> stats)
+    doubleHardlines
+      [ hardlines (("package" <+>) . pretty <$> refs),
+        doubleHardlines (pretty <$> stats')
+      ]
+    where
+      (stats', refs) =
+        packages stats
 
 instance FromJSON Source where
   parseJSON =
@@ -123,11 +130,11 @@ instance Pretty Stat where
   pretty (StatImport importers) =
     "import" <+> hsep (punctuate comma (pretty <$> importers))
   pretty (StatPkg ref stats) =
-    "package" <+> pretty ref <+> hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace])
+    "package" <+> pretty ref <+> hardlines ([lbrace, doubleHardlines (indent 2 . pretty <$> stats), rbrace])
   pretty (StatPkgObject mods name templ) =
     "package" <+> hsep (pretty <$> mods) <+> "object" <+> pretty name <+> pretty templ
   pretty (StatCtorSecondary mods paramss init' stats) =
-    hsep (pretty <$> mods) <+> "def this" <> paramss' <+> "=" <+> stats'
+    hsep ((pretty <$> mods) <> ["def this" <> paramss', "=", stats'])
     where
       paramss' =
         foldMap (\p -> tupled (pretty <$> p)) paramss
@@ -400,14 +407,14 @@ data Pat
   | PatTermSelect Term Text
   | PatVar Text
   | PatWildcard
-  | --- | PatSeqWildcard
-    PatBind Pat Pat
+  | PatSeqWildcard
+  | PatBind Pat Pat
   | PatAlternative Pat Pat
   | PatTuple [Pat]
   | PatExtract Term [Pat]
   | PatExtractInfix Pat Text [Pat]
-  | --- | PatInterpolate Text [Lit] [Pat]
-    --- | PatXml [Lit] [Pat]
+  | PatInterpolate Text [Lit] [Pat]
+  | --- | PatXml [Lit] [Pat]
     PatTyped Pat Type
   deriving (Eq, Ord, Read, Show)
 
@@ -422,6 +429,8 @@ prettyPat (PatVar name) =
   ScalaDoc PatGroupSimplePattern (pretty name)
 prettyPat PatWildcard =
   ScalaDoc PatGroupSimplePattern "_"
+prettyPat PatSeqWildcard =
+  ScalaDoc PatGroupSimplePattern "_*"
 prettyPat (PatBind lhs rhs) =
   ScalaDoc
     PatGroupPattern2
@@ -446,8 +455,18 @@ prettyPat (PatExtract fun args) =
   ScalaDoc PatGroupSimplePattern (pretty fun <+> tupled (pretty <$> args))
 prettyPat (PatExtractInfix lhs op rhs) =
   ScalaDoc (PatGroupPattern3 op) (pretty lhs <+> pretty op <+> tupled (pretty <$> rhs))
+prettyPat (PatInterpolate prefix parts args) =
+  ScalaDoc
+    PatGroupSimplePattern
+    (pretty prefix <> "\"" <> go parts args <> "\"")
+  where
+    go (LitString p : ps) (a : as) =
+      pretty p <> "${" <> pretty a <> "}" <> go ps as
+    go (LitString p : _) _ =
+      pretty p
+    go _ _ =
+      mempty
 prettyPat (PatTyped lhs rhs) =
-  -- parensLeft TypeGroupRefineTyp (prettyType rhs)
   ScalaDoc PatGroupPattern1 (parensLeft PatGroupSimplePattern (prettyPat lhs) <> ":" <+> pretty rhs)
 
 instance Pretty Pat where
@@ -475,6 +494,8 @@ parsePat t o =
         )
     "Pat.Wildcard" ->
       pure PatWildcard
+    "Pat.SeqWildcard" ->
+      pure PatSeqWildcard
     "Pat.Bind" ->
       lift
         ( PatBind
@@ -504,6 +525,13 @@ parsePat t o =
             <$> o .: "lhs"
             <*> explicitParseField nameParser o "op"
             <*> o .: "rhs"
+        )
+    "Pat.Interpolate" ->
+      lift
+        ( PatInterpolate
+            <$> explicitParseField nameParser o "prefix"
+            <*> o .: "parts"
+            <*> o .: "args"
         )
     "Pat.Typed" ->
       lift
@@ -813,8 +841,8 @@ data Term
   | TermApplyInfix Term Text [Type] [Term]
   | TermApplyUnary Text Term
   | TermAssign Term Term
-  | --- | TermReturn Term
-    TermThrow Term
+  | TermReturn Term
+  | TermThrow Term
   | TermAscribe Term Type
   | TermAnnotate Term [Init]
   | TermTuple [Term]
@@ -825,10 +853,10 @@ data Term
   | --- | TermTryWithHandler Term Term (Maybe Term)
     TermFunction [TermParam] Term
   | TermPartialFunction [Case]
-  | --- | TermWhile Term Term
-    --- | TermDo Term Term
-    --- | TermFor [Enumerator] Term
-    TermForYield [Enumerator] Term
+  | TermWhile Term Term
+  | TermDo Term Term
+  | TermFor [Enumerator] Term
+  | TermForYield [Enumerator] Term
   | TermNew Init
   | TermNewAnonymous Template
   | TermPlaceholder
@@ -902,6 +930,10 @@ prettyTerm (TermLit lit) =
   ScalaDoc
     TermGroupLiteral
     (pretty lit)
+prettyTerm (TermReturn expr) =
+  ScalaDoc
+    TermGroupExpr1
+    ("return" <+> parensLeft TermGroupExpr (prettyTerm expr))
 prettyTerm (TermThrow expr) =
   ScalaDoc
     TermGroupExpr1
@@ -921,7 +953,7 @@ prettyTerm (TermTuple args) =
 prettyTerm (TermBlock stats) =
   ScalaDoc
     TermGroupSimpleExpr
-    (hardlines ([lbrace] <> (indent 2 . pretty <$> stats) <> [rbrace]))
+    (hardlines ([lbrace, doubleHardlines (indent 2 . pretty <$> stats), rbrace]))
 prettyTerm (TermIf cond thenp elsep) =
   ScalaDoc
     TermGroupExpr1
@@ -953,6 +985,18 @@ prettyTerm (TermPartialFunction cases) =
             <> [rbrace]
         )
     )
+prettyTerm (TermWhile expr body) =
+  ScalaDoc
+    TermGroupExpr1
+    ("while" <+> parens (pretty expr) <+> parensLeft TermGroupExpr (prettyTerm body))
+prettyTerm (TermDo body expr) =
+  ScalaDoc
+    TermGroupExpr1
+    ("do" <+> parensLeft TermGroupExpr (prettyTerm body) <+> "while" <+> parens (pretty expr))
+prettyTerm (TermFor enums body) =
+  ScalaDoc
+    TermGroupExpr1
+    ("for" <+> hardlines ([lbrace] <> (indent 2 . pretty <$> enums) <> [rbrace]) <+> pretty body)
 prettyTerm (TermForYield enums body) =
   ScalaDoc
     TermGroupExpr1
@@ -1024,6 +1068,11 @@ parseTerm t o =
             <$> o .: "lhs"
             <*> o .: "rhs"
         )
+    "Term.Return" ->
+      lift
+        ( TermReturn
+            <$> o .: "expr"
+        )
     "Term.Throw" ->
       lift
         ( TermThrow
@@ -1081,6 +1130,24 @@ parseTerm t o =
       lift
         ( TermPartialFunction
             <$> o .: "cases"
+        )
+    "Term.While" ->
+      lift
+        ( TermWhile
+            <$> o .: "expr"
+            <*> o .: "body"
+        )
+    "Term.Do" ->
+      lift
+        ( TermDo
+            <$> o .: "body"
+            <*> o .: "expr"
+        )
+    "Term.For" ->
+      lift
+        ( TermFor
+            <$> o .: "enums"
+            <*> o .: "body"
         )
     "Term.ForYield" ->
       lift
@@ -1416,7 +1483,16 @@ data Importer
 
 instance Pretty Importer where
   pretty (Importer ref importees) =
-    pretty ref <> "." <> encloseSep lbrace rbrace (comma <> space) (pretty <$> importees)
+    pretty ref <> "." <> importees'
+    where
+      importees' =
+        case importees of
+          [importee@ImporteeWildcard] ->
+            pretty importee
+          [importee@(ImporteeName _)] ->
+            pretty importee
+          _ ->
+            encloseSep lbrace rbrace (comma <> space) (pretty <$> importees)
 
 instance FromJSON Importer where
   parseJSON =
@@ -1505,9 +1581,7 @@ data Template
 instance Pretty Template where
   pretty (Template _early inits self stats) =
     hardlines
-      ( [inits' <> "{" <> pretty self]
-          <> (indent 2 . pretty <$> stats)
-          <> ["}"]
+      ( [inits' <> "{" <> pretty self, doubleHardlines (indent 2 . pretty <$> stats), "}"]
       )
     where
       inits' =
@@ -1799,9 +1873,24 @@ prettyTemplate templ@(Template _ inits _ _) =
     then pretty templ
     else "extends" <+> pretty templ
 
+packages :: [Stat] -> ([Stat], [TermRef])
+packages stats =
+  runWriter (go stats)
+  where
+    go :: [Stat] -> Writer [TermRef] [Stat]
+    go [StatPkg ref stats'] = do
+      tell [ref]
+      go stats'
+    go stats' =
+      pure stats'
+
 hardlines :: [Doc ann] -> Doc ann
 hardlines =
   concatWith (surround hardline)
+
+doubleHardlines :: [Doc ann] -> Doc ann
+doubleHardlines =
+  concatWith (surround (hardline <> hardline))
 
 nameParser :: Value -> Parser Text
 nameParser =
