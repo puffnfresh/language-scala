@@ -1779,7 +1779,35 @@ data TypeGroup
   | TypeGroupAnnotType
   | TypeGroupSimpleType
   | TypeGroupPath
-  deriving (Eq, Ord, Read, Show)
+  deriving (Read, Show)
+
+instance Eq TypeGroup where
+  x == y =
+    compare x y == EQ
+
+instance Ord TypeGroup where
+  compare =
+    comparing f
+    where
+      f :: TypeGroup -> Word
+      f TypeGroupParamType =
+        0
+      f TypeGroupType =
+        1
+      f TypeGroupAnyInfixType =
+        2
+      f (TypeGroupInfixType _) =
+        3
+      f TypeGroupRefineType =
+        4
+      f TypeGroupWithType =
+        5
+      f TypeGroupAnnotType =
+        6
+      f TypeGroupSimpleType =
+        7
+      f TypeGroupPath =
+        7
 
 data TermGroup
   = TermGroupExpr
@@ -1791,7 +1819,35 @@ data TermGroup
   | TermGroupSimpleExpr1
   | TermGroupLiteral
   | TermGroupPath
-  deriving (Eq, Ord, Read, Show)
+  deriving (Read, Show)
+
+instance Eq TermGroup where
+  x == y =
+    compare x y == EQ
+
+instance Ord TermGroup where
+  compare =
+    comparing f
+    where
+      f :: TermGroup -> Word
+      f TermGroupExpr =
+        0
+      f TermGroupExpr1 =
+        1
+      f TermGroupPostfixExpr =
+        2
+      f (TermGroupInfixExpr _) =
+        3
+      f TermGroupPrefixExpr =
+        4
+      f TermGroupSimpleExpr =
+        5
+      f TermGroupSimpleExpr1 =
+        6
+      f TermGroupLiteral =
+        6
+      f TermGroupPath =
+        6
 
 data PatGroup
   = PatGroupPattern
