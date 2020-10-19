@@ -1,8 +1,6 @@
 {-
-Calls out to the scalameta-parsers npm library using node. The library parses
-the pretty printed Scala code and dumps out the AST in JSON. We compare the JSON
-to the version we parsed from the original file, to ensure the pretty printer
-doesn't accidentally change syntax.
+We compare the JSON to the version we parsed from the original file, to ensure
+the pretty printer doesn't accidentally change syntax.
 -}
 
 module Main where
@@ -12,10 +10,10 @@ import Data.Text.Lazy (pack)
 import Data.Text.Lazy.Encoding (encodeUtf8)
 import Data.Text.Prettyprint.Doc (Pretty (pretty))
 import Language.Scala (Source)
-import System.Process (readProcess)
+import Language.Scala.Parser.External (runNodeScalametaParsers)
+import System.FilePath (dropExtension, takeBaseName, (</>))
 import Test.Tasty (TestTree, defaultMain, testGroup)
 import Test.Tasty.Golden (findByExtension, goldenVsStringDiff)
-import System.FilePath (dropExtension, takeBaseName, (</>))
 
 main :: IO ()
 main =
@@ -25,8 +23,7 @@ scalametaParserTest :: FilePath -> TestTree
 scalametaParserTest f =
   goldenVsStringDiff (dropExtension (takeBaseName f)) (\ref new -> ["diff", "-u", ref, new]) f $ do
     parsed <- eitherDecodeFileStrict f :: IO (Either String Source)
-    let script = "test" </> "scalameta-parsers" </> "scalameta-parsers-to-json.js"
-    either error ((encodeUtf8 . pack <$>) . readProcess "node" [script] . show . pretty) parsed
+    either error ((encodeUtf8 . pack <$>) . runNodeScalametaParsers . show . pretty) parsed
 
 tests :: IO TestTree
 tests =

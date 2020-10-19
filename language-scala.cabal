@@ -9,10 +9,14 @@ maintainer:          brian@brianmckenna.org
 category:            Language
 build-type:          Simple
 cabal-version:       >=1.10
+data-files:          scalameta-parsers-to-json.js
+data-dir:            vendor
 
 library
   build-depends:       base >=4.6 && < 5
                      , mtl >=1.0 && <2.3
+                     , bytestring >=0.10 && <0.11
+                     , process >=1.6 && <1.7
                      , text >=0.1 && <1.3
                      , transformers >=0.1.3.0 && <0.6
                      , aeson >=1.1.0.0 && <1.6
@@ -21,6 +25,8 @@ library
   ghc-options:         -Wall
   hs-source-dirs:      src
   exposed-modules:     Language.Scala
+                     , Language.Scala.Parser.External
+  other-modules:       Paths_language_scala
   default-language:    Haskell2010
 
 test-suite language-scala-golden
@@ -50,4 +56,5 @@ test-suite language-scala-scalameta-parsers
                      , process
                      , prettyprinter
                      , language-scala
+                     , transformers
   default-language:    Haskell2010
