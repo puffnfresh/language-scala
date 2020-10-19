@@ -42,7 +42,7 @@ instance FromJSON NodeResult where
           a
 
 -- | Runs the npm library "scalameta-parsers" on the input Scala code. Outputs
--- JSON representing the Scala syntax tree.
+-- JSON representing the Scala syntax tree. Requires "node" on PATH.
 runNodeScalametaParsers :: String -> IO String
 runNodeScalametaParsers s = do
   script <- getDataFileName "scalameta-parsers-to-json.js"
