@@ -430,8 +430,8 @@ data Pat
   | PatExtract Term [Pat]
   | PatExtractInfix Pat Text [Pat]
   | PatInterpolate Text [Lit] [Pat]
-  | --- | PatXml [Lit] [Pat]
-    PatTyped Pat Type
+  | PatXml [Lit] [Pat]
+  | PatTyped Pat Type
   deriving (Eq, Ord, Read, Show)
 
 prettyPat :: Pat -> ScalaDoc PatGroup
@@ -482,8 +482,21 @@ prettyPat (PatInterpolate prefix parts args) =
       pretty p
     go _ _ =
       mempty
+prettyPat (PatXml parts args) =
+  ScalaDoc
+    PatGroupPattern1
+    (go parts args)
+  where
+    go (LitString p : ps) (a : as) =
+      pretty p <> "{" <> pretty a <> "}" <> go ps as
+    go (LitString p : _) _ =
+      pretty p
+    go _ _ =
+      mempty
 prettyPat (PatTyped lhs rhs) =
-  ScalaDoc PatGroupPattern1 (parensLeft PatGroupSimplePattern (prettyPat lhs) <> ":" <+> pretty rhs)
+  ScalaDoc
+    PatGroupPattern1
+    (parensLeft PatGroupSimplePattern (prettyPat lhs) <> ":" <+> pretty rhs)
 
 instance Pretty Pat where
   pretty =
@@ -547,6 +560,12 @@ parsePat t o =
         ( PatInterpolate
             <$> explicitParseField nameParser o "prefix"
             <*> o .: "parts"
+            <*> o .: "args"
+        )
+    "Pat.Xml" ->
+      lift
+        ( PatXml
+            <$> o .: "parts"
             <*> o .: "args"
         )
     "Pat.Typed" ->
@@ -872,8 +891,8 @@ data Term
   = TermLit Lit
   | TermRef TermRef
   | TermInterpolate Text [Lit] [Term]
-  | --- | TermXml [Lit] [Term]
-    TermApply Term [Term]
+  | TermXml [Lit] [Term]
+  | TermApply Term [Term]
   | TermApplyType Term [Type]
   | TermApplyInfix Term Text [Type] [Term]
   | TermApplyUnary Text Term
@@ -911,6 +930,17 @@ prettyTerm (TermInterpolate prefix parts args) =
   where
     go (LitString p : ps) (a : as) =
       pretty p <> "${" <> pretty a <> "}" <> go ps as
+    go (LitString p : _) _ =
+      pretty p
+    go _ _ =
+      mempty
+prettyTerm (TermXml parts args) =
+  ScalaDoc
+    TermGroupSimpleExpr1
+    (go parts args)
+  where
+    go (LitString p : ps) (a : as) =
+      pretty p <> "{" <> pretty a <> "}" <> go ps as
     go (LitString p : _) _ =
       pretty p
     go _ _ =
@@ -1081,6 +1111,12 @@ parseTerm t o =
         ( TermInterpolate
             <$> explicitParseField nameParser o "prefix"
             <*> o .: "parts"
+            <*> o .: "args"
+        )
+    "Term.Xml" ->
+      lift
+        ( TermXml
+            <$> o .: "parts"
             <*> o .: "args"
         )
     "Term.Apply" ->
