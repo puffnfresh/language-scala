@@ -267,8 +267,8 @@ data Defn
   = DefnVal [Mod] [Pat] (Maybe Type) Term
   | DefnVar [Mod] [Pat] (Maybe Type) (Maybe Term)
   | DefnDef [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
-  | --- | DefnMacro [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
-    DefnType [Mod] Text [TypeParam] Type
+  | DefnMacro [Mod] Text [TypeParam] [[TermParam]] (Maybe Type) Term
+  | DefnType [Mod] Text [TypeParam] Type
   | DefnClass [Mod] Text [TypeParam] CtorPrimary Template
   | DefnTrait [Mod] Text [TypeParam] CtorPrimary Template
   | DefnObject [Mod] Text Template
@@ -281,31 +281,37 @@ prettyDefnValVar mods pats decltpe body n =
       indent 2 (pretty body)
     ]
 
+prettyDefnDefMacro :: [Mod] -> Text -> [TypeParam] -> [[TermParam]] -> Maybe Type -> Doc ann -> Doc ann
+prettyDefnDefMacro mods name tparams paramss decltpe body =
+  hardlines
+    [ hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe', "="]),
+      indent 2 body
+    ]
+  where
+    decltpe' =
+      prettyDecltpeWithName tparams paramss name decltpe
+    tparams' =
+      if null tparams
+        then mempty
+        else list (pretty <$> tparams)
+    paramss' =
+      foldMap (\p -> tupled (pretty <$> dropImplicits p)) paramss
+    dropImplicits (p : ps) =
+      p : (removeImplicit <$> ps)
+    dropImplicits [] =
+      []
+    removeImplicit (TermParam mods' name' decltpe'' default') =
+      TermParam (filter (/= ModImplicit) mods') name' decltpe'' default'
+
 instance Pretty Defn where
   pretty (DefnVal mods pats decltpe body) =
     prettyDefnValVar mods pats decltpe (Just body) "val"
   pretty (DefnVar mods pats decltpe body) =
     prettyDefnValVar mods pats decltpe body "var"
   pretty (DefnDef mods name tparams paramss decltpe body) =
-    hardlines
-      [ hsep ((pretty <$> mods) ++ ["def", pretty name <> tparams' <> paramss' <> decltpe', "="]),
-        indent 2 (pretty body)
-      ]
-    where
-      decltpe' =
-        prettyDecltpeWithName tparams paramss name decltpe
-      tparams' =
-        if null tparams
-          then mempty
-          else list (pretty <$> tparams)
-      paramss' =
-        foldMap (\p -> tupled (pretty <$> dropImplicits p)) paramss
-      dropImplicits (p : ps) =
-        p : (removeImplicit <$> ps)
-      dropImplicits [] =
-        []
-      removeImplicit (TermParam mods' name' decltpe'' default') =
-        TermParam (filter (/= ModImplicit) mods') name' decltpe'' default'
+    prettyDefnDefMacro mods name tparams paramss decltpe (pretty body)
+  pretty (DefnMacro mods name tparams paramss decltpe body) =
+    prettyDefnDefMacro mods name tparams paramss decltpe (hsep ["macro", pretty body])
   pretty (DefnObject mods name templ) =
     hsep ((pretty <$> mods) ++ ["object", pretty name, prettyTemplate templ])
   pretty (DefnTrait mods name tparams ctor templ) =
@@ -352,6 +358,16 @@ parseDefn t o =
     "Defn.Def" ->
       lift
         ( DefnDef
+            <$> o .: "mods"
+            <*> explicitParseField nameParser o "name"
+            <*> o .: "tparams"
+            <*> o .: "paramss"
+            <*> o .:? "decltpe"
+            <*> o .: "body"
+        )
+    "Defn.Macro" ->
+      lift
+        ( DefnMacro
             <$> o .: "mods"
             <*> explicitParseField nameParser o "name"
             <*> o .: "tparams"
